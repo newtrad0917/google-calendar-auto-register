@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f4f6f8;
+      --surface: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --line: #dfe3e7;
+      --primary: #1769aa;
+      --primary-hover: #12558b;
+      --voice: #147d64;
+      --voice-hover: #106650;
+      --danger: #b3261e;
+      --danger-bg: #fce8e6;
+      --success: #116b4d;
+      --success-bg: #e6f4ea;
+      --info-bg: #e8f0fe;
+      --focus: #8ab4f8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding:
+        max(24px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+      color: var(--text);
+      background: var(--page);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP",
+        sans-serif;
+      line-height: 1.6;
+    }
+
+    .app {
+      width: min(100%, 680px);
+      margin: 0 auto;
+    }
+
+    .app-header {
+      margin-bottom: 18px;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: clamp(24px, 7vw, 32px);
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .app-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .step-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin: 0 0 12px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .step {
+      padding: 7px 4px;
+      border-bottom: 3px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .step.active {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 4px 18px rgba(32, 33, 36, 0.07);
+    }
+
+    .section-title {
+      margin: 0 0 4px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .section-description {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .field {
+      margin-top: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input,
+    textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #bdc1c6;
+      border-radius: 6px;
+      color: var(--text);
+      background: var(--surface);
+      font: inherit;
+      font-size: 16px;
+      line-height: 1.5;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    button:focus-visible {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 6px;
+      color: #ffffff;
+      background: var(--primary);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 120ms ease, transform 120ms ease;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+      transform: none;
+    }
+
+    .voice-button {
+      background: var(--voice);
+    }
+
+    .voice-button:hover {
+      background: var(--voice-hover);
+    }
+
+    .voice-button.listening {
+      background: var(--danger);
+    }
+
+    .secondary-button {
+      border: 1px solid #bdc1c6;
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .secondary-button:hover {
+      background: #f1f3f4;
+    }
+
+    .voice-status {
+      min-height: 24px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .voice-status.success {
+      color: var(--success);
+    }
+
+    .voice-status.error {
+      color: var(--danger);
+    }
+
+    .message {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 6px;
+      color: var(--primary);
+      background: var(--info-bg);
+      font-size: 14px;
+    }
+
+    .message.error {
+      color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .message.success {
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding-top: max(16px, env(safe-area-inset-top));
+      }
+
+      .panel {
+        padding: 18px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1 class="app-title">かんたん予定登録</h1>
+      <p class="app-subtitle">予定を入力して、内容を確認してからカレンダーへ登録します。</p>
+    </header>
+
+    <ol class="step-list" aria-label="登録手順">
+      <li id="inputStep" class="step active">1. 入力</li>
+      <li id="confirmStep" class="step">2. 確認</li>
+      <li class="step">3. 登録</li>
+    </ol>
+
+    <div class="panel">
+      <section id="inputSection">
+        <h2 class="section-title">予定を入力</h2>
+        <p class="section-description">
+          文字入力または音声入力で、予定の内容を入力してください。
+        </p>
+
+        <div class="field">
+          <label for="originalText">予定文</label>
+          <textarea
+            id="originalText"
+            rows="5"
+            placeholder="例：明日10時からABC病院でLED提案、1時間"
+          ></textarea>
+        </div>
+
+        <div class="actions">
+          <!-- Ver2 音声入力追加 -->
+          <button type="button" id="voiceInputButton" class="voice-button">
+            音声入力を開始
+          </button>
+          <p
+            id="voiceInputMessage"
+            class="voice-status"
+            role="status"
+            aria-live="polite"
+          ></p>
+
+          <button type="button" onclick="showConfirmation()">
+            確認画面へ
+          </button>
+        </div>
+      </section>
+
+      <section id="confirmSection" class="hidden">
+        <h2 class="section-title">登録前の確認</h2>
+        <p class="section-description">
+          必要に応じて内容を直してから登録してください。
+        </p>
+
+        <div class="field">
+          <label for="title">タイトル</label>
+          <input id="title" type="text">
+        </div>
+
+        <div class="field">
+          <label for="startTime">開始日時</label>
+          <input id="startTime" type="datetime-local">
+        </div>
+
+        <div class="field">
+          <label for="durationMinutes">所要時間（分）</label>
+          <input id="durationMinutes" type="number" value="60" min="1">
+        </div>
+
+        <div class="field">
+          <label for="location">場所</label>
+          <input id="location" type="text" placeholder="例：ABC病院">
+        </div>
+
+        <div class="field">
+          <label for="memo">メモ</label>
+          <textarea id="memo" rows="5"></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="registerButton" onclick="registerEvent()">
+            Googleカレンダーに登録
+          </button>
+          <button type="button" class="secondary-button" onclick="goBack()">
+            入力画面に戻る
+          </button>
+        </div>
+      </section>
+
+      <div id="message" class="message hidden" role="status" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <script>
+    /**
+     * 入力画面から確認画面へ進みます。
+     * Ver1ではAI解析を行わず、予定文をタイトルとメモへコピーします。
+     */
+    function showConfirmation() {
+      const originalText =
+        document.getElementById('originalText').value.trim();
+
+      if (!originalText) {
+        showMessage('予定文を入力してください。', true);
+        return;
+      }
+
+      document.getElementById('title').value = originalText;
+      document.getElementById('memo').value =
+        '入力した予定文：\n' + originalText;
+
+      document.getElementById('inputSection').classList.add('hidden');
+      document.getElementById('confirmSection').classList.remove('hidden');
+      document.getElementById('inputStep').classList.remove('active');
+      document.getElementById('confirmStep').classList.add('active');
+      hideMessage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * 確認画面から最初の画面へ戻ります。
+     */
+    function goBack() {
+      document.getElementById('confirmSection').classList.add('hidden');
+      document.getElementById('inputSection').classList.remove('hidden');
+      document.getElementById('confirmStep').classList.remove('active');
+      document.getElementById('inputStep').classList.add('active');
+      hideMessage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * Apps Scriptの関数を呼び出して、予定を登録します。
+     */
+    function registerEvent() {
+      const startValue = document.getElementById('startTime').value;
+
+      if (!startValue) {
+        showMessage('開始日時を入力してください。', true);
+        return;
+      }
+
+      // 入力項目を一つのデータにまとめます。
+      const data = {
+        title: document.getElementById('title').value.trim(),
+        startIso: new Date(startValue).toISOString(),
+        durationMinutes:
+          document.getElementById('durationMinutes').value,
+        location: document.getElementById('location').value.trim(),
+        memo: document.getElementById('memo').value.trim()
+      };
+
+      const button = document.getElementById('registerButton');
+      button.disabled = true;
+      button.textContent = '登録中...';
+
+      // Code.gs の createCalendarEvent 関数を呼び出します。
+      google.script.run
+        .withSuccessHandler(function(result) {
+          showMessage(result.message + ' カレンダーを確認してください。');
+          button.disabled = false;
+          button.textContent = 'Googleカレンダーに登録';
+        })
+        .withFailureHandler(function(error) {
+          showMessage('エラー：' + error.message, true);
+          button.disabled = false;
+          button.textContent = 'Googleカレンダーに登録';
+        })
+        .createCalendarEvent(data);
+    }
+
+    /**
+     * 完了メッセージまたはエラーを画面に表示します。
+     */
+    function showMessage(text, isError) {
+      const message = document.getElementById('message');
+      message.textContent = text;
+      message.classList.remove('hidden', 'error', 'success');
+      message.classList.add(isError ? 'error' : 'success');
+    }
+
+    /**
+     * 古いメッセージを隠します。
+     */
+    function hideMessage() {
+      document.getElementById('message').classList.add('hidden');
+    }
+
+    // Ver2 音声入力追加
+    document.addEventListener('DOMContentLoaded', function() {
+      const voiceInputButton = document.getElementById('voiceInputButton');
+      const voiceInputMessage = document.getElementById('voiceInputMessage');
+      const originalText = document.getElementById('originalText');
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        voiceInputButton.disabled = true;
+        setVoiceMessage(
+          'このブラウザは音声入力に対応していません。文字入力をご利用ください。',
+          'error'
+        );
+        return;
+      }
+
+      voiceInputButton.addEventListener('click', function() {
+        // iPhone Safariでの再実行を安定させるため、押すたびに新しく作成します。
+        const recognition = new SpeechRecognition();
+        let resultReceived = false;
+
+        recognition.lang = 'ja-JP';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        voiceInputButton.disabled = true;
+        voiceInputButton.classList.add('listening');
+        voiceInputButton.textContent = '聞き取り中...';
+        setVoiceMessage('マイクに向かって予定を話してください。', '');
+
+        recognition.onresult = function(event) {
+          let transcript = '';
+
+          for (let index = event.resultIndex; index < event.results.length; index++) {
+            transcript += event.results[index][0].transcript;
+          }
+
+          transcript = transcript.trim();
+
+          if (!transcript) {
+            return;
+          }
+
+          resultReceived = true;
+          originalText.value = transcript;
+          originalText.dispatchEvent(new Event('input', { bubbles: true }));
+          originalText.dispatchEvent(new Event('change', { bubbles: true }));
+          setVoiceMessage('音声を文字に変換しました。内容を確認してください。', 'success');
+          originalText.focus();
+        };
+
+        recognition.onerror = function(event) {
+          const errorMessages = {
+            'not-allowed': 'マイクの使用が許可されていません。Safariの設定をご確認ください。',
+            'service-not-allowed': '音声認識サービスを利用できません。',
+            'audio-capture': 'マイクを利用できません。端末のマイク設定をご確認ください。',
+            'no-speech': '音声を聞き取れませんでした。もう一度お試しください。',
+            'network': '通信エラーが発生しました。通信状態をご確認ください。',
+            'aborted': '音声入力を中止しました。'
+          };
+
+          setVoiceMessage(
+            errorMessages[event.error] || '音声入力でエラーが発生しました。もう一度お試しください。',
+            'error'
+          );
+        };
+
+        recognition.onnomatch = function() {
+          setVoiceMessage('音声を認識できませんでした。もう一度お試しください。', 'error');
+        };
+
+        recognition.onend = function() {
+          voiceInputButton.disabled = false;
+          voiceInputButton.classList.remove('listening');
+          voiceInputButton.textContent = '音声入力を開始';
+
+          if (!resultReceived && !voiceInputMessage.textContent) {
+            setVoiceMessage('音声を聞き取れませんでした。もう一度お試しください。', 'error');
+          }
+        };
+
+        try {
+          recognition.start();
+        } catch (error) {
+          voiceInputButton.disabled = false;
+          voiceInputButton.classList.remove('listening');
+          voiceInputButton.textContent = '音声入力を開始';
+          setVoiceMessage('音声入力を開始できませんでした。少し待ってからお試しください。', 'error');
+        }
+      });
+
+      function setVoiceMessage(text, type) {
+        voiceInputMessage.textContent = text;
+        voiceInputMessage.classList.remove('success', 'error');
+
+        if (type) {
+          voiceInputMessage.classList.add(type);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
