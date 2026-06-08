@@ -221,6 +221,15 @@
       color: var(--danger);
     }
 
+    .voice-guide {
+      margin: -2px 0 0;
+      padding: 10px 12px;
+      border-left: 3px solid var(--voice);
+      color: var(--muted);
+      background: #eef7f4;
+      font-size: 13px;
+    }
+
     .message {
       margin-top: 14px;
       padding: 12px 14px;
@@ -288,7 +297,7 @@
         <div class="actions">
           <!-- Ver2 音声入力追加 -->
           <button type="button" id="voiceInputButton" class="voice-button">
-            音声入力を開始
+            音声入力の使い方
           </button>
           <p
             id="voiceInputMessage"
@@ -296,6 +305,9 @@
             role="status"
             aria-live="polite"
           ></p>
+          <p id="iphoneVoiceGuide" class="voice-guide hidden">
+            予定文の入力欄をタップし、iPhoneキーボードのマイクボタンから音声入力してください。
+          </p>
 
           <button type="button" onclick="showConfirmation()">
             確認画面へ
@@ -447,103 +459,13 @@
     document.addEventListener('DOMContentLoaded', function() {
       const voiceInputButton = document.getElementById('voiceInputButton');
       const voiceInputMessage = document.getElementById('voiceInputMessage');
-      const originalText = document.getElementById('originalText');
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        voiceInputButton.disabled = true;
-        setVoiceMessage(
-          'このブラウザは音声入力に対応していません。文字入力をご利用ください。',
-          'error'
-        );
-        return;
-      }
+      const iphoneVoiceGuide = document.getElementById('iphoneVoiceGuide');
 
       voiceInputButton.addEventListener('click', function() {
-        // iPhone Safariでの再実行を安定させるため、押すたびに新しく作成します。
-        const recognition = new SpeechRecognition();
-        let resultReceived = false;
-
-        recognition.lang = 'ja-JP';
-        recognition.interimResults = false;
-        recognition.continuous = false;
-        recognition.maxAlternatives = 1;
-
-        voiceInputButton.disabled = true;
-        voiceInputButton.classList.add('listening');
-        voiceInputButton.textContent = '聞き取り中...';
-        setVoiceMessage('マイクに向かって予定を話してください。', '');
-
-        recognition.onresult = function(event) {
-          let transcript = '';
-
-          for (let index = event.resultIndex; index < event.results.length; index++) {
-            transcript += event.results[index][0].transcript;
-          }
-
-          transcript = transcript.trim();
-
-          if (!transcript) {
-            return;
-          }
-
-          resultReceived = true;
-          originalText.value = transcript;
-          originalText.dispatchEvent(new Event('input', { bubbles: true }));
-          originalText.dispatchEvent(new Event('change', { bubbles: true }));
-          setVoiceMessage('音声を文字に変換しました。内容を確認してください。', 'success');
-          originalText.focus();
-        };
-
-        recognition.onerror = function(event) {
-          const errorMessages = {
-            'not-allowed': 'マイクの使用が許可されていません。Safariの設定をご確認ください。',
-            'service-not-allowed': '音声認識サービスを利用できません。',
-            'audio-capture': 'マイクを利用できません。端末のマイク設定をご確認ください。',
-            'no-speech': '音声を聞き取れませんでした。もう一度お試しください。',
-            'network': '通信エラーが発生しました。通信状態をご確認ください。',
-            'aborted': '音声入力を中止しました。'
-          };
-
-          setVoiceMessage(
-            errorMessages[event.error] || '音声入力でエラーが発生しました。もう一度お試しください。',
-            'error'
-          );
-        };
-
-        recognition.onnomatch = function() {
-          setVoiceMessage('音声を認識できませんでした。もう一度お試しください。', 'error');
-        };
-
-        recognition.onend = function() {
-          voiceInputButton.disabled = false;
-          voiceInputButton.classList.remove('listening');
-          voiceInputButton.textContent = '音声入力を開始';
-
-          if (!resultReceived && !voiceInputMessage.textContent) {
-            setVoiceMessage('音声を聞き取れませんでした。もう一度お試しください。', 'error');
-          }
-        };
-
-        try {
-          recognition.start();
-        } catch (error) {
-          voiceInputButton.disabled = false;
-          voiceInputButton.classList.remove('listening');
-          voiceInputButton.textContent = '音声入力を開始';
-          setVoiceMessage('音声入力を開始できませんでした。少し待ってからお試しください。', 'error');
-        }
-      });
-
-      function setVoiceMessage(text, type) {
-        voiceInputMessage.textContent = text;
+        iphoneVoiceGuide.classList.remove('hidden');
+        voiceInputMessage.textContent = '';
         voiceInputMessage.classList.remove('success', 'error');
-
-        if (type) {
-          voiceInputMessage.classList.add(type);
-        }
-      }
+      });
     });
   </script>
 </body>
