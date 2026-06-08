@@ -23,3 +23,24 @@ Google Calendar auto registration prototype built with GAS.
 - Google Maps連携
 - 見積作成支援
 - 営業AI秘書化
+## 開発者
+
+NEW TRAD
+
+## 使用技術
+
+- Google Apps Script
+- HTML
+- JavaScript
+- Google Calendar
+
+## 目的
+
+設備営業向けAI秘書の開発
+
+### 開発ロードマップ
+
+- Googleカレンダー登録
+- Gmail下書き作成
+- 音声入力
+- 見積作成支援
