@@ -72,3 +72,10 @@ Ver4
 
 Ver5
 営業AI秘書
+## Roadmap
+
+- [ ] Gmail下書き自動作成
+- [ ] Google Contacts連携
+- [ ] Googleカレンダー Ver2
+- [ ] 見積作成支援
+- [ ] 営業AI秘書
