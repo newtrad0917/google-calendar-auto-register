@@ -54,3 +54,26 @@ function createCalendarEvent(data) {
     message: '登録完了しました。',
   };
 }
+/**
+ * Gmail下書きを保存します。
+ */
+function saveGmailDraft(data) {
+
+  if (!data.to) {
+    throw new Error('宛先を入力してください。');
+  }
+
+  if (!data.subject) {
+    throw new Error('件名を入力してください。');
+  }
+
+  GmailApp.createDraft(
+    data.to,
+    data.subject,
+    data.body || ''
+  );
+
+  return {
+    message: 'Gmail下書きを保存しました。'
+  };
+}
