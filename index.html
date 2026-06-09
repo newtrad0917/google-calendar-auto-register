@@ -355,6 +355,49 @@
           </button>
         </div>
       </section>
+<hr class="divider">
+
+<section id="gmailDraftSection">
+  <h2 class="section-title">Gmail下書き保存</h2>
+
+  <p class="section-description">
+    メールを送信せず、Gmailの下書きフォルダに保存します。
+  </p>
+
+  <div class="field">
+    <label for="draftTo">宛先</label>
+    <input id="draftTo" type="email">
+  </div>
+
+  <div class="field">
+    <label for="draftSubject">件名</label>
+    <input id="draftSubject" type="text">
+  </div>
+
+  <div class="field">
+    <label for="draftBody">本文</label>
+    <textarea id="draftBody" rows="6"></textarea>
+  </div>
+
+  <div class="actions">
+    <button
+      type="button"
+      id="saveDraftButton"
+      onclick="saveDraft()">
+      Gmail下書きに保存
+    </button>
+  </div>
+
+  <div
+    id="draftMessage"
+    class="message hidden"
+    role="status"
+    aria-live="polite">
+  </div>
+
+</section>
+<hr class="divider">
+
 
       <div id="message" class="message hidden" role="status" aria-live="polite"></div>
     </div>
@@ -437,6 +480,77 @@
         })
         .createCalendarEvent(data);
     }
+function saveDraft() {
+
+const data = {
+to: document.getElementById('draftTo').value.trim(),
+subject: document.getElementById('draftSubject').value.trim(),
+body: document.getElementById('draftBody').value.trim()
+};
+
+if (!data.to) {
+showDraftMessage('宛先を入力してください。', true);
+return;
+}
+
+if (!data.subject) {
+showDraftMessage('件名を入力してください。', true);
+return;
+}
+
+if (!data.body) {
+showDraftMessage('本文を入力してください。', true);
+return;
+}
+
+const button = document.getElementById('saveDraftButton');
+
+button.disabled = true;
+button.textContent = '下書き保存中...';
+
+google.script.run
+.withSuccessHandler(function(result) {
+
+
+  showDraftMessage(result.message);
+
+  button.disabled = false;
+  button.textContent = 'Gmail下書きに保存';
+
+})
+.withFailureHandler(function(error) {
+
+  showDraftMessage(
+    'エラー：' + error.message,
+    true
+  );
+
+  button.disabled = false;
+  button.textContent = 'Gmail下書きに保存';
+
+})
+.saveGmailDraft(data);
+
+
+}
+
+function showDraftMessage(text, isError) {
+
+const message =
+document.getElementById('draftMessage');
+
+message.textContent = text;
+
+message.classList.remove(
+'hidden',
+'error',
+'success'
+);
+
+message.classList.add(
+isError ? 'error' : 'success'
+);
+}
 
     /**
      * 完了メッセージまたはエラーを画面に表示します。
