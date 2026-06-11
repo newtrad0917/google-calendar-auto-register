@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
   <style>
     :root {
@@ -31,6 +31,10 @@
 
     body {
       margin: 0;
+        width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
       min-height: 100vh;
       padding:
         max(24px, env(safe-area-inset-top))
@@ -45,10 +49,11 @@
       line-height: 1.6;
     }
 
-    .app {
-      width: min(100%, 680px);
-      margin: 0 auto;
-    }
+   .app {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
 
     .app-header {
       margin-bottom: 18px;
@@ -90,11 +95,16 @@
       color: var(--primary);
     }
 
-    .panel {
-      padding: 22px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
+  .panel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
       box-shadow: 0 4px 18px rgba(32, 33, 36, 0.07);
     }
 
@@ -109,7 +119,10 @@
       color: var(--muted);
       font-size: 14px;
     }
-
+section,
+.field {
+  min-width: 0;
+}
     .field {
       margin-top: 16px;
     }
@@ -122,7 +135,22 @@
     }
 
     input,
-    textarea {
+    textarea,
+select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #bdc1c6;
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+  font-size: 16px !important;
+  line-height: 1.5;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
       display: block;
       width: 100%;
       padding: 12px;
@@ -156,6 +184,8 @@
     }
 
     button {
+      white-space: normal;
+overflow-wrap: anywhere;
       width: 100%;
       min-height: 50px;
       padding: 12px 16px;
@@ -284,7 +314,14 @@
         <p class="section-description">
           文字入力または音声入力で、予定の内容を入力してください。
         </p>
-
+<div class="field">
+  <label for="emailPurpose">メールの目的</label>
+  <textarea
+    id="emailPurpose"
+    rows="3"
+    placeholder="例：LED提案のお礼メールを作成したい"
+  ></textarea>
+</div>
         <div class="field">
           <label for="originalText">予定文</label>
           <textarea
@@ -363,7 +400,19 @@
   <p class="section-description">
     メールを送信せず、Gmailの下書きフォルダに保存します。
   </p>
+<div class="field">
+  <label for="contactQuery">連絡先を名前・会社名で検索</label>
+  <input id="contactQuery" type="search" placeholder="例：山田、ABC株式会社">
+</div>
 
+<div class="actions">
+  <button type="button" id="searchContactsButton" onclick="runContactSearch()">
+    Googleコンタクトを検索
+  </button>
+</div>
+
+<div id="contactSearchMessage" class="message hidden" role="status" aria-live="polite"></div>
+<div id="contactResults"></div>
   <div class="field">
     <label for="draftTo">宛先</label>
     <input id="draftTo" type="email">
@@ -380,12 +429,19 @@
   </div>
 
   <div class="actions">
-    <button
-      type="button"
-      id="saveDraftButton"
-      onclick="saveDraft()">
-      Gmail下書きに保存
-    </button>
+     <button
+    type="button"
+    id="generateMailButton"
+    onclick="generateAiMail()">
+    AIでメール作成
+  </button>
+
+  <button
+    type="button"
+    id="saveDraftButton"
+    onclick="saveDraft()">
+    Gmail下書きに保存
+  </button>
   </div>
 
   <div
@@ -551,7 +607,161 @@ message.classList.add(
 isError ? 'error' : 'success'
 );
 }
+function runContactSearch() {
+  const query = document.getElementById('contactQuery').value.trim();
 
+  if (!query) {
+    showContactSearchMessage('名前または会社名を入力してください。', true);
+    return;
+  }
+
+  const button = document.getElementById('searchContactsButton');
+  button.disabled = true;
+  button.textContent = '検索中...';
+
+  document.getElementById('contactResults').replaceChildren();
+
+  google.script.run
+    .withSuccessHandler(function(contacts) {
+      renderContactResults(contacts);
+      button.disabled = false;
+      button.textContent = 'Googleコンタクトを検索';
+    })
+    .withFailureHandler(function(error) {
+      showContactSearchMessage('検索エラー：' + error.message, true);
+      button.disabled = false;
+      button.textContent = 'Googleコンタクトを検索';
+    })
+    .searchContacts(query);
+}
+
+function renderContactResults(contacts) {
+  const results = document.getElementById('contactResults');
+  results.replaceChildren();
+
+  if (!contacts || !contacts.length) {
+    showContactSearchMessage('該当する連絡先が見つかりませんでした。', true);
+    return;
+  }
+
+  contacts.forEach(function(contact) {
+    const card = document.createElement('div');
+    card.style.marginTop = '12px';
+    card.style.padding = '12px';
+    card.style.border = '1px solid #dfe3e7';
+    card.style.borderRadius = '6px';
+
+    [
+      '名前：' + (contact.name || '未登録'),
+      '会社名：' + (contact.company || '未登録'),
+      'メール：' + (contact.email || '未登録'),
+      '電話番号：' + (contact.phone || '未登録')
+    ].forEach(function(text) {
+      const line = document.createElement('p');
+      line.textContent = text;
+      line.style.margin = '2px 0';
+      card.appendChild(line);
+    });
+
+    card.appendChild(createContactButton(
+      '宛先に選択',
+      Boolean(contact.email),
+      function() {
+        document.getElementById('draftTo').value = contact.email;
+        showContactSearchMessage('宛先に反映しました。');
+      }
+    ));
+
+    card.appendChild(createContactButton(
+      '会社名を件名へ追加',
+      Boolean(contact.company),
+      function() {
+        appendContactText('draftSubject', contact.company, ' ');
+      }
+    ));
+
+    card.appendChild(createContactButton(
+      '会社名を本文へ追加',
+      Boolean(contact.company),
+      function() {
+        appendContactText('draftBody', contact.company, '\n');
+      }
+    ));
+
+    results.appendChild(card);
+  });
+
+  showContactSearchMessage(contacts.length + '件の候補が見つかりました。');
+}
+
+function createContactButton(label, enabled, onClick) {
+  const button = document.createElement('button');
+
+  button.type = 'button';
+  button.textContent = label;
+  button.disabled = !enabled;
+  button.style.marginTop = '8px';
+  button.addEventListener('click', onClick);
+
+  return button;
+}
+
+function appendContactText(elementId, text, separator) {
+  const field = document.getElementById(elementId);
+
+  field.value = field.value
+    ? field.value + separator + text
+    : text;
+}
+
+function showContactSearchMessage(text, isError) {
+  const message = document.getElementById('contactSearchMessage');
+
+  message.textContent = text;
+  message.classList.remove('hidden', 'error', 'success');
+  message.classList.add(isError ? 'error' : 'success');
+}
+function generateAiMail() {
+
+  const data = {
+    company: document.getElementById('draftSubject').value,
+    purpose: document.getElementById('emailPurpose').value
+  };
+
+  if (!data.purpose) {
+    alert('メールの目的を入力してください。');
+    return;
+  }
+
+  const button =
+    document.getElementById('generateMailButton');
+
+  button.disabled = true;
+  button.textContent = 'AI作成中...';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+
+      document.getElementById('draftSubject').value =
+        result.subject;
+
+      document.getElementById('draftBody').value =
+        result.body;
+
+      button.disabled = false;
+      button.textContent = 'AIでメール作成';
+
+    })
+    .withFailureHandler(function(error) {
+
+      alert(error.message);
+
+      button.disabled = false;
+      button.textContent = 'AIでメール作成';
+
+    })
+    .generateAiMail(data);
+}
     /**
      * 完了メッセージまたはエラーを画面に表示します。
      */
