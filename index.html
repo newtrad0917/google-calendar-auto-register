@@ -322,6 +322,27 @@ overflow-wrap: anywhere;
     placeholder="例：LED提案のお礼メールを作成したい"
   ></textarea>
 </div>
+<div class="field">
+  <label>メールテンプレート</label>
+
+  <div class="actions">
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('thanks')">
+      お礼メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('estimate')">
+      見積送付メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('appointment')">
+      アポ依頼メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('followup')">
+      再提案メール
+    </button>
+  </div>
+</div>
         <div class="field">
           <label for="originalText">予定文</label>
           <textarea
@@ -720,6 +741,25 @@ function showContactSearchMessage(text, isError) {
   message.textContent = text;
   message.classList.remove('hidden', 'error', 'success');
   message.classList.add(isError ? 'error' : 'success');
+}
+function setEmailTemplate(type) {
+  const purposeField = document.getElementById('emailPurpose');
+
+  const templates = {
+    thanks:
+      '本日訪問したお礼メールを作成してください。丁寧で自然な文章にしてください。',
+
+    estimate:
+      '見積書を送付するメールを作成してください。内容確認をお願いし、質問があれば連絡してほしい旨を入れてください。',
+
+    appointment:
+      'アポイント依頼メールを作成してください。相手の都合を尊重し、候補日時の調整をお願いする内容にしてください。',
+
+    followup:
+      '以前提案した内容について再提案・状況確認をするメールを作成してください。押し売り感を出さず、自然な確認メールにしてください。'
+  };
+
+  purposeField.value = templates[type] || '';
 }
 function generateAiMail() {
 
