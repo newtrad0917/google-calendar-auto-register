@@ -1189,30 +1189,63 @@ function renderTodayEvents(events) {
     return;
   }
 
-  const now = new Date();
-
   container.innerHTML = '';
 
   events.forEach(function(event) {
     const item = document.createElement('div');
-    item.style.padding = '10px 0';
+
+    item.style.padding = '12px 0';
     item.style.borderTop = '1px solid #e5e7eb';
 
+    const badge = document.createElement('div');
+    badge.style.display = 'inline-block';
+    badge.style.marginBottom = '6px';
+    badge.style.padding = '3px 8px';
+    badge.style.borderRadius = '999px';
+    badge.style.fontSize = '12px';
+    badge.style.fontWeight = '800';
+
+    if (event.status === 'current') {
+      badge.textContent = '🟢 現在進行中';
+      badge.style.background = '#e6f4ea';
+      badge.style.color = '#116b4d';
+    } else {
+      badge.textContent = '⏰ 次の予定';
+      badge.style.background = '#e8f0fe';
+      badge.style.color = '#1769aa';
+    }
+
     const time = document.createElement('div');
-    time.style.fontWeight = '800';
+    time.style.fontWeight = '900';
+    time.style.fontSize = '17px';
     time.textContent = event.startTime + '〜' + event.endTime;
 
     const title = document.createElement('div');
+    title.style.marginTop = '2px';
+    title.style.fontWeight = '700';
     title.textContent = event.title || 'タイトルなし';
+if (event.location) {
+  item.style.cursor = 'pointer';
+  item.title = 'Googleマップで開く';
 
+  item.addEventListener('click', function() {
+    const mapUrl =
+      'https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(event.location);
+
+    window.open(mapUrl, '_blank');
+  });
+}
+    item.appendChild(badge);
     item.appendChild(time);
     item.appendChild(title);
 
     if (event.location) {
       const location = document.createElement('div');
+      location.style.marginTop = '4px';
       location.style.color = '#5f6368';
       location.style.fontSize = '13px';
-      location.textContent = event.location;
+      location.textContent = '📍 ' + event.location;
       item.appendChild(location);
     }
 
