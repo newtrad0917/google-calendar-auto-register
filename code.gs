@@ -4,7 +4,7 @@
  */
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('かんたん予定登録')
+    .setTitle('営業AI秘書')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
 }
 
