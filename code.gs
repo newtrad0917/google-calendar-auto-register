@@ -320,6 +320,7 @@ ${data.company || ''}
  * 今日の予定を取得します。
  * 終了時間を過ぎた予定は表示しません。
  */
+
 function getTodayCalendarEvents() {
   const calendar = CalendarApp.getDefaultCalendar();
 
@@ -342,19 +343,27 @@ function getTodayCalendarEvents() {
     })
     .slice(0, 3)
     .map(function(event) {
+      const startTime = event.getStartTime();
+      const endTime = event.getEndTime();
+
+      const isCurrent =
+        startTime.getTime() <= now.getTime() &&
+        endTime.getTime() > now.getTime();
+
       return {
         title: event.getTitle(),
         startTime: Utilities.formatDate(
-          event.getStartTime(),
+          startTime,
           Session.getScriptTimeZone(),
           'HH:mm'
         ),
         endTime: Utilities.formatDate(
-          event.getEndTime(),
+          endTime,
           Session.getScriptTimeZone(),
           'HH:mm'
         ),
-        location: event.getLocation() || ''
+        location: event.getLocation() || '',
+        status: isCurrent ? 'current' : 'next'
       };
     });
 }
