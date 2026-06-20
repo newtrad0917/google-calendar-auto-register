@@ -292,6 +292,55 @@ overflow-wrap: anywhere;
         padding: 18px 16px;
       }
     }
+    .home-section {
+  display: grid;
+  gap: 14px;
+}
+
+.hero-card {
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #e8f0ff, #f5edff);
+  border: 1px solid #e3e8f0;
+}
+
+.hero-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.hero-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.menu-card {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  box-shadow: 0 4px 14px rgba(32, 33, 36, 0.06);
+}
+
+.menu-card strong {
+  display: block;
+  font-size: 16px;
+}
+
+.menu-card span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.hidden {
+  display: none !important;
+}
   </style>
 </head>
 
@@ -309,40 +358,48 @@ overflow-wrap: anywhere;
     </ol>
 
     <div class="panel">
-      <section id="inputSection">
+      <section id="homeSection" class="home-section">
+  <div class="hero-card">
+    <h2 class="hero-title">営業AI秘書</h2>
+    <p class="hero-text">
+      カレンダー登録、AIメール作成、コンタクト検索をまとめてサポートします。
+    </p>
+  </div>
+
+  <button type="button" class="menu-card" onclick="showCalendarScreen()">
+    <strong>📅 カレンダー登録</strong>
+    <span>訪問予定や商談予定をGoogleカレンダーへ登録</span>
+  </button>
+
+  <button type="button" class="menu-card" onclick="showMailScreen()">
+    <strong>✉️ AIメール作成</strong>
+    <span>お礼・見積送付・アポ依頼メールをAIで作成</span>
+  </button>
+
+  <button type="button" class="menu-card" onclick="showMailScreen()">
+    <strong>👤 コンタクト検索</strong>
+    <span>Googleコンタクトから相手を検索</span>
+  </button>
+
+  <button type="button" class="menu-card" disabled>
+    <strong>📄 見積作成</strong>
+    <span>準備中</span>
+  </button>
+
+  <button type="button" class="menu-card" disabled>
+    <strong>📊 提案書作成</strong>
+    <span>準備中</span>
+  </button>
+</section>
+      <section id="inputSection" class="hidden">
+        <button type="button" class="secondary-button" onclick="showHomeScreen()">
+  ← ホームに戻る
+</button>
         <h2 class="section-title">予定を入力</h2>
         <p class="section-description">
           文字入力または音声入力で、予定の内容を入力してください。
         </p>
-<div class="field">
-  <label for="emailPurpose">メールの目的</label>
-  <textarea
-    id="emailPurpose"
-    rows="3"
-    placeholder="例：LED提案のお礼メールを作成したい"
-  ></textarea>
-</div>
-<div class="field">
-  <label>メールテンプレート</label>
 
-  <div class="actions">
-    <button type="button" class="secondary-button" onclick="setEmailTemplate('thanks')">
-      お礼メール
-    </button>
-
-    <button type="button" class="secondary-button" onclick="setEmailTemplate('estimate')">
-      見積送付メール
-    </button>
-
-    <button type="button" class="secondary-button" onclick="setEmailTemplate('appointment')">
-      アポ依頼メール
-    </button>
-
-    <button type="button" class="secondary-button" onclick="setEmailTemplate('followup')">
-      再提案メール
-    </button>
-  </div>
-</div>
         <div class="field">
           <label for="originalText">予定文</label>
           <textarea
@@ -415,8 +472,45 @@ overflow-wrap: anywhere;
       </section>
 <hr class="divider">
 
-<section id="gmailDraftSection">
-  <h2 class="section-title">Gmail下書き保存</h2>
+<section id="gmailDraftSection" class="hidden">
+  <button type="button" class="secondary-button" onclick="showHomeScreen()">
+  ← ホームに戻る
+</button>
+
+<h2 class="section-title">AIメール作成</h2>
+<p class="section-description">
+  目的を選んで、AIでメール本文を作成し、Gmail下書きに保存します。
+</p>
+<div class="field">
+  <label for="emailPurpose">メールの目的</label>
+  <textarea
+    id="emailPurpose"
+    rows="3"
+    placeholder="例：LED提案のお礼メールを作成したい"
+  ></textarea>
+</div>
+<div class="field">
+  <label>メールテンプレート</label>
+
+  <div class="actions">
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('thanks')">
+      お礼メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('estimate')">
+      見積送付メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('appointment')">
+      アポ依頼メール
+    </button>
+
+    <button type="button" class="secondary-button" onclick="setEmailTemplate('followup')">
+      再提案メール
+    </button>
+  </div>
+</div>
+  <h3>Gmail下書き保存</h3>
 
   <p class="section-description">
     メールを送信せず、Gmailの下書きフォルダに保存します。
@@ -481,6 +575,47 @@ overflow-wrap: anywhere;
   </main>
 
   <script>
+    function showHomeScreen() {
+  const homeSection = document.getElementById('homeSection');
+  const inputSection = document.getElementById('inputSection');
+  const confirmSection = document.getElementById('confirmSection');
+  const gmailDraftSection = document.getElementById('gmailDraftSection');
+
+  homeSection.classList.remove('hidden');
+  inputSection.classList.add('hidden');
+  confirmSection.classList.add('hidden');
+  gmailDraftSection.classList.add('hidden');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showCalendarScreen() {
+  const homeSection = document.getElementById('homeSection');
+  const inputSection = document.getElementById('inputSection');
+  const confirmSection = document.getElementById('confirmSection');
+  const gmailDraftSection = document.getElementById('gmailDraftSection');
+
+  homeSection.classList.add('hidden');
+  inputSection.classList.remove('hidden');
+  confirmSection.classList.add('hidden');
+  gmailDraftSection.classList.add('hidden');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showMailScreen() {
+  const homeSection = document.getElementById('homeSection');
+  const inputSection = document.getElementById('inputSection');
+  const confirmSection = document.getElementById('confirmSection');
+  const gmailDraftSection = document.getElementById('gmailDraftSection');
+
+  homeSection.classList.add('hidden');
+  inputSection.classList.add('hidden');
+  confirmSection.classList.add('hidden');
+  gmailDraftSection.classList.remove('hidden');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
     /**
      * 入力画面から確認画面へ進みます。
      * Ver1ではAI解析を行わず、予定文をタイトルとメモへコピーします。
