@@ -316,3 +316,45 @@ ${data.company || ''}
     };
   }
 }
+/**
+ * 今日の予定を取得します。
+ * 終了時間を過ぎた予定は表示しません。
+ */
+function getTodayCalendarEvents() {
+  const calendar = CalendarApp.getDefaultCalendar();
+
+  const now = new Date();
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const events = calendar.getEvents(todayStart, todayEnd);
+
+  return events
+    .filter(function(event) {
+      return event.getEndTime().getTime() > now.getTime();
+    })
+    .sort(function(a, b) {
+      return a.getStartTime().getTime() - b.getStartTime().getTime();
+    })
+    .slice(0, 3)
+    .map(function(event) {
+      return {
+        title: event.getTitle(),
+        startTime: Utilities.formatDate(
+          event.getStartTime(),
+          Session.getScriptTimeZone(),
+          'HH:mm'
+        ),
+        endTime: Utilities.formatDate(
+          event.getEndTime(),
+          Session.getScriptTimeZone(),
+          'HH:mm'
+        ),
+        location: event.getLocation() || ''
+      };
+    });
+}

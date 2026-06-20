@@ -508,11 +508,12 @@ overflow-wrap: anywhere;
   </div>
 
   <div class="today-card">
-    <h3 class="today-title">📅 本日の予定</h3>
-    <p class="today-empty">
-      予定表示は準備中です。まずは予定登録とメール作成を使いやすく整えます。
-    </p>
+  <h3 class="today-title">📅 本日の予定</h3>
+
+  <div id="todayEvents">
+    <p class="today-empty">予定を読み込み中です...</p>
   </div>
+</div>
 
   <h3 class="action-title">クイックアクション</h3>
 
@@ -1158,7 +1159,66 @@ function generateAiMail() {
     function hideMessage() {
       document.getElementById('message').classList.add('hidden');
     }
+function loadTodayEvents() {
+  const container = document.getElementById('todayEvents');
 
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = '<p class="today-empty">予定を読み込み中です...</p>';
+
+  google.script.run
+    .withSuccessHandler(function(events) {
+      renderTodayEvents(events);
+    })
+    .withFailureHandler(function(error) {
+      container.innerHTML =
+        '<p class="today-empty">予定を取得できませんでした。</p>';
+      console.error(error);
+    })
+    .getTodayCalendarEvents();
+}
+
+function renderTodayEvents(events) {
+  const container = document.getElementById('todayEvents');
+
+  if (!events || !events.length) {
+    container.innerHTML =
+      '<p class="today-empty">本日の予定はありません。</p>';
+    return;
+  }
+
+  const now = new Date();
+
+  container.innerHTML = '';
+
+  events.forEach(function(event) {
+    const item = document.createElement('div');
+    item.style.padding = '10px 0';
+    item.style.borderTop = '1px solid #e5e7eb';
+
+    const time = document.createElement('div');
+    time.style.fontWeight = '800';
+    time.textContent = event.startTime + '〜' + event.endTime;
+
+    const title = document.createElement('div');
+    title.textContent = event.title || 'タイトルなし';
+
+    item.appendChild(time);
+    item.appendChild(title);
+
+    if (event.location) {
+      const location = document.createElement('div');
+      location.style.color = '#5f6368';
+      location.style.fontSize = '13px';
+      location.textContent = event.location;
+      item.appendChild(location);
+    }
+
+    container.appendChild(item);
+  });
+}
     // Ver2 音声入力追加
     document.addEventListener('DOMContentLoaded', function() {
       const voiceInputButton = document.getElementById('voiceInputButton');
@@ -1171,6 +1231,8 @@ function generateAiMail() {
         voiceInputMessage.classList.remove('success', 'error');
       });
        showHomeScreen();
+       loadTodayEvents();
+setInterval(loadTodayEvents, 60 * 1000);
     });
   
   </script>
