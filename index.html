@@ -341,6 +341,146 @@ overflow-wrap: anywhere;
 .hidden {
   display: none !important;
 }
+.app-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.brand-card {
+  padding: 22px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.28), transparent 34%),
+    linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.22);
+}
+
+.brand-kicker {
+  margin: 0 0 8px;
+  color: #67e8f9;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.brand-description {
+  margin: 10px 0 0;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.today-card {
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+.today-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.today-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.action-title {
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.action-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.action-card {
+  display: grid;
+  grid-template-columns: 48px 1fr 22px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 18px;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+.action-card:hover {
+  background: #f8fafc;
+}
+
+.action-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  font-size: 22px;
+}
+
+.icon-calendar {
+  background: #dbeafe;
+}
+
+.icon-mail {
+  background: #ede9fe;
+}
+
+.icon-contact {
+  background: #d1fae5;
+}
+
+.icon-estimate {
+  background: #ffedd5;
+}
+
+.icon-proposal {
+  background: #e0f2fe;
+}
+
+.action-main strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.action-main span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.action-arrow {
+  color: #94a3b8;
+  font-size: 22px;
+  font-weight: 900;
+}
   </style>
 </head>
 
@@ -358,38 +498,70 @@ overflow-wrap: anywhere;
     </ol>
 
     <div class="panel">
-      <section id="homeSection" class="home-section">
-  <div class="hero-card">
-    <h2 class="hero-title">営業AI秘書</h2>
-    <p class="hero-text">
-      カレンダー登録、AIメール作成、コンタクト検索をまとめてサポートします。
+   <section id="homeSection" class="home-section app-shell">
+  <div class="brand-card">
+    <p class="brand-kicker">SALES AI ASSISTANT</p>
+    <h2 class="brand-title">営業AI秘書</h2>
+    <p class="brand-description">
+      カレンダー登録、AIメール作成、コンタクト検索をスマートにまとめます。
     </p>
   </div>
 
-  <button type="button" class="menu-card" onclick="showCalendarScreen()">
-    <strong>📅 カレンダー登録</strong>
-    <span>訪問予定や商談予定をGoogleカレンダーへ登録</span>
-  </button>
+  <div class="today-card">
+    <h3 class="today-title">📅 本日の予定</h3>
+    <p class="today-empty">
+      予定表示は準備中です。まずは予定登録とメール作成を使いやすく整えます。
+    </p>
+  </div>
 
-  <button type="button" class="menu-card" onclick="showMailScreen()">
-    <strong>✉️ AIメール作成</strong>
-    <span>お礼・見積送付・アポ依頼メールをAIで作成</span>
-  </button>
+  <h3 class="action-title">クイックアクション</h3>
 
-  <button type="button" class="menu-card" onclick="showMailScreen()">
-    <strong>👤 コンタクト検索</strong>
-    <span>Googleコンタクトから相手を検索</span>
-  </button>
+  <div class="action-grid">
+    <button type="button" class="action-card" onclick="showCalendarScreen()">
+      <span class="action-icon icon-calendar">📅</span>
+      <span class="action-main">
+        <strong>カレンダー登録</strong>
+        <span>訪問予定や商談予定をGoogleカレンダーへ登録</span>
+      </span>
+      <span class="action-arrow">›</span>
+    </button>
 
-  <button type="button" class="menu-card" disabled>
-    <strong>📄 見積作成</strong>
-    <span>準備中</span>
-  </button>
+    <button type="button" class="action-card" onclick="showMailScreen()">
+      <span class="action-icon icon-mail">✉️</span>
+      <span class="action-main">
+        <strong>AIメール作成</strong>
+        <span>お礼・見積送付・アポ依頼メールをAIで作成</span>
+      </span>
+      <span class="action-arrow">›</span>
+    </button>
 
-  <button type="button" class="menu-card" disabled>
-    <strong>📊 提案書作成</strong>
-    <span>準備中</span>
-  </button>
+    <button type="button" class="action-card" onclick="showMailScreen()">
+      <span class="action-icon icon-contact">👤</span>
+      <span class="action-main">
+        <strong>コンタクト検索</strong>
+        <span>Googleコンタクトから相手を検索</span>
+      </span>
+      <span class="action-arrow">›</span>
+    </button>
+
+    <button type="button" class="action-card" disabled>
+      <span class="action-icon icon-estimate">📄</span>
+      <span class="action-main">
+        <strong>見積作成</strong>
+        <span>準備中</span>
+      </span>
+      <span class="action-arrow">›</span>
+    </button>
+
+    <button type="button" class="action-card" disabled>
+      <span class="action-icon icon-proposal">📊</span>
+      <span class="action-main">
+        <strong>提案書作成</strong>
+        <span>準備中</span>
+      </span>
+      <span class="action-arrow">›</span>
+    </button>
+  </div>
 </section>
       <section id="inputSection" class="hidden">
         <button type="button" class="secondary-button" onclick="showHomeScreen()">
