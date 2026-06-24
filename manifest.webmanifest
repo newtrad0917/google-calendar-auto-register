@@ -7,7 +7,7 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "assets/sales-ai-icon.png",
+      "src": "./assets/sales-ai-icon.png",
       "sizes": "192x192",
       "type": "image/png"
     }
