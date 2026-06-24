@@ -1195,11 +1195,11 @@ function loadTodayEvents() {
     renderTodayEvents(events);
   };
 
+  const baseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
   const script = document.createElement('script');
+
   script.id = 'todayEventsJsonp';
-  script.src =
-    'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec?action=todayEvents&callback=handleTodayEvents&v=' +
-    Date.now();
+  script.src = baseUrl + '?action=todayEvents&callback=handleTodayEvents&v=' + Date.now();
 
   script.onerror = function() {
     container.innerHTML =
