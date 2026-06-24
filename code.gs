@@ -2,11 +2,7 @@
  * Web画面を表示するための関数です。
  * URLを開くと、Index.html が表示されます。
  */
-function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('営業AI秘書')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
-}
+
 
 /**
  * HTML画面から受け取った予定をGoogleカレンダーへ登録します。
@@ -366,4 +362,21 @@ function getTodayCalendarEvents() {
         status: isCurrent ? 'current' : 'next'
       };
     });
+}
+function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+
+  if (action === 'todayEvents') {
+    return createJsonResponse(getTodayCalendarEvents());
+  }
+
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('営業AI秘書')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function createJsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
