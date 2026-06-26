@@ -585,10 +585,20 @@ function formatTaskDate_(value, timeZone) {
   }
 
   if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
-    return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+    var pattern = value.getHours() || value.getMinutes()
+      ? 'yyyy-MM-dd HH:mm'
+      : 'yyyy-MM-dd';
+    return Utilities.formatDate(value, timeZone, pattern);
   }
 
-  return String(value).trim();
+  var text = String(value).trim();
+  var dateTimeMatch = text.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+
+  if (dateTimeMatch) {
+    return dateTimeMatch[1] + ' ' + dateTimeMatch[2];
+  }
+
+  return text;
 }
 
 /**
@@ -615,7 +625,7 @@ function doGet(e) {
     return createJsonResponse(getTodayCalendarEvents());
   }
 
-  return HtmlService.createHtmlOutputFromFile('index')
+  return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('営業AI秘書')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
