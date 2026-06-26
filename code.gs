@@ -363,6 +363,251 @@ function getTodayCalendarEvents() {
       };
     });
 }
+
+/**
+ * Tasksシートへ新しいTODOを追加します。
+ */
+function addTask(data) {
+  if (!data) {
+    throw new Error('TODOデータがありません。');
+  }
+
+  var title = String(data.title || '').trim();
+
+  if (!title) {
+    throw new Error('タスク名を入力してください。');
+  }
+
+  var now = new Date();
+  var timeZone = Session.getScriptTimeZone();
+  var id = 'T' + Utilities.formatDate(now, timeZone, 'yyyyMMddHHmmssSSS');
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName('Tasks');
+
+  if (!sheet) {
+    throw new Error('Tasksシートが見つかりません。');
+  }
+
+  sheet.appendRow([
+    id,
+    title,
+    String(data.category || '').trim(),
+    String(data.dueDate || '').trim(),
+    String(data.priority || '').trim(),
+    'Open',
+    String(data.memo || '').trim(),
+    now,
+    '',
+    'Manual'
+  ]);
+
+  return {
+    message: 'TODOを追加しました。'
+  };
+}
+
+/**
+ * GASエディタ上で手動実行するTODO保存先の初期設定です。
+ * 独立GASプロジェクトでも動くよう、営業AI秘書DBのIDを直接Script Propertiesへ保存します。
+ */
+function setupTaskSpreadsheet() {
+  var spreadsheetId = '1mf8ewYcmH5o4K_ZSS97u038Z_PdRacUAhVcXDIDxwbk';
+  var spreadsheet;
+
+  try {
+    spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  } catch (error) {
+    throw new Error('営業AI秘書DBを開けませんでした。スプレッドシートIDまたは権限を確認してください。詳細: ' + error.message);
+  }
+
+  if (!spreadsheet.getSheetByName('Tasks')) {
+    throw new Error('営業AI秘書DBにTasksシートが見つかりません。');
+  }
+
+  PropertiesService
+    .getScriptProperties()
+    .setProperty('TASK_SPREADSHEET_ID', spreadsheetId);
+
+  Logger.log('TASK_SPREADSHEET_IDを保存しました。');
+
+  return {
+    message: 'TASK_SPREADSHEET_IDを保存しました。'
+  };
+}
+
+/**
+ * TODO保存先スプレッドシートはScript PropertiesのTASK_SPREADSHEET_IDで管理します。
+ * 将来、顧客DB、案件DB、活動履歴DB、AI提案DBも同じ方式でID管理する予定です。
+ * 想定キー: CUSTOMER_SPREADSHEET_ID, PROJECT_SPREADSHEET_ID,
+ * ACTIVITY_LOG_SPREADSHEET_ID, AI_PROPOSAL_SPREADSHEET_ID
+ * DriveAppでファイル名検索しないことで、権限エラーや同名ファイル問題を避けます。
+ */
+function getTaskSpreadsheet_() {
+  var spreadsheetId = PropertiesService
+    .getScriptProperties()
+    .getProperty('TASK_SPREADSHEET_ID');
+
+  if (!spreadsheetId) {
+    throw new Error('TASK_SPREADSHEET_IDが未設定です。setupTaskSpreadsheet()を実行してください。');
+  }
+
+  return SpreadsheetApp.openById(spreadsheetId);
+}
+
+/**
+ * Tasksシートから未完了TODOを取得します。
+ */
+function getTasks(category) {
+  var sheet = getTaskSpreadsheet_().getSheetByName('Tasks');
+
+  if (!sheet) {
+    throw new Error('Tasksシートが見つかりません。');
+  }
+
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    return [];
+  }
+
+  var headers = values[0];
+  var columns = getTaskColumns_(headers);
+  var filterCategory = String(category || 'すべて').trim();
+  var timeZone = Session.getScriptTimeZone();
+
+  return values
+    .slice(1)
+    .filter(function(row) {
+      var status = String(row[columns.Status] || '').trim();
+      var rowCategory = String(row[columns.Category] || '').trim();
+
+      if (status !== 'Open') {
+        return false;
+      }
+
+      if (filterCategory === '仕事' || filterCategory === 'プライベート') {
+        return rowCategory === filterCategory;
+      }
+
+      return true;
+    })
+    .map(function(row) {
+      return {
+        id: String(row[columns.ID] || '').trim(),
+        title: String(row[columns.Title] || '').trim(),
+        category: String(row[columns.Category] || '').trim(),
+        dueDate: formatTaskDate_(row[columns.DueDate], timeZone),
+        priority: String(row[columns.Priority] || '').trim(),
+        memo: String(row[columns.Memo] || '').trim()
+      };
+    })
+    .sort(function(a, b) {
+      return getTaskDueTime_(a.dueDate) - getTaskDueTime_(b.dueDate);
+    });
+}
+
+/**
+ * 指定されたTODOを完了にします。
+ */
+function completeTask(taskId) {
+  var id = String(taskId || '').trim();
+
+  if (!id) {
+    throw new Error('TODOのIDがありません。');
+  }
+
+  var sheet = getTaskSpreadsheet_().getSheetByName('Tasks');
+
+  if (!sheet) {
+    throw new Error('Tasksシートが見つかりません。');
+  }
+
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    throw new Error('TODOが見つかりません。');
+  }
+
+  var columns = getTaskColumns_(values[0]);
+
+  for (var index = 1; index < values.length; index++) {
+    if (String(values[index][columns.ID] || '').trim() === id) {
+      var rowNumber = index + 1;
+      sheet.getRange(rowNumber, columns.Status + 1).setValue('Done');
+      sheet.getRange(rowNumber, columns.CompletedAt + 1).setValue(new Date());
+
+      return {
+        message: 'TODOを完了しました。'
+      };
+    }
+  }
+
+  throw new Error('TODOが見つかりません。');
+}
+
+/**
+ * Tasksシートの列番号をヘッダー名から取得します。
+ */
+function getTaskColumns_(headers) {
+  var names = [
+    'ID',
+    'Title',
+    'Category',
+    'DueDate',
+    'Priority',
+    'Status',
+    'Memo',
+    'CreatedAt',
+    'CompletedAt',
+    'Source'
+  ];
+  var columns = {};
+
+  names.forEach(function(name) {
+    var index = headers.indexOf(name);
+
+    if (index === -1) {
+      throw new Error('Tasksシートに' + name + '列が見つかりません。');
+    }
+
+    columns[name] = index;
+  });
+
+  return columns;
+}
+
+/**
+ * TODO期限を画面表示用の日付に整えます。
+ */
+function formatTaskDate_(value, timeZone) {
+  if (!value) {
+    return '';
+  }
+
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, timeZone, 'yyyy-MM-dd');
+  }
+
+  return String(value).trim();
+}
+
+/**
+ * 期限順ソート用の時刻値を返します。期限なしは末尾にします。
+ */
+function getTaskDueTime_(dueDate) {
+  if (!dueDate) {
+    return 8640000000000000;
+  }
+
+  var time = new Date(dueDate).getTime();
+
+  if (isNaN(time)) {
+    return 8640000000000000;
+  }
+
+  return time;
+}
+
 function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
 
