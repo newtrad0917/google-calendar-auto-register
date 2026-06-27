@@ -409,7 +409,7 @@ overflow-wrap: anywhere;
   width: fit-content;
   max-width: 100%;
   min-height: 30px;
-  margin-top: 14px;
+  margin-top: 12px;
   padding: 6px 10px;
   border: 1px solid rgba(147, 197, 253, 0.28);
   border-radius: 999px;
@@ -419,29 +419,35 @@ overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.35;
-  opacity: 0;
-  transform: translateY(4px);
+  opacity: 1;
+  transform: translateY(0);
   pointer-events: none;
+  transition:
+    opacity 420ms ease,
+    color 420ms ease,
+    background-color 420ms ease,
+    border-color 420ms ease,
+    box-shadow 420ms ease,
+    transform 420ms ease;
 }
 
 .assistant-briefing.is-visible {
-  animation: assistant-briefing 2.8s ease forwards;
+  color: #eff6ff;
+  border-color: rgba(191, 219, 254, 0.36);
+  background: rgba(30, 64, 115, 0.34);
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.16);
 }
 
-@keyframes assistant-briefing {
-  0% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  16%,
-  72% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
+.assistant-briefing.is-changing {
+  opacity: 0.42;
+  transform: translateY(-1px);
+}
+
+.assistant-briefing.is-standby {
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.22);
+  box-shadow: 0 0 14px rgba(96, 165, 250, 0.08);
 }
 
 .today-card {
@@ -1244,6 +1250,7 @@ overflow-wrap: anywhere;
   <script>
     let currentTaskFilter = '仕事';
     let isSavingTask = false;
+    let assistantBriefingTimer = null;
 
     function showHomeScreen() {
   const homeSection = document.getElementById('homeSection');
@@ -1894,10 +1901,46 @@ function showAssistantBriefing(message) {
     return;
   }
 
+  window.clearTimeout(assistantBriefingTimer);
   briefing.textContent = message;
-  briefing.classList.remove('is-visible');
+  briefing.classList.remove('is-changing', 'is-standby', 'is-visible');
   void briefing.offsetWidth;
   briefing.classList.add('is-visible');
+
+  assistantBriefingTimer = window.setTimeout(function() {
+    transitionAssistantBriefingToStandby();
+  }, 5600);
+}
+
+function transitionAssistantBriefingToStandby() {
+  const briefing = document.getElementById('assistantBriefing');
+
+  if (!briefing) {
+    return;
+  }
+
+  briefing.classList.add('is-changing');
+
+  window.setTimeout(function() {
+    briefing.textContent = getAssistantStandbyMessage();
+    briefing.classList.remove('is-visible');
+    briefing.classList.add('is-standby');
+
+    window.requestAnimationFrame(function() {
+      briefing.classList.remove('is-changing');
+    });
+  }, 220);
+}
+
+function getAssistantStandbyMessage() {
+  const messages = [
+    'AI秘書は待機中です。',
+    '次の操作をお待ちしています。',
+    '必要な時にすぐ動けます。'
+  ];
+  const index = Math.floor(Math.random() * messages.length);
+
+  return messages[index];
 }
 
 function updateTodoStatusSummary(tasks, fallbackText) {
