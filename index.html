@@ -403,6 +403,47 @@ overflow-wrap: anywhere;
   font-size: 14px;
 }
 
+.assistant-briefing {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 30px;
+  margin-top: 14px;
+  padding: 6px 10px;
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  border-radius: 999px;
+  color: #dbeafe;
+  background: rgba(15, 23, 42, 0.28);
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.12);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+.assistant-briefing.is-visible {
+  animation: assistant-briefing 2.8s ease forwards;
+}
+
+@keyframes assistant-briefing {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  16%,
+  72% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
 .today-card {
   padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);
@@ -440,11 +481,27 @@ overflow-wrap: anywhere;
   margin-bottom: 12px;
 }
 
+.todo-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
 .todo-title {
   margin: 0;
   color: #0f172a;
   font-size: 15px;
   font-weight: 900;
+}
+
+.todo-status {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .todo-add-button {
@@ -482,10 +539,37 @@ overflow-wrap: anywhere;
 }
 
 .todo-add-button:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(1.05);
   box-shadow:
-    0 4px 10px rgba(15, 23, 42, 0.10),
+    0 0 0 5px rgba(96, 165, 250, 0.16),
+    0 8px 18px rgba(37, 99, 235, 0.16),
     inset 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.todo-add-button.is-activating {
+  animation: todo-add-pulse 200ms ease-out;
+}
+
+@keyframes todo-add-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 6px 14px rgba(15, 23, 42, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+  55% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 6px rgba(96, 165, 250, 0.16),
+      0 10px 22px rgba(37, 99, 235, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 6px 14px rgba(15, 23, 42, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
 }
 
 .task-filter {
@@ -618,7 +702,7 @@ overflow-wrap: anywhere;
 }
 
 .task-name {
-  margin: 0 0 4px;
+  margin: 0 0 5px;
   color: #0f172a;
   font-weight: 900;
   line-height: 1.45;
@@ -635,7 +719,7 @@ overflow-wrap: anywhere;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .task-meta-line {
@@ -711,7 +795,7 @@ overflow-wrap: anywhere;
 }
 
 .task-memo {
-  margin: 0 0 6px;
+  margin: 0 0 7px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -835,6 +919,9 @@ overflow-wrap: anywhere;
     <p class="brand-description">
       カレンダー登録、AIメール作成、コンタクト検索をスマートにまとめます。
     </p>
+    <p id="assistantBriefing" class="assistant-briefing" aria-live="polite">
+      本日の優先タスクを確認しました。
+    </p>
   </div>
 
   <div class="today-card">
@@ -847,8 +934,11 @@ overflow-wrap: anywhere;
 
   <div class="todo-card">
     <div class="todo-card-header">
-      <h3 class="todo-title">TODOリスト</h3>
-      <button type="button" class="todo-add-button" onclick="showTaskForm()" aria-label="TODOを追加">
+      <div class="todo-heading">
+        <h3 class="todo-title">TODOリスト</h3>
+        <span id="todoStatusSummary" class="todo-status">確認中</span>
+      </div>
+      <button type="button" class="todo-add-button" onclick="handleTodoAddButtonClick(event)" aria-label="TODOを追加">
         +
       </button>
     </div>
@@ -1169,6 +1259,7 @@ const contactSection = document.getElementById('contactSection');
   todoSection.classList.add('hidden');
 document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
+  showAssistantBriefing('本日の優先タスクを確認しました。');
   loadTasks(currentTaskFilter);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1594,6 +1685,18 @@ function showTaskForm() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function handleTodoAddButtonClick(event) {
+  const button = event ? event.currentTarget : null;
+
+  if (button) {
+    button.classList.remove('is-activating');
+    void button.offsetWidth;
+    button.classList.add('is-activating');
+  }
+
+  window.setTimeout(showTaskForm, 180);
+}
+
 function saveTask() {
   const data = {
     title: document.getElementById('taskTitle').value.trim(),
@@ -1666,9 +1769,11 @@ function loadTasks(category) {
   }
 
   container.innerHTML = '<p class="task-empty">TODOを読み込み中です...</p>';
+  updateTodoStatusSummary(null, '確認中');
 
   if (!window.google || !google.script || !google.script.run) {
     container.innerHTML = '<p class="task-empty">TODOはApps Script版で表示されます。</p>';
+    updateTodoStatusSummary([], '待機中');
     return;
   }
 
@@ -1678,6 +1783,7 @@ function loadTasks(category) {
     })
     .withFailureHandler(function(error) {
       container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
+      updateTodoStatusSummary([], '取得失敗');
       console.error(error);
     })
     .getTasks(currentTaskFilter);
@@ -1691,6 +1797,7 @@ function renderTasks(tasks) {
   }
 
   container.replaceChildren();
+  updateTodoStatusSummary(tasks);
 
   if (!tasks || !tasks.length) {
     container.innerHTML = '<p class="task-empty">未完了のTODOはありません。</p>';
@@ -1759,6 +1866,52 @@ function renderTasks(tasks) {
       item.classList.remove('is-entering');
     });
   });
+}
+
+function showAssistantBriefing(message) {
+  const briefing = document.getElementById('assistantBriefing');
+
+  if (!briefing) {
+    return;
+  }
+
+  briefing.textContent = message;
+  briefing.classList.remove('is-visible');
+  void briefing.offsetWidth;
+  briefing.classList.add('is-visible');
+}
+
+function updateTodoStatusSummary(tasks, fallbackText) {
+  const summary = document.getElementById('todoStatusSummary');
+
+  if (!summary) {
+    return;
+  }
+
+  if (fallbackText) {
+    summary.textContent = fallbackText;
+    return;
+  }
+
+  const taskList = Array.isArray(tasks) ? tasks : [];
+  const todayCount = taskList.filter(isTaskDueToday).length;
+
+  if (todayCount > 0) {
+    summary.textContent = '今日' + todayCount + '件';
+    return;
+  }
+
+  summary.textContent = '残り' + taskList.length + '件';
+}
+
+function isTaskDueToday(task) {
+  const parsed = parseTaskDueDate(task && task.dueDate);
+
+  if (!parsed) {
+    return false;
+  }
+
+  return startOfDay(parsed.date).getTime() === startOfDay(new Date()).getTime();
 }
 
 function getTaskDueBadge(dueDateText) {
