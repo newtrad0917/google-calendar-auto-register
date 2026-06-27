@@ -1075,6 +1075,129 @@ overflow-wrap: anywhere;
   font-weight: 850;
   line-height: 1;
 }
+
+.ai-status-card {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: var(--home-card-radius);
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: var(--home-shadow);
+}
+
+.ai-status-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ai-status-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.ai-status-description {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.ai-status-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #1e3a5f;
+  background: #eff6ff;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ai-status-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  padding: 9px 10px;
+  border: 1px solid rgba(226, 232, 240, 0.82);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.ai-status-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-status-state {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+.status-ok {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+.status-ready {
+  background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  animation: status-ready-breathe 3.4s ease-in-out infinite;
+}
+
+.status-muted {
+  background: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.10);
+}
+
+@keyframes status-ready-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.16);
+  }
+}
   </style>
 </head>
 
@@ -1192,6 +1315,66 @@ overflow-wrap: anywhere;
       <span class="action-arrow">›</span>
     </button>
   </div>
+
+  <section class="ai-status-card" aria-labelledby="aiStatusTitle">
+    <div class="ai-status-header">
+      <div>
+        <h3 id="aiStatusTitle" class="ai-status-title">AIステータス</h3>
+        <p class="ai-status-description">営業AI秘書は待機中です。</p>
+      </div>
+      <span class="ai-status-badge">System ready</span>
+    </div>
+
+    <div class="ai-status-grid" aria-label="AIステータス一覧">
+      <div class="ai-status-item">
+        <span class="ai-status-name">AI待機中</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-ready" aria-hidden="true"></span>
+          待機中
+        </span>
+      </div>
+
+      <div class="ai-status-item">
+        <span class="ai-status-name">Calendar同期</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-ok" aria-hidden="true"></span>
+          正常
+        </span>
+      </div>
+
+      <div class="ai-status-item">
+        <span class="ai-status-name">TODO同期</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-ok" aria-hidden="true"></span>
+          正常
+        </span>
+      </div>
+
+      <div class="ai-status-item">
+        <span class="ai-status-name">Gmail下書き</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-muted" aria-hidden="true"></span>
+          準備中
+        </span>
+      </div>
+
+      <div class="ai-status-item">
+        <span class="ai-status-name">Contacts検索</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-muted" aria-hidden="true"></span>
+          準備中
+        </span>
+      </div>
+
+      <div class="ai-status-item">
+        <span class="ai-status-name">Database</span>
+        <span class="ai-status-state">
+          <span class="status-dot status-ok" aria-hidden="true"></span>
+          正常
+        </span>
+      </div>
+    </div>
+  </section>
 </section>
       <section id="inputSection" class="hidden">
         <button type="button" class="secondary-button" onclick="showHomeScreen()">
