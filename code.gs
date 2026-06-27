@@ -622,12 +622,48 @@ function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
 
   if (action === 'todayEvents') {
-    return createJsonResponse(getTodayCalendarEvents());
+    const callback = e && e.parameter && e.parameter.callback;
+
+    try {
+      const events = getTodayCalendarEvents();
+
+      if (callback) {
+        return createJsonpResponse_(callback, events);
+      }
+
+      return createJsonResponse(events);
+    } catch (error) {
+      const errorData = {
+        error: true,
+        message: error && error.message ? error.message : '予定を取得できませんでした。'
+      };
+
+      if (callback) {
+        return createJsonpResponse_(callback, errorData);
+      }
+
+      return createJsonResponse(errorData);
+    }
   }
 
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('営業AI秘書')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function createJsonpResponse_(callback, data) {
+  const callbackName = String(callback || '').trim();
+
+  if (!/^[A-Za-z_$][0-9A-Za-z_$]*(\.[A-Za-z_$][0-9A-Za-z_$]*)*$/.test(callbackName)) {
+    return createJsonResponse({
+      error: true,
+      message: 'Invalid JSONP callback.'
+    });
+  }
+
+  return ContentService
+    .createTextOutput(callbackName + '(' + JSON.stringify(data) + ');')
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 function createJsonResponse(data) {

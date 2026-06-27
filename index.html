@@ -113,16 +113,14 @@ content="#0f172a">
       color: var(--primary);
     }
 
-  .panel {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-}
+    .panel {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
       box-shadow: 0 4px 18px rgba(32, 33, 36, 0.07);
     }
 
@@ -154,32 +152,35 @@ section,
 
     input,
     textarea,
-select {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid #bdc1c6;
-  border-radius: 6px;
-  color: var(--text);
-  background: var(--surface);
-  font: inherit;
-  font-size: 16px !important;
-  line-height: 1.5;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-}
+    select {
       display: block;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 50px;
       padding: 12px;
       border: 1px solid #bdc1c6;
       border-radius: 6px;
       color: var(--text);
       background: var(--surface);
       font: inherit;
-      font-size: 16px;
+      font-size: 16px !important;
       line-height: 1.5;
       transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    input[type="datetime-local"] {
+      height: 50px;
+      max-width: 100%;
+      padding: 12px;
+      line-height: 1.5;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="datetime-local"]::-webkit-date-and-time-value {
+      min-height: 26px;
+      text-align: left;
     }
 
     textarea {
@@ -189,6 +190,7 @@ select {
 
     input:focus,
     textarea:focus,
+    select:focus,
     button:focus-visible {
       outline: none;
       border-color: var(--primary);
@@ -441,24 +443,42 @@ overflow-wrap: anywhere;
 .todo-add-button {
   display: inline-grid;
   place-items: center;
-  width: 34px;
-  min-width: 34px;
-  max-width: 34px;
-  height: 34px;
-  min-height: 34px;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  height: 36px;
+  min-height: 36px;
   padding: 0;
-  border: 1px solid #d8e1ec;
+  border: 1px solid #d7dce3;
   border-radius: 999px;
-  color: #1f3a5f;
-  background: #f8fafc;
-  font-size: 20px;
+  color: #1d1d1f;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f5f7 100%);
+  font-size: 22px;
   font-weight: 500;
   line-height: 1;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease;
 }
 
 .todo-add-button:hover {
-  background: #eef4fb;
+  border-color: #c8d0da;
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f5 100%);
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.todo-add-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.10),
+    inset 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
 .task-filter {
@@ -490,27 +510,38 @@ overflow-wrap: anywhere;
 }
 
 .task-item {
+  position: relative;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  gap: 12px;
+  gap: 10px;
   align-items: start;
-  padding: 14px 0;
+  padding: 10px 0;
   border-top: 1px solid #edf1f5;
   opacity: 1;
-  max-height: 132px;
+  max-height: 180px;
   overflow: hidden;
-  transform: translateX(0);
+  transform: translateX(0) translateY(0) scale(1);
   transition:
-    opacity 500ms ease,
-    transform 500ms ease,
-    max-height 600ms ease,
-    padding 600ms ease,
-    border-color 600ms ease;
+    opacity 420ms ease,
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    max-height 640ms ease,
+    padding 640ms ease,
+    border-color 640ms ease;
+}
+
+.task-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.16) 48%, transparent 72%);
+  transform: translateX(-120%);
 }
 
 .task-item.is-entering {
   opacity: 0;
-  transform: translateY(4px);
+  transform: translateY(8px) scale(0.995);
 }
 
 .task-item:first-child {
@@ -524,7 +555,25 @@ overflow-wrap: anywhere;
   padding-top: 0;
   padding-bottom: 0;
   border-color: transparent;
-  transform: translateX(18px);
+  transform: translateX(14px) scale(0.99);
+}
+
+.task-item.is-completing::after {
+  animation: task-complete-glint 520ms ease-out forwards;
+}
+
+@keyframes task-complete-glint {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  32% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
 }
 
 .task-check {
@@ -535,21 +584,33 @@ overflow-wrap: anywhere;
   min-height: 24px;
   height: 24px;
   padding: 0;
-  border: 1.5px solid #1769aa;
+  border: 1.5px solid #c7d2de;
   border-radius: 999px;
   color: transparent;
   background: #ffffff;
   font-size: 14px;
   line-height: 1;
+  margin-top: 1px;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .task-check.is-done {
   border-color: #16a34a;
-  color: #16a34a;
-  background: #f0fdf4;
+  color: #ffffff;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
+}
+
+.task-body {
+  min-width: 0;
 }
 
 .task-name {
+  margin: 0 0 4px;
   color: #0f172a;
   font-weight: 900;
   line-height: 1.45;
@@ -557,13 +618,35 @@ overflow-wrap: anywhere;
 
 .task-meta,
 .task-memo {
-  margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
+.task-meta {
+  display: grid;
+  gap: 4px;
+  margin-top: 0;
+}
+
+.task-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  min-width: 0;
+}
+
+.task-meta-item {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
 .task-memo {
+  margin: 0 0 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1560,6 +1643,7 @@ function renderTasks(tasks) {
     });
 
     const body = document.createElement('div');
+    body.className = 'task-body';
 
     const title = document.createElement('div');
     title.className = 'task-name';
@@ -1567,10 +1651,30 @@ function renderTasks(tasks) {
 
     const meta = document.createElement('div');
     meta.className = 'task-meta';
-    meta.textContent =
-      '期限：' + (task.dueDate || '未設定') +
-      '　優先度：' + (task.priority || '未設定') +
-      '　カテゴリ：' + (task.category || '未分類');
+
+    const dueLine = document.createElement('div');
+    dueLine.className = 'task-meta-line';
+
+    const dueItem = document.createElement('span');
+    dueItem.className = 'task-meta-item';
+    dueItem.textContent = '期限：' + (task.dueDate || '未設定');
+    dueLine.appendChild(dueItem);
+
+    const detailLine = document.createElement('div');
+    detailLine.className = 'task-meta-line';
+
+    const categoryItem = document.createElement('span');
+    categoryItem.className = 'task-meta-item';
+    categoryItem.textContent = 'カテゴリ：' + (task.category || '未分類');
+
+    const priorityItem = document.createElement('span');
+    priorityItem.className = 'task-meta-item';
+    priorityItem.textContent = '優先度：' + (task.priority || '未設定');
+
+    detailLine.appendChild(categoryItem);
+    detailLine.appendChild(priorityItem);
+    meta.appendChild(dueLine);
+    meta.appendChild(detailLine);
 
     body.appendChild(title);
 
@@ -1678,20 +1782,57 @@ function loadTodayEvents() {
     oldScript.remove();
   }
 
-  window.handleTodayEvents = function(events) {
-    renderTodayEvents(events);
+  const callbackName = 'handleTodayEvents_' + Date.now();
+  let settled = false;
+
+  function showTodayEventsError() {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    delete window[callbackName];
+    container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+  }
+
+  window[callbackName] = function(response) {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    delete window[callbackName];
+
+    if (response && response.error) {
+      container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+      return;
+    }
+
+    if (!Array.isArray(response)) {
+      container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+      return;
+    }
+
+    renderTodayEvents(response);
   };
 
   const baseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
   const script = document.createElement('script');
 
   script.id = 'todayEventsJsonp';
-  script.src = baseUrl + '?action=todayEvents&callback=handleTodayEvents&v=' + Date.now();
+  script.src = baseUrl + '?action=todayEvents&callback=' + encodeURIComponent(callbackName) + '&v=' + Date.now();
 
-  script.onerror = function() {
-    container.innerHTML =
-      '<p class="today-empty">予定を取得できませんでした。</p>';
+  script.onerror = showTodayEventsError;
+
+  script.onload = function() {
+    window.setTimeout(function() {
+      if (!settled) {
+        showTodayEventsError();
+      }
+    }, 0);
   };
+
+  window.setTimeout(showTodayEventsError, 10000);
 
   document.body.appendChild(script);
 }
