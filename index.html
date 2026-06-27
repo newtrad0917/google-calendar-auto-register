@@ -404,21 +404,20 @@ overflow-wrap: anywhere;
 }
 
 .assistant-briefing {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
   align-items: center;
-  width: fit-content;
+  gap: 10px;
+  width: 100%;
   max-width: 100%;
-  min-height: 30px;
+  min-height: 66px;
   margin-top: 12px;
-  padding: 6px 10px;
+  padding: 15px 12px;
   border: 1px solid rgba(147, 197, 253, 0.28);
-  border-radius: 999px;
+  border-radius: 16px;
   color: #dbeafe;
   background: rgba(15, 23, 42, 0.28);
   box-shadow: 0 0 18px rgba(96, 165, 250, 0.12);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.35;
   opacity: 1;
   transform: translateY(0);
   pointer-events: none;
@@ -429,6 +428,74 @@ overflow-wrap: anywhere;
     border-color 420ms ease,
     box-shadow 420ms ease,
     transform 420ms ease;
+}
+
+.assistant-briefing-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(125, 211, 252, 0.34);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(165, 243, 252, 0.62), transparent 26%),
+    linear-gradient(135deg, rgba(14, 165, 233, 0.34), rgba(30, 64, 175, 0.24));
+  box-shadow:
+    0 0 14px rgba(34, 211, 238, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  animation: assistant-icon-breathe 3.4s ease-in-out infinite;
+}
+
+.assistant-briefing-icon::before,
+.assistant-briefing-icon::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+}
+
+.assistant-briefing-icon::before {
+  width: 13px;
+  height: 8px;
+  border: 1px solid rgba(224, 242, 254, 0.88);
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.assistant-briefing-icon::after {
+  width: 3px;
+  height: 3px;
+  background: #bae6fd;
+  box-shadow:
+    6px 0 0 #bae6fd,
+    3px 8px 0 rgba(125, 211, 252, 0.54);
+  transform: translate(-3px, -1px);
+}
+
+.assistant-briefing-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.assistant-briefing-title,
+.assistant-briefing-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-briefing-title {
+  color: #eff6ff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.assistant-briefing-text {
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .assistant-briefing.is-visible {
@@ -448,6 +515,28 @@ overflow-wrap: anywhere;
   border-color: rgba(148, 163, 184, 0.24);
   background: rgba(15, 23, 42, 0.22);
   box-shadow: 0 0 14px rgba(96, 165, 250, 0.08);
+}
+
+.assistant-briefing.is-standby .assistant-briefing-title {
+  color: #dbeafe;
+}
+
+.assistant-briefing.is-standby .assistant-briefing-text {
+  color: #94a3b8;
+}
+
+@keyframes assistant-icon-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 14px rgba(34, 211, 238, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  48% {
+    box-shadow:
+      0 0 20px rgba(34, 211, 238, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
 }
 
 .today-card {
@@ -925,9 +1014,17 @@ overflow-wrap: anywhere;
     <p class="brand-description">
       カレンダー登録、AIメール作成、コンタクト検索をスマートにまとめます。
     </p>
-    <p id="assistantBriefing" class="assistant-briefing" aria-live="polite">
-      本日の優先タスクを確認しました。
-    </p>
+    <div id="assistantBriefing" class="assistant-briefing" aria-live="polite">
+      <span class="assistant-briefing-icon" aria-hidden="true"></span>
+      <span class="assistant-briefing-copy">
+        <span id="assistantBriefingTitle" class="assistant-briefing-title">
+          本日の優先タスクを確認しました。
+        </span>
+        <span id="assistantBriefingText" class="assistant-briefing-text">
+          必要な時にすぐ対応します。
+        </span>
+      </span>
+    </div>
   </div>
 
   <div class="today-card">
@@ -1267,7 +1364,10 @@ const contactSection = document.getElementById('contactSection');
   todoSection.classList.add('hidden');
 document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
-  showAssistantBriefing('本日の優先タスクを確認しました。');
+  showAssistantBriefing(
+    '本日の優先タスクを確認しました。',
+    '必要な時にすぐ対応します。'
+  );
   loadTasks(currentTaskFilter);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1894,7 +1994,7 @@ function renderTasks(tasks) {
   });
 }
 
-function showAssistantBriefing(message) {
+function showAssistantBriefing(title, detail) {
   const briefing = document.getElementById('assistantBriefing');
 
   if (!briefing) {
@@ -1902,7 +2002,10 @@ function showAssistantBriefing(message) {
   }
 
   window.clearTimeout(assistantBriefingTimer);
-  briefing.textContent = message;
+  setAssistantBriefingText(
+    title,
+    detail || '必要な時にすぐ対応します。'
+  );
   briefing.classList.remove('is-changing', 'is-standby', 'is-visible');
   void briefing.offsetWidth;
   briefing.classList.add('is-visible');
@@ -1922,7 +2025,8 @@ function transitionAssistantBriefingToStandby() {
   briefing.classList.add('is-changing');
 
   window.setTimeout(function() {
-    briefing.textContent = getAssistantStandbyMessage();
+    const standbyMessage = getAssistantStandbyMessage();
+    setAssistantBriefingText(standbyMessage.title, standbyMessage.detail);
     briefing.classList.remove('is-visible');
     briefing.classList.add('is-standby');
 
@@ -1932,15 +2036,24 @@ function transitionAssistantBriefingToStandby() {
   }, 220);
 }
 
-function getAssistantStandbyMessage() {
-  const messages = [
-    'AI秘書は待機中です。',
-    '次の操作をお待ちしています。',
-    '必要な時にすぐ動けます。'
-  ];
-  const index = Math.floor(Math.random() * messages.length);
+function setAssistantBriefingText(title, detail) {
+  const titleElement = document.getElementById('assistantBriefingTitle');
+  const detailElement = document.getElementById('assistantBriefingText');
 
-  return messages[index];
+  if (titleElement) {
+    titleElement.textContent = title;
+  }
+
+  if (detailElement) {
+    detailElement.textContent = detail;
+  }
+}
+
+function getAssistantStandbyMessage() {
+  return {
+    title: 'AI秘書が待機しています。',
+    detail: '必要な時にすぐ対応します。'
+  };
 }
 
 function updateTodoStatusSummary(tasks, fallbackText) {
