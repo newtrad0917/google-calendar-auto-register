@@ -1243,6 +1243,7 @@ overflow-wrap: anywhere;
 
   <script>
     let currentTaskFilter = '仕事';
+    let isSavingTask = false;
 
     function showHomeScreen() {
   const homeSection = document.getElementById('homeSection');
@@ -1686,6 +1687,10 @@ function showTaskForm() {
 }
 
 function handleTodoAddButtonClick(event) {
+  if (isSavingTask) {
+    return;
+  }
+
   const button = event ? event.currentTarget : null;
 
   if (button) {
@@ -1698,6 +1703,10 @@ function handleTodoAddButtonClick(event) {
 }
 
 function saveTask() {
+  if (isSavingTask) {
+    return;
+  }
+
   const data = {
     title: document.getElementById('taskTitle').value.trim(),
     category: document.getElementById('taskCategory').value,
@@ -1711,14 +1720,11 @@ function saveTask() {
     return;
   }
 
-  const button = document.getElementById('saveTaskButton');
-  button.disabled = true;
-  button.textContent = '保存中...';
+  setTaskSavingState(true);
 
   if (!window.google || !google.script || !google.script.run) {
     showTaskMessage('TODO保存はApps Script版で利用できます。', true);
-    button.disabled = false;
-    button.textContent = 'TODOを保存';
+    setTaskSavingState(false);
     return;
   }
 
@@ -1726,8 +1732,7 @@ function saveTask() {
     .withSuccessHandler(function(result) {
       showTaskMessage(result.message || 'TODOを追加しました。');
       resetTaskForm();
-      button.disabled = false;
-      button.textContent = 'TODOを保存';
+      setTaskSavingState(false);
 
       window.setTimeout(function() {
         showHomeScreen();
@@ -1735,10 +1740,24 @@ function saveTask() {
     })
     .withFailureHandler(function(error) {
       showTaskMessage('エラー：' + error.message, true);
-      button.disabled = false;
-      button.textContent = 'TODOを保存';
+      setTaskSavingState(false);
     })
     .addTask(data);
+}
+
+function setTaskSavingState(isSaving) {
+  isSavingTask = isSaving;
+
+  const saveButton = document.getElementById('saveTaskButton');
+
+  if (saveButton) {
+    saveButton.disabled = isSaving;
+    saveButton.textContent = isSaving ? '保存中...' : 'TODOを保存';
+  }
+
+  document.querySelectorAll('.todo-add-button').forEach(function(button) {
+    button.disabled = isSaving;
+  });
 }
 
 function showTaskMessage(text, isError) {
