@@ -41,6 +41,9 @@ content="#0f172a">
       --success-bg: #e6f4ea;
       --info-bg: #e8f0fe;
       --focus: #8ab4f8;
+      --home-gap: 16px;
+      --home-card-radius: 20px;
+      --home-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
     }
 
     * {
@@ -60,7 +63,8 @@ content="#0f172a">
         max(24px, env(safe-area-inset-bottom))
         max(16px, env(safe-area-inset-left));
       color: var(--text);
-      background: var(--page);
+      background:
+        linear-gradient(180deg, #f8fafc 0%, var(--page) 58%, #eef3f8 100%);
       font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP",
         sans-serif;
@@ -71,10 +75,12 @@ content="#0f172a">
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
+  display: grid;
+  gap: var(--home-gap);
 }
 
     .app-header {
-      margin-bottom: 18px;
+      margin-bottom: 0;
     }
 
     .app-title {
@@ -363,17 +369,17 @@ overflow-wrap: anywhere;
 }
 .app-shell {
   display: grid;
-  gap: 18px;
+  gap: var(--home-gap);
 }
 
 .brand-card {
   padding: 22px;
-  border-radius: 24px;
+  border-radius: 22px;
   background:
-    radial-gradient(circle at top right, rgba(6, 182, 212, 0.28), transparent 34%),
-    linear-gradient(135deg, #0f172a, #1e293b);
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 34%),
+    linear-gradient(135deg, #0f172a, #1f3658);
   color: #ffffff;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
 }
 
 .brand-kicker {
@@ -398,15 +404,15 @@ overflow-wrap: anywhere;
 }
 
 .today-card {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);
-  border-radius: 20px;
+  border-radius: var(--home-card-radius);
   background: #ffffff;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--home-shadow);
 }
 
 .today-title {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-size: 15px;
   font-weight: 800;
 }
@@ -418,11 +424,11 @@ overflow-wrap: anywhere;
 }
 
 .todo-card {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  border-radius: var(--home-card-radius);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: var(--home-shadow);
 }
 
 .todo-card-header {
@@ -430,7 +436,8 @@ overflow-wrap: anywhere;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  min-height: 38px;
+  margin-bottom: 12px;
 }
 
 .todo-title {
@@ -443,21 +450,21 @@ overflow-wrap: anywhere;
 .todo-add-button {
   display: inline-grid;
   place-items: center;
-  width: 36px;
-  min-width: 36px;
-  max-width: 36px;
-  height: 36px;
-  min-height: 36px;
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
   border: 1px solid #d7dce3;
   border-radius: 999px;
   color: #1d1d1f;
   background: linear-gradient(180deg, #ffffff 0%, #f4f5f7 100%);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 500;
   line-height: 1;
   box-shadow:
-    0 8px 18px rgba(15, 23, 42, 0.10),
+    0 6px 14px rgba(15, 23, 42, 0.09),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
   transition:
     background 160ms ease,
@@ -483,14 +490,15 @@ overflow-wrap: anywhere;
 
 .task-filter {
   display: flex;
-  gap: 6px;
-  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
 }
 
 .task-filter-button {
   width: auto;
-  min-height: 34px;
-  padding: 6px 10px;
+  min-height: 32px;
+  padding: 6px 11px;
   border: 1px solid #d8e1ec;
   border-radius: 999px;
   color: #40516a;
@@ -506,16 +514,16 @@ overflow-wrap: anywhere;
 
 .task-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .task-item {
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 9px;
   align-items: start;
-  padding: 10px 0;
+  padding: 9px 0;
   border-top: 1px solid #edf1f5;
   opacity: 1;
   max-height: 180px;
@@ -653,13 +661,17 @@ overflow-wrap: anywhere;
 }
 
 .task-empty {
-  margin: 0;
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #edf1f5;
+  border-radius: 14px;
   color: var(--muted);
+  background: #fbfcfe;
   font-size: 14px;
 }
 
 .action-title {
-  margin: 4px 0 0;
+  margin: 2px 0 -4px;
   color: #0f172a;
   font-size: 16px;
   font-weight: 900;
@@ -778,7 +790,7 @@ overflow-wrap: anywhere;
 
   <div class="todo-card">
     <div class="todo-card-header">
-      <h3 class="todo-title">TODO</h3>
+      <h3 class="todo-title">TODOリスト</h3>
       <button type="button" class="todo-add-button" onclick="showTaskForm()" aria-label="TODOを追加">
         +
       </button>
