@@ -632,25 +632,82 @@ overflow-wrap: anywhere;
 }
 
 .task-meta {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 0;
 }
 
 .task-meta-line {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 14px;
+  gap: 6px;
   min-width: 0;
 }
 
 .task-meta-item {
   display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   max-width: 100%;
   min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
   white-space: nowrap;
   word-break: keep-all;
   overflow-wrap: normal;
+}
+
+.task-meta-item.due-overdue {
+  border-color: #fecaca;
+  color: #b42318;
+  background: #fee2e2;
+}
+
+.task-meta-item.due-today {
+  border-color: #fed7aa;
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+.task-meta-item.due-tomorrow {
+  border-color: #bfdbfe;
+  color: #1e3a5f;
+  background: #eff6ff;
+}
+
+.task-meta-item.due-normal {
+  border-color: #e2e8f0;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.task-meta-item.category-badge {
+  border-color: #dbeafe;
+  color: #295176;
+  background: #f0f7ff;
+}
+
+.task-meta-item.priority-high {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.task-meta-item.priority-medium {
+  border-color: #fde68a;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.task-meta-item.priority-low {
+  border-color: #dbe3ed;
+  color: #475569;
+  background: #f1f5f9;
 }
 
 .task-memo {
@@ -1664,29 +1721,25 @@ function renderTasks(tasks) {
     const meta = document.createElement('div');
     meta.className = 'task-meta';
 
-    const dueLine = document.createElement('div');
-    dueLine.className = 'task-meta-line';
-
+    const dueBadge = getTaskDueBadge(task.dueDate);
     const dueItem = document.createElement('span');
-    dueItem.className = 'task-meta-item';
-    dueItem.textContent = '期限：' + (task.dueDate || '未設定');
-    dueLine.appendChild(dueItem);
-
-    const detailLine = document.createElement('div');
-    detailLine.className = 'task-meta-line';
+    dueItem.className = 'task-meta-item ' + dueBadge.className;
+    dueItem.textContent = dueBadge.text;
+    dueItem.title = '期限';
 
     const categoryItem = document.createElement('span');
-    categoryItem.className = 'task-meta-item';
-    categoryItem.textContent = 'カテゴリ：' + (task.category || '未分類');
+    categoryItem.className = 'task-meta-item category-badge';
+    categoryItem.textContent = task.category || '未分類';
+    categoryItem.title = 'カテゴリ';
 
     const priorityItem = document.createElement('span');
-    priorityItem.className = 'task-meta-item';
-    priorityItem.textContent = '優先度：' + (task.priority || '未設定');
+    priorityItem.className = 'task-meta-item ' + getTaskPriorityClass(task.priority);
+    priorityItem.textContent = '優先度 ' + (task.priority || '未設定');
+    priorityItem.title = '優先度';
 
-    detailLine.appendChild(categoryItem);
-    detailLine.appendChild(priorityItem);
-    meta.appendChild(dueLine);
-    meta.appendChild(detailLine);
+    meta.appendChild(dueItem);
+    meta.appendChild(categoryItem);
+    meta.appendChild(priorityItem);
 
     body.appendChild(title);
 
@@ -1706,6 +1759,135 @@ function renderTasks(tasks) {
       item.classList.remove('is-entering');
     });
   });
+}
+
+function getTaskDueBadge(dueDateText) {
+  const parsed = parseTaskDueDate(dueDateText);
+
+  if (!parsed) {
+    return {
+      text: '期限 未設定',
+      className: 'due-normal'
+    };
+  }
+
+  const now = new Date();
+  const today = startOfDay(now);
+  const tomorrow = addDays(today, 1);
+  const dueDay = startOfDay(parsed.date);
+
+  if (parsed.hasTime && parsed.date.getTime() < now.getTime()) {
+    return {
+      text: '期限超過',
+      className: 'due-overdue'
+    };
+  }
+
+  if (!parsed.hasTime && dueDay.getTime() < today.getTime()) {
+    return {
+      text: '期限超過',
+      className: 'due-overdue'
+    };
+  }
+
+  if (dueDay.getTime() === today.getTime()) {
+    return {
+      text: parsed.hasTime ? '本日 ' + formatTaskTime(parsed.date) : '本日',
+      className: 'due-today'
+    };
+  }
+
+  if (dueDay.getTime() === tomorrow.getTime()) {
+    return {
+      text: parsed.hasTime ? '明日 ' + formatTaskTime(parsed.date) : '明日',
+      className: 'due-tomorrow'
+    };
+  }
+
+  return {
+    text: formatTaskDateLabel(parsed.date, parsed.hasTime),
+    className: 'due-normal'
+  };
+}
+
+function parseTaskDueDate(value) {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    const day = Number(match[3]);
+    const hasTime = Boolean(match[4]);
+    const hour = hasTime ? Number(match[4]) : 0;
+    const minute = hasTime ? Number(match[5]) : 0;
+    const date = new Date(year, month, day, hour, minute);
+
+    if (!isNaN(date.getTime())) {
+      return {
+        date: date,
+        hasTime: hasTime
+      };
+    }
+  }
+
+  const fallbackDate = new Date(text);
+
+  if (isNaN(fallbackDate.getTime())) {
+    return null;
+  }
+
+  return {
+    date: fallbackDate,
+    hasTime: /(\d{1,2}:\d{2})/.test(text)
+  };
+}
+
+function getTaskPriorityClass(priority) {
+  const value = String(priority || '').trim();
+
+  if (value === '高') {
+    return 'priority-high';
+  }
+
+  if (value === '中') {
+    return 'priority-medium';
+  }
+
+  return 'priority-low';
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function formatTaskTime(date) {
+  return padTwoDigits(date.getHours()) + ':' + padTwoDigits(date.getMinutes());
+}
+
+function formatTaskDateLabel(date, hasTime) {
+  const dateLabel = (date.getMonth() + 1) + '/' + date.getDate();
+
+  if (!hasTime) {
+    return dateLabel;
+  }
+
+  return dateLabel + ' ' + formatTaskTime(date);
+}
+
+function padTwoDigits(value) {
+  return String(value).padStart(2, '0');
 }
 
 function completeTaskFromList(taskId) {
