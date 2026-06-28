@@ -1652,6 +1652,7 @@ overflow-wrap: anywhere;
     let assistantBriefingTimer = null;
 
     function showHomeScreen() {
+  clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
@@ -1675,6 +1676,7 @@ document.getElementById('stepList').classList.add('hidden');
 }
 
 function showCalendarScreen() {
+  clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
@@ -1694,6 +1696,7 @@ document.getElementById('stepList').classList.remove('hidden');
 }
 
 function showMailScreen() {
+  clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
@@ -1712,6 +1715,7 @@ document.getElementById('stepList').classList.add('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function showContactScreen() {
+  clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
@@ -1803,6 +1807,11 @@ function showContactScreen() {
           showMessage(result.message + ' カレンダーを確認してください。');
           button.disabled = false;
           button.textContent = 'Googleカレンダーに登録';
+
+          window.setTimeout(function() {
+            showHomeScreen();
+            showMessage('カレンダーに登録しました。');
+          }, 1300);
         })
         .withFailureHandler(function(error) {
           showMessage('エラー：' + error.message, true);
@@ -2073,7 +2082,32 @@ function generateAiMail() {
       document.getElementById('message').classList.add('hidden');
     }
 
+function clearScreenMessages() {
+  [
+    'message',
+    'draftMessage',
+    'contactSearchMessage',
+    'taskMessage'
+  ].forEach(function(id) {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.textContent = '';
+      element.classList.add('hidden');
+      element.classList.remove('error', 'success');
+    }
+  });
+
+  const voiceMessage = document.getElementById('voiceInputMessage');
+
+  if (voiceMessage) {
+    voiceMessage.textContent = '';
+    voiceMessage.classList.remove('success', 'error');
+  }
+}
+
 function showTaskForm() {
+  clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
