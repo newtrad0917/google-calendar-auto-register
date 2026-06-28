@@ -1125,6 +1125,12 @@ overflow-wrap: anywhere;
   white-space: nowrap;
 }
 
+.ai-status-badge.needs-check {
+  border-color: #fecaca;
+  color: #b42318;
+  background: #fff1f2;
+}
+
 .ai-status-grid {
   display: grid;
   gap: 8px;
@@ -1187,6 +1193,20 @@ overflow-wrap: anywhere;
 .status-muted {
   background: #94a3b8;
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.10);
+}
+
+.status-error {
+  background: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.13);
+}
+
+.ai-status-sync {
+  margin: 10px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: right;
 }
 
 @keyframes status-ready-breathe {
@@ -1322,10 +1342,10 @@ overflow-wrap: anywhere;
         <h3 id="aiStatusTitle" class="ai-status-title">AIステータス</h3>
         <p class="ai-status-description">営業AI秘書は待機中です。</p>
       </div>
-      <span class="ai-status-badge">System ready</span>
+      <span id="aiStatusBadge" class="ai-status-badge">System ready</span>
     </div>
 
-    <div class="ai-status-grid" aria-label="AIステータス一覧">
+    <div id="aiStatusGrid" class="ai-status-grid" aria-label="AIステータス一覧">
       <div class="ai-status-item">
         <span class="ai-status-name">AI待機中</span>
         <span class="ai-status-state">
@@ -1374,6 +1394,7 @@ overflow-wrap: anywhere;
         </span>
       </div>
     </div>
+    <p id="aiStatusLastSync" class="ai-status-sync">最終同期: 確認中</p>
   </section>
 </section>
       <section id="inputSection" class="hidden">
@@ -2701,6 +2722,98 @@ if (event.location) {
     container.appendChild(item);
   });
 }
+
+function loadAiSystemStatus() {
+  if (!window.google || !google.script || !google.script.run) {
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(status) {
+      renderAiSystemStatus(status);
+    })
+    .withFailureHandler(function() {
+      renderAiSystemStatus({
+        ok: false,
+        lastSync: '取得失敗',
+        items: [
+          { key: 'ai', label: 'AIエンジン', state: 'waiting', text: '待機中' },
+          { key: 'calendar', label: 'カレンダー', state: 'error', text: '確認必要' },
+          { key: 'todo', label: 'TODO', state: 'error', text: '確認必要' },
+          { key: 'database', label: 'Database', state: 'error', text: '確認必要' },
+          { key: 'gmail', label: 'Gmail', state: 'muted', text: '準備中' },
+          { key: 'contacts', label: 'Contacts', state: 'muted', text: '準備中' }
+        ]
+      });
+    })
+    .getAiSystemStatus();
+}
+
+function renderAiSystemStatus(status) {
+  const grid = document.getElementById('aiStatusGrid');
+  const badge = document.getElementById('aiStatusBadge');
+  const lastSync = document.getElementById('aiStatusLastSync');
+
+  if (!grid || !status || !Array.isArray(status.items)) {
+    return;
+  }
+
+  const hasError = status.items.some(function(item) {
+    return item.state === 'error';
+  });
+
+  if (badge) {
+    badge.textContent = hasError || status.ok === false
+      ? '一部確認が必要です'
+      : 'System ready';
+    badge.classList.toggle('needs-check', hasError || status.ok === false);
+  }
+
+  if (lastSync) {
+    lastSync.textContent = '最終同期: ' + (status.lastSync || '未取得');
+  }
+
+  grid.replaceChildren();
+
+  status.items.forEach(function(item) {
+    const row = document.createElement('div');
+    row.className = 'ai-status-item';
+
+    const name = document.createElement('span');
+    name.className = 'ai-status-name';
+    name.textContent = item.label || item.key || 'Status';
+
+    const state = document.createElement('span');
+    state.className = 'ai-status-state';
+
+    const dot = document.createElement('span');
+    dot.className = 'status-dot ' + getAiStatusDotClass(item.state);
+    dot.setAttribute('aria-hidden', 'true');
+
+    state.appendChild(dot);
+    state.appendChild(document.createTextNode(item.text || '未取得'));
+    row.appendChild(name);
+    row.appendChild(state);
+    grid.appendChild(row);
+  });
+}
+
+function getAiStatusDotClass(state) {
+  if (state === 'ok') {
+    return 'status-ok';
+  }
+
+  if (state === 'waiting') {
+    return 'status-ready';
+  }
+
+  if (state === 'error') {
+    return 'status-error';
+  }
+
+  return 'status-muted';
+}
+
     // Ver2 音声入力追加
     document.addEventListener('DOMContentLoaded', function() {
       const voiceInputButton = document.getElementById('voiceInputButton');
@@ -2714,6 +2827,7 @@ if (event.location) {
       });
        showHomeScreen();
        loadTodayEvents();
+       loadAiSystemStatus();
 setInterval(loadTodayEvents, 60 * 1000);
     });
   

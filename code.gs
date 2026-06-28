@@ -455,6 +455,76 @@ function getTaskSpreadsheet_() {
 }
 
 /**
+ * ホーム画面のAIステータスカードに表示する軽量な状態を返します。
+ * 既存機能には影響しないよう、各項目を個別に確認します。
+ */
+function getAiSystemStatus() {
+  var items = [
+    { key: 'ai', label: 'AIエンジン', state: 'waiting', text: '待機中' },
+    { key: 'calendar', label: 'カレンダー', state: 'ok', text: '接続済み' },
+    { key: 'todo', label: 'TODO', state: 'ok', text: '同期済み' },
+    { key: 'database', label: 'Database', state: 'ok', text: '正常' },
+    { key: 'gmail', label: 'Gmail', state: 'muted', text: '準備中' },
+    { key: 'contacts', label: 'Contacts', state: 'muted', text: '準備中' }
+  ];
+
+  function markError(key) {
+    items.forEach(function(item) {
+      if (item.key === key) {
+        item.state = 'error';
+        item.text = '確認必要';
+      }
+    });
+  }
+
+  try {
+    var spreadsheet = null;
+
+    try {
+      CalendarApp.getDefaultCalendar();
+    } catch (error) {
+      markError('calendar');
+    }
+
+    try {
+      spreadsheet = getTaskSpreadsheet_();
+    } catch (error) {
+      markError('database');
+      markError('todo');
+    }
+
+    if (spreadsheet) {
+      try {
+        if (!spreadsheet.getSheetByName('Tasks')) {
+          throw new Error('Tasksシートが見つかりません。');
+        }
+      } catch (error) {
+        markError('todo');
+      }
+    }
+
+    return {
+      ok: true,
+      lastSync: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'HH:mm'),
+      items: items
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      lastSync: '取得失敗',
+      items: [
+        { key: 'ai', label: 'AIエンジン', state: 'waiting', text: '待機中' },
+        { key: 'calendar', label: 'カレンダー', state: 'error', text: '確認必要' },
+        { key: 'todo', label: 'TODO', state: 'error', text: '確認必要' },
+        { key: 'database', label: 'Database', state: 'error', text: '確認必要' },
+        { key: 'gmail', label: 'Gmail', state: 'muted', text: '準備中' },
+        { key: 'contacts', label: 'Contacts', state: 'muted', text: '準備中' }
+      ]
+    };
+  }
+}
+
+/**
  * Tasksシートから未完了TODOを取得します。
  */
 function getTasks(category) {
