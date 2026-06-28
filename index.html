@@ -1398,9 +1398,6 @@ overflow-wrap: anywhere;
   </section>
 </section>
       <section id="inputSection" class="hidden">
-        <button type="button" class="secondary-button" onclick="showHomeScreen()">
-  ← ホームに戻る
-</button>
         <h2 class="section-title">予定を入力</h2>
         <p class="section-description">
           文字入力または音声入力で、予定の内容を入力してください。
@@ -1432,6 +1429,9 @@ overflow-wrap: anywhere;
 
           <button type="button" onclick="showConfirmation()">
             確認画面へ
+          </button>
+          <button type="button" class="secondary-button" onclick="showHomeScreen()">
+            ホームに戻る
           </button>
         </div>
       </section>
@@ -1474,15 +1474,14 @@ overflow-wrap: anywhere;
           <button type="button" class="secondary-button" onclick="goBack()">
             入力画面に戻る
           </button>
+          <button type="button" class="secondary-button" onclick="showHomeScreen()">
+            ホームに戻る
+          </button>
         </div>
       </section>
 <hr class="divider">
 
 <section id="gmailDraftSection" class="hidden">
-  <button type="button" class="secondary-button" onclick="showHomeScreen()">
-  ← ホームに戻る
-</button>
-
 <h2 class="section-title">AIメール作成</h2>
 <p class="section-description">
   目的を選んで、AIでメール本文を作成し、Gmail下書きに保存します。
@@ -1560,6 +1559,12 @@ overflow-wrap: anywhere;
     aria-live="polite">
   </div>
 
+  <div class="actions">
+    <button type="button" class="secondary-button" onclick="showHomeScreen()">
+      ホームに戻る
+    </button>
+  </div>
+
 </section>
 <hr class="divider">
 <section id="contactSection" class="hidden">
@@ -1576,14 +1581,15 @@ overflow-wrap: anywhere;
 
 <div id="contactSearchMessage" class="message hidden" role="status" aria-live="polite"></div>
 <div id="contactResults"></div>
+<div class="actions">
+  <button type="button" class="secondary-button" onclick="showHomeScreen()">
+    ホームに戻る
+  </button>
+</div>
 </section>
 
 <hr class="divider">
 <section id="todoSection" class="hidden">
-  <button type="button" class="secondary-button" onclick="showHomeScreen()">
-  ← ホームに戻る
-</button>
-
 <h2 class="section-title">TODO追加</h2>
 <p class="section-description">
   新しいタスクを営業AI秘書DBへ保存します。
@@ -1628,6 +1634,11 @@ overflow-wrap: anywhere;
 </div>
 
 <div id="taskMessage" class="message hidden" role="status" aria-live="polite"></div>
+<div class="actions">
+  <button type="button" class="secondary-button" onclick="showHomeScreen()">
+    ホームに戻る
+  </button>
+</div>
 </section>
 
 <hr class="divider">
@@ -2724,27 +2735,28 @@ if (event.location) {
 }
 
 function loadAiSystemStatus() {
+  setAiStatusLastSyncText('確認中');
+
+  const timeoutId = window.setTimeout(function() {
+    renderAiSystemStatus(createAiSystemStatusFallback());
+  }, 8000);
+
   if (!window.google || !google.script || !google.script.run) {
     return;
   }
 
   google.script.run
     .withSuccessHandler(function(status) {
-      renderAiSystemStatus(status);
+      window.clearTimeout(timeoutId);
+      renderAiSystemStatus(
+        status && Array.isArray(status.items)
+          ? status
+          : createAiSystemStatusFallback()
+      );
     })
     .withFailureHandler(function() {
-      renderAiSystemStatus({
-        ok: false,
-        lastSync: '取得失敗',
-        items: [
-          { key: 'ai', label: 'AIエンジン', state: 'waiting', text: '待機中' },
-          { key: 'calendar', label: 'カレンダー', state: 'error', text: '確認必要' },
-          { key: 'todo', label: 'TODO', state: 'error', text: '確認必要' },
-          { key: 'database', label: 'Database', state: 'error', text: '確認必要' },
-          { key: 'gmail', label: 'Gmail', state: 'muted', text: '準備中' },
-          { key: 'contacts', label: 'Contacts', state: 'muted', text: '準備中' }
-        ]
-      });
+      window.clearTimeout(timeoutId);
+      renderAiSystemStatus(createAiSystemStatusFallback());
     })
     .getAiSystemStatus();
 }
@@ -2770,7 +2782,10 @@ function renderAiSystemStatus(status) {
   }
 
   if (lastSync) {
-    lastSync.textContent = '最終同期: ' + (status.lastSync || '未取得');
+    const syncText = status.lastSync && status.lastSync !== '取得失敗'
+      ? status.lastSync
+      : '未更新';
+    setAiStatusLastSyncText(syncText);
   }
 
   grid.replaceChildren();
@@ -2796,6 +2811,29 @@ function renderAiSystemStatus(status) {
     row.appendChild(state);
     grid.appendChild(row);
   });
+}
+
+function createAiSystemStatusFallback() {
+  return {
+    ok: false,
+    lastSync: '未更新',
+    items: [
+      { key: 'ai', label: 'AIエンジン', state: 'waiting', text: '待機中' },
+      { key: 'calendar', label: 'カレンダー', state: 'error', text: '確認必要' },
+      { key: 'todo', label: 'TODO', state: 'error', text: '確認必要' },
+      { key: 'database', label: 'Database', state: 'error', text: '確認必要' },
+      { key: 'gmail', label: 'Gmail', state: 'muted', text: '準備中' },
+      { key: 'contacts', label: 'Contacts', state: 'muted', text: '準備中' }
+    ]
+  };
+}
+
+function setAiStatusLastSyncText(text) {
+  const lastSync = document.getElementById('aiStatusLastSync');
+
+  if (lastSync) {
+    lastSync.textContent = '最終同期: ' + text;
+  }
 }
 
 function getAiStatusDotClass(state) {
