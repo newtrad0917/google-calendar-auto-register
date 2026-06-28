@@ -302,6 +302,16 @@ overflow-wrap: anywhere;
       background: #f1f3f4;
     }
 
+    .ai-mail-assist-button {
+      border-color: #d7e3f8;
+      color: #24476f;
+      background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    }
+
+    .ai-mail-assist-button:hover {
+      background: #eef6ff;
+    }
+
     .voice-status {
       min-height: 24px;
       margin: 8px 0 0;
@@ -1585,9 +1595,17 @@ overflow-wrap: anywhere;
   <div class="actions">
      <button
     type="button"
+    id="polishMailButton"
+    class="secondary-button ai-mail-assist-button"
+    onclick="generateAiMail('polish')">
+    AIで文章を整える
+  </button>
+
+  <button
+    type="button"
     id="generateMailButton"
-    onclick="generateAiMail()">
-    AIでメール作成
+    onclick="generateAiMail('create')">
+    AIでメールを作成
   </button>
 
   <button
@@ -1697,6 +1715,7 @@ overflow-wrap: anywhere;
     let isSavingTask = false;
     let assistantBriefingTimer = null;
     let pendingMeetMailData = null;
+    let messageHideTimers = {};
 
     function showHomeScreen() {
   clearScreenMessages();
@@ -1942,6 +1961,7 @@ function showDraftMessage(text, isError) {
 const message =
 document.getElementById('draftMessage');
 
+clearMessageHideTimer('draftMessage');
 message.textContent = text;
 
 message.classList.remove(
@@ -1953,6 +1973,10 @@ message.classList.remove(
 message.classList.add(
 isError ? 'error' : 'success'
 );
+
+if (!isError) {
+  scheduleMessageHide('draftMessage', 5000);
+}
 }
 function runContactSearch() {
   const query = document.getElementById('contactQuery').value.trim();
@@ -2087,61 +2111,230 @@ function setEmailTemplate(type) {
 
   purposeField.value = templates[type] || '';
 }
-function generateAiMail() {
+function generateAiMail(mode) {
+  const actionMode = mode === 'polish' ? 'polish' : 'create';
+  const subjectField = document.getElementById('draftSubject');
+  const bodyField = document.getElementById('draftBody');
+  const purposeField = document.getElementById('emailPurpose');
+  const originalSubject = subjectField.value.trim();
+  const originalBody = bodyField.value.trim();
+  const originalPurpose = purposeField.value.trim();
+  const protectedInfo = collectProtectedMailInfo(originalSubject, originalBody);
+  const data = buildAiMailRequestData(
+    actionMode,
+    originalSubject,
+    originalBody,
+    originalPurpose
+  );
 
-  const data = {
-    company: document.getElementById('draftSubject').value,
-    purpose: document.getElementById('emailPurpose').value
-  };
-
-  if (!data.purpose) {
-    alert('メールの目的を入力してください。');
+  if (!data) {
     return;
   }
 
-  const button =
-    document.getElementById('generateMailButton');
-
-  button.disabled = true;
-  button.textContent = 'AI作成中...';
+  setAiMailButtonsLoading(actionMode, true);
 
   google.script.run
     .withSuccessHandler(function(result) {
+      const generatedSubject = result && result.subject
+        ? result.subject
+        : originalSubject;
+      const generatedBody = result && result.body
+        ? result.body
+        : originalBody;
 
-      document.getElementById('draftSubject').value =
-        result.subject;
-
-      document.getElementById('draftBody').value =
-        result.body;
-
-      button.disabled = false;
-      button.textContent = 'AIでメール作成';
-
+      subjectField.value = generatedSubject;
+      bodyField.value = restoreProtectedMailInfo(generatedBody, protectedInfo);
+      setAiMailButtonsLoading(actionMode, false);
     })
     .withFailureHandler(function(error) {
-
       alert(error.message);
-
-      button.disabled = false;
-      button.textContent = 'AIでメール作成';
-
+      setAiMailButtonsLoading(actionMode, false);
     })
     .generateAiMail(data);
+}
+
+function buildAiMailRequestData(mode, subject, body, purpose) {
+  const hasDraftContent = Boolean(subject || body);
+
+  if (mode === 'polish') {
+    if (!hasDraftContent) {
+      alert('整える件名または本文を入力してください。');
+      return null;
+    }
+
+    return {
+      company: subject,
+      purpose: [
+        '次の件名と本文を、自然な日本語ビジネスメールとして整えてください。',
+        '既存の日時、Google Meet URL、場所、メモは削除しないでください。',
+        'meet.google.com を含むURLは絶対に残してください。',
+        purpose ? '補足目的：' + purpose : '',
+        '件名：' + subject,
+        '本文：',
+        body
+      ].filter(Boolean).join('\n\n')
+    };
+  }
+
+  if (!purpose && !hasDraftContent) {
+    alert('メールの目的、件名、本文のいずれかを入力してください。');
+    return null;
+  }
+
+  return {
+    company: subject,
+    purpose: [
+      '次の入力内容から、Gmail下書きに保存できる日本語ビジネスメールを新しく作成してください。',
+      '本文に Google Meet URL がある場合は必ず保持し、Google Meet：{URL} の形で残してください。',
+      '日時、タイトル、場所、メモが含まれる場合も可能な限り保持してください。',
+      purpose ? 'メールの目的：' + purpose : '',
+      subject ? '現在の件名：' + subject : '',
+      body ? '現在の本文：\n' + body : ''
+    ].filter(Boolean).join('\n\n')
+  };
+}
+
+function setAiMailButtonsLoading(mode, isLoading) {
+  const polishButton = document.getElementById('polishMailButton');
+  const generateButton = document.getElementById('generateMailButton');
+
+  if (polishButton) {
+    polishButton.disabled = isLoading;
+    polishButton.textContent =
+      isLoading && mode === 'polish'
+        ? 'AI整形中...'
+        : 'AIで文章を整える';
+  }
+
+  if (generateButton) {
+    generateButton.disabled = isLoading;
+    generateButton.textContent =
+      isLoading && mode === 'create'
+        ? 'AI作成中...'
+        : 'AIでメールを作成';
+  }
+}
+
+function collectProtectedMailInfo(subject, body) {
+  const meetUrl = extractMeetUrl(body);
+  const shouldUsePendingMeet =
+    pendingMeetMailData &&
+    pendingMeetMailData.meetLink &&
+    meetUrl === pendingMeetMailData.meetLink;
+
+  return {
+    title: extractLabeledValue(body, '内容') ||
+      (shouldUsePendingMeet ? pendingMeetMailData.title : '') ||
+      subject,
+    dateTime: extractLabeledValue(body, '日時') ||
+      (shouldUsePendingMeet
+        ? formatMeetMailDateTime(pendingMeetMailData.startIso)
+        : ''),
+    meetUrl: meetUrl,
+    location: extractLabeledValue(body, '場所') ||
+      (shouldUsePendingMeet ? pendingMeetMailData.location : ''),
+    memo: extractLabeledValue(body, 'メモ') ||
+      (shouldUsePendingMeet ? pendingMeetMailData.memo : '')
+  };
+}
+
+function restoreProtectedMailInfo(generatedBody, protectedInfo) {
+  let body = (generatedBody || '').trim();
+  const additions = [];
+
+  if (!protectedInfo || !protectedInfo.meetUrl) {
+    return body;
+  }
+
+  if (protectedInfo.title && !body.includes(protectedInfo.title)) {
+    additions.push('内容：\n' + protectedInfo.title);
+  }
+
+  if (protectedInfo.dateTime && !body.includes(protectedInfo.dateTime)) {
+    additions.push('日時：\n' + protectedInfo.dateTime);
+  }
+
+  if (
+    protectedInfo.meetUrl &&
+    (!body.includes(protectedInfo.meetUrl) ||
+      !/Google Meet\s*[：:]/i.test(body))
+  ) {
+    additions.push('Google Meet：' + protectedInfo.meetUrl);
+  }
+
+  if (protectedInfo.location && !body.includes(protectedInfo.location)) {
+    additions.push('場所：\n' + protectedInfo.location);
+  }
+
+  if (protectedInfo.memo && !body.includes(protectedInfo.memo)) {
+    additions.push('メモ：\n' + protectedInfo.memo);
+  }
+
+  if (additions.length) {
+    body = [body, additions.join('\n\n')]
+      .filter(Boolean)
+      .join('\n\n');
+  }
+
+  return body;
+}
+
+function extractMeetUrl(text) {
+  const match = (text || '').match(/\b(?:https?:\/\/)?meet\.google\.com\/[^\s<>"']+/i);
+
+  if (!match) {
+    return '';
+  }
+
+  return match[0].startsWith('http')
+    ? match[0]
+    : 'https://' + match[0];
+}
+
+function extractLabeledValue(text, label) {
+  const lines = (text || '').split(/\r?\n/);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+    const inlineMatch = line.match(new RegExp('^' + label + '[：:]\\s*(.+)$'));
+
+    if (inlineMatch) {
+      return inlineMatch[1].trim();
+    }
+
+    if (new RegExp('^' + label + '[：:]\\s*$').test(line)) {
+      for (let next = index + 1; next < lines.length; next += 1) {
+        const value = lines[next].trim();
+
+        if (value) {
+          return value;
+        }
+      }
+    }
+  }
+
+  return '';
 }
     /**
      * 完了メッセージまたはエラーを画面に表示します。
      */
     function showMessage(text, isError) {
       const message = document.getElementById('message');
+      clearMessageHideTimer('message');
       message.textContent = text;
       message.classList.remove('hidden', 'error', 'success');
       message.classList.add(isError ? 'error' : 'success');
+
+      if (!isError) {
+        scheduleMessageHide('message', 5000);
+      }
     }
 
     /**
      * 古いメッセージを隠します。
      */
     function hideMessage() {
+      clearMessageHideTimer('message');
       document.getElementById('message').classList.add('hidden');
     }
 
@@ -2155,6 +2348,7 @@ function clearScreenMessages() {
     const element = document.getElementById(id);
 
     if (element) {
+      clearMessageHideTimer(id);
       element.textContent = '';
       element.classList.add('hidden');
       element.classList.remove('error', 'success');
@@ -2168,6 +2362,29 @@ function clearScreenMessages() {
     voiceMessage.classList.remove('success', 'error');
   }
 
+}
+
+function scheduleMessageHide(elementId, delayMs) {
+  clearMessageHideTimer(elementId);
+
+  messageHideTimers[elementId] = window.setTimeout(function() {
+    const element = document.getElementById(elementId);
+
+    if (element && element.classList.contains('success')) {
+      element.textContent = '';
+      element.classList.add('hidden');
+      element.classList.remove('success');
+    }
+
+    delete messageHideTimers[elementId];
+  }, delayMs);
+}
+
+function clearMessageHideTimer(elementId) {
+  if (messageHideTimers[elementId]) {
+    window.clearTimeout(messageHideTimers[elementId]);
+    delete messageHideTimers[elementId];
+  }
 }
 
 function openMeetMailDraft(calendarData, meetLink) {
