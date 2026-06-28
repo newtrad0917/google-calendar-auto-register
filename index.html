@@ -215,38 +215,6 @@ section,
   accent-color: var(--primary);
 }
 
-.meet-followup-panel {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-  padding: 14px;
-  border: 1px solid rgba(96, 165, 250, 0.24);
-  border-radius: 16px;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-}
-
-.meet-followup-panel p {
-  margin: 0;
-  color: #1e293b;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.55;
-}
-
-.meet-followup-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-@media (max-width: 520px) {
-  .meet-followup-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
     input[type="datetime-local"] {
       height: 50px;
       max-width: 100%;
@@ -1477,10 +1445,19 @@ overflow-wrap: anywhere;
 
         <div class="field">
           <label for="originalText">タイトル</label>
-          <textarea
+          <input
             id="originalText"
-            rows="5"
-            placeholder="例：明日10時からABC病院でLED提案、1時間"
+            type="text"
+            placeholder="例：十連 LED打ち合わせ"
+          >
+        </div>
+
+        <div class="field">
+          <label for="originalMemo">メモ</label>
+          <textarea
+            id="originalMemo"
+            rows="4"
+            placeholder="例：見積内容、訪問目的、事前確認事項など"
           ></textarea>
         </div>
 
@@ -1547,20 +1524,6 @@ overflow-wrap: anywhere;
           </button>
         </div>
 
-        <div id="meetFollowupPanel" class="meet-followup-panel hidden" role="status" aria-live="polite">
-          <p>
-            Google Meet付き予定を登録しました。<br>
-            この内容で案内メールを作成しますか？
-          </p>
-          <div class="meet-followup-actions">
-            <button type="button" onclick="openMeetMailDraft()">
-              AIメールを作成
-            </button>
-            <button type="button" class="secondary-button" onclick="showHomeScreen()">
-              ホームに戻る
-            </button>
-          </div>
-        </div>
       </section>
 <hr class="divider">
 
@@ -1825,20 +1788,21 @@ function showContactScreen() {
 }
     /**
      * 入力画面から確認画面へ進みます。
-     * Ver1ではAI解析を行わず、予定文をタイトルとメモへコピーします。
+     * Ver1ではAI解析を行わず、タイトルとメモを確認画面へコピーします。
      */
     function showConfirmation() {
-      const originalText =
+      const originalTitle =
         document.getElementById('originalText').value.trim();
+      const originalMemo =
+        document.getElementById('originalMemo').value.trim();
 
-      if (!originalText) {
-        showMessage('予定文を入力してください。', true);
+      if (!originalTitle) {
+        showMessage('タイトルを入力してください。', true);
         return;
       }
 
-      document.getElementById('title').value = originalText;
-      document.getElementById('memo').value =
-        '入力した予定文：\n' + originalText;
+      document.getElementById('title').value = originalTitle;
+      document.getElementById('memo').value = originalMemo;
 
       document.getElementById('inputSection').classList.add('hidden');
       document.getElementById('confirmSection').classList.remove('hidden');
@@ -1898,7 +1862,7 @@ function showContactScreen() {
           button.textContent = 'Googleカレンダーに登録';
 
           if (result && result.meetLink) {
-            showMeetFollowupPanel(data, result.meetLink);
+            openMeetMailDraft(data, result.meetLink);
             return;
           }
 
@@ -1950,6 +1914,11 @@ google.script.run
 
   button.disabled = false;
   button.textContent = 'Gmail下書きに保存';
+
+  window.setTimeout(function() {
+    showHomeScreen();
+    showMessage('Gmail下書きを保存しました。');
+  }, 1300);
 
 })
 .withFailureHandler(function(error) {
@@ -2199,14 +2168,9 @@ function clearScreenMessages() {
     voiceMessage.classList.remove('success', 'error');
   }
 
-  const meetFollowupPanel = document.getElementById('meetFollowupPanel');
-
-  if (meetFollowupPanel) {
-    meetFollowupPanel.classList.add('hidden');
-  }
 }
 
-function showMeetFollowupPanel(calendarData, meetLink) {
+function openMeetMailDraft(calendarData, meetLink) {
   pendingMeetMailData = {
     title: calendarData.title || '',
     startIso: calendarData.startIso || '',
@@ -2215,23 +2179,9 @@ function showMeetFollowupPanel(calendarData, meetLink) {
     meetLink: meetLink || ''
   };
 
-  const panel = document.getElementById('meetFollowupPanel');
-
-  if (panel) {
-    panel.classList.remove('hidden');
-  }
-}
-
-function openMeetMailDraft() {
-  const data = pendingMeetMailData;
-
-  if (!data) {
-    showMailScreen();
-    return;
-  }
-
   showMailScreen();
-  fillMeetMailDraft(data);
+  fillMeetMailDraft(pendingMeetMailData);
+  showDraftMessage('Google Meet付き案内メールを作成しました。');
 }
 
 function fillMeetMailDraft(data) {
