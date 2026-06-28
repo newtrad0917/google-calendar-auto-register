@@ -175,6 +175,46 @@ section,
       transition: border-color 120ms ease, box-shadow 120ms ease;
     }
 
+    .calendar-title-input {
+      min-height: 58px;
+      padding: 14px 15px;
+      border-color: #9fb4cc;
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      color: #0f172a;
+      font-size: 17px !important;
+      font-weight: 750;
+      box-shadow:
+        0 8px 18px rgba(15, 23, 42, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .meet-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px 13px;
+      border: 1px solid #dbe3ee;
+      border-radius: 14px;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .meet-option input {
+      width: 20px;
+      min-width: 20px;
+      height: 20px;
+      min-height: 20px;
+      margin: 0;
+      padding: 0;
+      accent-color: var(--primary);
+    }
+
     input[type="datetime-local"] {
       height: 50px;
       max-width: 100%;
@@ -1400,7 +1440,7 @@ overflow-wrap: anywhere;
       <section id="inputSection" class="hidden">
         <h2 class="section-title">予定を入力</h2>
         <p class="section-description">
-          文字入力または音声入力で、予定の内容を入力してください。
+          登録したい予定の内容を入力してください。
         </p>
 
         <div class="field">
@@ -1413,20 +1453,6 @@ overflow-wrap: anywhere;
         </div>
 
         <div class="actions">
-          <!-- Ver2 音声入力追加 -->
-          <button type="button" id="voiceInputButton" class="voice-button">
-            音声入力の使い方
-          </button>
-          <p
-            id="voiceInputMessage"
-            class="voice-status"
-            role="status"
-            aria-live="polite"
-          ></p>
-          <p id="iphoneVoiceGuide" class="voice-guide hidden">
-            予定文の入力欄をタップし、iPhoneキーボードのマイクボタンから音声入力してください。
-          </p>
-
           <button type="button" onclick="showConfirmation()">
             確認画面へ
           </button>
@@ -1443,8 +1469,13 @@ overflow-wrap: anywhere;
         </p>
 
         <div class="field">
-          <label for="title">タイトル</label>
-          <input id="title" type="text">
+          <label for="title">何を登録しますか？</label>
+          <input
+            id="title"
+            class="calendar-title-input"
+            type="text"
+            placeholder="例：○○病院 定例訪問"
+          >
         </div>
 
         <div class="field">
@@ -1466,6 +1497,11 @@ overflow-wrap: anywhere;
           <label for="memo">メモ</label>
           <textarea id="memo" rows="5"></textarea>
         </div>
+
+        <label class="meet-option" for="createMeet">
+          <input id="createMeet" type="checkbox">
+          <span>Google Meetを作成する</span>
+        </label>
 
         <div class="actions">
           <button type="button" id="registerButton" onclick="registerEvent()">
@@ -1794,7 +1830,8 @@ function showContactScreen() {
         durationMinutes:
           document.getElementById('durationMinutes').value,
         location: document.getElementById('location').value.trim(),
-        memo: document.getElementById('memo').value.trim()
+        memo: document.getElementById('memo').value.trim(),
+        createMeet: document.getElementById('createMeet').checked
       };
 
       const button = document.getElementById('registerButton');
@@ -1804,13 +1841,17 @@ function showContactScreen() {
       // Code.gs の createCalendarEvent 関数を呼び出します。
       google.script.run
         .withSuccessHandler(function(result) {
-          showMessage(result.message + ' カレンダーを確認してください。');
+          const message = result && result.message
+            ? result.message
+            : 'カレンダーに登録しました。';
+
+          showMessage(message);
           button.disabled = false;
           button.textContent = 'Googleカレンダーに登録';
 
           window.setTimeout(function() {
             showHomeScreen();
-            showMessage('カレンダーに登録しました。');
+            showMessage(message);
           }, 1300);
         })
         .withFailureHandler(function(error) {
@@ -2886,17 +2927,7 @@ function getAiStatusDotClass(state) {
   return 'status-muted';
 }
 
-    // Ver2 音声入力追加
     document.addEventListener('DOMContentLoaded', function() {
-      const voiceInputButton = document.getElementById('voiceInputButton');
-      const voiceInputMessage = document.getElementById('voiceInputMessage');
-      const iphoneVoiceGuide = document.getElementById('iphoneVoiceGuide');
-
-      voiceInputButton.addEventListener('click', function() {
-        iphoneVoiceGuide.classList.remove('hidden');
-        voiceInputMessage.textContent = '';
-        voiceInputMessage.classList.remove('success', 'error');
-      });
        showHomeScreen();
        loadTodayEvents();
        loadAiSystemStatus();

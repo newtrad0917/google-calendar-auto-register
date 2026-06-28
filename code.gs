@@ -35,6 +35,42 @@ function createCalendarEvent(data) {
   // 普段使っているGoogleカレンダーを取得します。
   const calendar = CalendarApp.getDefaultCalendar();
 
+  if (data.createMeet === true) {
+    try {
+      // Apps Scriptのサービスで Calendar API を有効化する必要があります。
+      const meetEvent = createCalendarEventWithMeet_(
+        calendar,
+        data,
+        startTime,
+        endTime
+      );
+
+      return {
+        success: true,
+        message: 'カレンダーに登録しました。Google Meetも作成しました。',
+        meetLink: meetEvent.meetLink || ''
+      };
+    } catch (error) {
+      const fallbackEvent = calendar.createEvent(
+        data.title,
+        startTime,
+        endTime,
+        {
+          location: data.location || '',
+          description: data.memo || ''
+        }
+      );
+
+      return {
+        success: true,
+        message: '予定は登録しましたが、Google Meet作成は確認が必要です。',
+        meetLink: '',
+        meetError: error && error.message ? error.message : 'Google Meet作成に失敗しました。',
+        eventId: fallbackEvent.getId()
+      };
+    }
+  }
+
   // カレンダーへ予定を登録します。
   const event = calendar.createEvent(
     data.title,
@@ -48,8 +84,71 @@ function createCalendarEvent(data) {
 
   // 登録できたことをHTML画面へ返します。
   return {
-    message: '登録完了しました。',
+    success: true,
+    message: 'カレンダーに登録しました。',
+    meetLink: '',
+    eventId: event.getId()
   };
+}
+
+function createCalendarEventWithMeet_(calendar, data, startTime, endTime) {
+  const timeZone = Session.getScriptTimeZone();
+  const resource = {
+    summary: data.title,
+    location: data.location || '',
+    description: data.memo || '',
+    start: {
+      dateTime: startTime.toISOString(),
+      timeZone: timeZone
+    },
+    end: {
+      dateTime: endTime.toISOString(),
+      timeZone: timeZone
+    },
+    conferenceData: {
+      createRequest: {
+        requestId: 'sales-ai-meet-' + new Date().getTime(),
+        conferenceSolutionKey: {
+          type: 'hangoutsMeet'
+        }
+      }
+    }
+  };
+
+  const createdEvent = Calendar.Events.insert(
+    resource,
+    calendar.getId(),
+    {
+      conferenceDataVersion: 1
+    }
+  );
+
+  return {
+    event: createdEvent,
+    meetLink: getMeetLinkFromEvent_(createdEvent)
+  };
+}
+
+function getMeetLinkFromEvent_(event) {
+  if (!event) {
+    return '';
+  }
+
+  if (event.hangoutLink) {
+    return event.hangoutLink;
+  }
+
+  const entryPoints = event.conferenceData && event.conferenceData.entryPoints;
+
+  if (!entryPoints || !entryPoints.length) {
+    return '';
+  }
+
+  const videoEntry = entryPoints.find(function(entryPoint) {
+    return entryPoint.entryPointType === 'video';
+  });
+
+  return videoEntry && videoEntry.uri ? videoEntry.uri : '';
 }
 /**
  * Gmail下書きを保存します。
