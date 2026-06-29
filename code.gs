@@ -226,11 +226,26 @@ function saveGmailDraft(data) {
     throw new Error('件名を入力してください。');
   }
 
-  GmailApp.createDraft(
-    data.to,
-    data.subject,
-    data.body || ''
-  );
+  const draftOptions = {};
+
+  if (data.cc) {
+    draftOptions.cc = data.cc;
+  }
+
+  if (draftOptions.cc) {
+    GmailApp.createDraft(
+      data.to,
+      data.subject,
+      data.body || '',
+      draftOptions
+    );
+  } else {
+    GmailApp.createDraft(
+      data.to,
+      data.subject,
+      data.body || ''
+    );
+  }
 
   return {
     message: 'Gmail下書きを保存しました。'
