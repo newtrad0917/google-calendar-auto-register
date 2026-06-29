@@ -279,7 +279,7 @@ overflow-wrap: anywhere;
       transform: translateY(1px);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       content: "";
       position: absolute;
       inset: -38% auto -38% -35%;
@@ -297,14 +297,14 @@ overflow-wrap: anywhere;
       transform: translateX(-110%) skewX(-18deg);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
       transform: scale(0.96);
       box-shadow:
         inset 0 2px 8px rgba(15, 23, 42, 0.18),
         0 0 0 4px rgba(96, 165, 250, 0.10);
     }
 
-    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       animation: primary-button-light-sweep 140ms ease-out;
     }
 
@@ -515,6 +515,7 @@ overflow-wrap: anywhere;
 .home-section.is-home-entering .brand-card,
 .home-section.is-home-entering .assistant-briefing,
 .home-section.is-home-entering .today-card,
+.home-section.is-home-entering .ai-insight-card,
 .home-section.is-home-entering .todo-card,
 .home-section.is-home-entering .action-title,
 .home-section.is-home-entering .action-grid,
@@ -534,20 +535,24 @@ overflow-wrap: anywhere;
   animation-delay: 140ms;
 }
 
-.home-section.is-home-entering .todo-card {
+.home-section.is-home-entering .ai-insight-card {
   animation-delay: 210ms;
 }
 
-.home-section.is-home-entering .action-title {
+.home-section.is-home-entering .todo-card {
   animation-delay: 280ms;
 }
 
-.home-section.is-home-entering .action-grid {
+.home-section.is-home-entering .action-title {
   animation-delay: 350ms;
 }
 
-.home-section.is-home-entering .ai-status-card {
+.home-section.is-home-entering .action-grid {
   animation-delay: 420ms;
+}
+
+.home-section.is-home-entering .ai-status-card {
+  animation-delay: 490ms;
 }
 
 @keyframes home-card-fade-in {
@@ -2269,6 +2274,435 @@ body,
     white-space: nowrap !important;
   }
 }
+/* Calm schedule redesign: stable tabs, refined event cards, no mobile overflow */
+body,
+.app,
+.panel,
+.home-section,
+.brand-card,
+.today-card,
+.todo-card,
+.schedule-segment,
+.schedule-tab-button,
+.schedule-event-card,
+.schedule-event-row {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body {
+  overflow-x: hidden !important;
+}
+
+.app,
+.panel,
+.home-section,
+.brand-card,
+.today-card,
+.todo-card {
+  overflow-x: hidden;
+}
+
+.schedule-segment {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  max-width: 360px !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 16px !important;
+  background: rgba(248, 250, 252, 0.92) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  overflow: hidden !important;
+}
+
+.schedule-tab-button,
+.schedule-range-button {
+  display: grid !important;
+  grid-template-rows: 16px 12px !important;
+  place-items: center !important;
+  align-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  gap: 2px !important;
+  padding: 5px 2px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  color: #334155 !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.schedule-tab-button:hover,
+.schedule-tab-button:active,
+.schedule-tab-button:focus,
+.schedule-tab-button:focus-visible,
+.schedule-tab-button.is-motion-press,
+.schedule-range-button:hover,
+.schedule-range-button:active,
+.schedule-range-button:focus,
+.schedule-range-button:focus-visible,
+.schedule-range-button.is-motion-press {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.schedule-tab-button.active,
+.schedule-range-button.active {
+  color: #1769aa !important;
+  background: #e8f2ff !important;
+  box-shadow: inset 0 0 0 1px rgba(23, 105, 170, 0.10), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.schedule-tab-button::before,
+.schedule-tab-button::after,
+.schedule-range-button::before,
+.schedule-range-button::after {
+  display: none !important;
+  content: none !important;
+  transform: none !important;
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+.schedule-tab-button *,
+.schedule-tab-button:hover *,
+.schedule-tab-button:active *,
+.schedule-tab-button.is-motion-press *,
+.schedule-range-button *,
+.schedule-range-button:hover *,
+.schedule-range-button:active *,
+.schedule-range-button.is-motion-press * {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.schedule-tab-icon,
+.weather-tab-icon,
+.schedule-tab-button .schedule-tab-icon,
+.schedule-range-button .schedule-tab-icon {
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #0f172a !important;
+  font-size: 15px !important;
+  line-height: 16px !important;
+  text-align: center !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.schedule-tab-button.active .schedule-tab-icon,
+.schedule-range-button.active .schedule-tab-icon {
+  color: #1769aa !important;
+}
+
+.schedule-tab-label {
+  display: block !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  opacity: 1 !important;
+}
+
+.schedule-daily-list,
+.schedule-event-list {
+  display: grid !important;
+  gap: 9px !important;
+}
+
+.schedule-event-card,
+.schedule-event-row,
+.schedule-day-group.compact .schedule-event-row {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  padding: 11px 12px 11px 15px !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%) !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.06), inset 3px 0 0 rgba(59, 130, 246, 0.68) !important;
+  overflow: hidden !important;
+}
+
+.schedule-event-card:first-child {
+  border-top: 1px solid rgba(148, 163, 184, 0.24) !important;
+}
+
+.schedule-event-body {
+  min-width: 0 !important;
+}
+
+.schedule-event-time {
+  display: block !important;
+  margin: 0 0 5px !important;
+  color: #1769aa !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+
+.schedule-event-title {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  color: #0f172a !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  line-height: 1.38 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.schedule-event-location {
+  display: block !important;
+  overflow: hidden !important;
+  margin-top: 5px !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.schedule-day-group {
+  padding: 12px 0 !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.92) !important;
+}
+
+.schedule-day-button {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  box-shadow: none !important;
+}
+
+.schedule-day-button.is-motion-press,
+.schedule-day-button:active,
+.schedule-day-button:hover {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+}
+
+.schedule-more-count {
+  margin: 7px 0 0 15px !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 520px) {
+  .app,
+  .panel,
+  .home-section {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .brand-card,
+  .today-card,
+  .todo-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .brand-title,
+  .brand-description,
+  .assistant-briefing-title,
+  .assistant-briefing-text,
+  .today-title {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .today-card-header {
+    align-items: stretch !important;
+  }
+
+  .schedule-segment {
+    max-width: 100% !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .schedule-tab-button,
+  .schedule-range-button {
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding: 5px 1px !important;
+    font-size: 11px !important;
+  }
+
+  .schedule-tab-icon,
+  .weather-tab-icon,
+  .schedule-tab-button .schedule-tab-icon,
+  .schedule-range-button .schedule-tab-icon {
+    font-size: 15px !important;
+  }
+
+  .schedule-event-card,
+  .schedule-event-row,
+  .schedule-day-group.compact .schedule-event-row {
+    padding: 10px 11px 10px 14px !important;
+    border-radius: 14px !important;
+  }
+}
+/* AI insight card Ver1 */
+.ai-insight-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.ai-insight-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0), rgba(59, 130, 246, 0.95), rgba(125, 211, 252, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ai-insight-card.is-insight-refresh::before {
+  animation: ai-insight-line-flow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+.ai-insight-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ai-insight-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  margin: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.ai-insight-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #1769aa;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.ai-insight-badge {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.ai-insight-main {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.ai-insight-detail {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.65;
+}
+
+@keyframes ai-insight-line-flow {
+  0% {
+    width: 0;
+    opacity: 0;
+    transform: translateX(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    width: calc(100% - 36px);
+    opacity: 1;
+  }
+  100% {
+    width: calc(100% - 36px);
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@media (max-width: 520px) {
+  .ai-insight-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .ai-insight-header {
+    align-items: flex-start;
+  }
+
+  .ai-insight-title,
+  .ai-insight-main,
+  .ai-insight-detail {
+    overflow-wrap: anywhere;
+  }
+}
   </style>
 </head>
 
@@ -2338,6 +2772,17 @@ body,
     </div>
   </div>
 
+  <section id="aiInsightCard" class="ai-insight-card" aria-labelledby="aiInsightTitle">
+    <div class="ai-insight-header">
+      <h3 id="aiInsightTitle" class="ai-insight-title">
+        <span class="ai-insight-icon" aria-hidden="true">✨</span>
+        AIインサイト
+      </h3>
+      <span class="ai-insight-badge">Ver1</span>
+    </div>
+    <p id="aiInsightMain" class="ai-insight-main">今日は営業効率が高そうです。</p>
+    <p id="aiInsightDetail" class="ai-insight-detail">午後は約2時間空いています。あと1件訪問できそうです。</p>
+  </section>
   <div class="todo-card">
     <div class="todo-card-header">
       <div class="todo-heading">
@@ -2813,11 +3258,72 @@ document.getElementById('stepList').classList.add('hidden');
     '本日の優先タスクを確認しました。',
     '必要な時にすぐ対応します。'
   );
+  renderAiInsightCard();
   loadTasks(currentTaskFilter);
   playHomeEntranceMotion();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function renderAiInsightCard() {
+  const insight = getRandomAiInsight();
+  const main = document.getElementById('aiInsightMain');
+  const detail = document.getElementById('aiInsightDetail');
+
+  if (!main || !detail) {
+    return;
+  }
+
+  main.textContent = insight.main;
+  detail.textContent = insight.detail;
+  playAiInsightLineMotion();
+}
+
+function getRandomAiInsight() {
+  const insights = [
+    {
+      main: '今日は営業効率が高そうです。',
+      detail: '午後は約2時間空いています。あと1件訪問できそうです。'
+    },
+    {
+      main: '午前中に重要な予定がまとまっています。',
+      detail: '移動前にTODOを1件だけ片づけると、午後の流れが軽くなります。'
+    },
+    {
+      main: '今日はフォロー連絡に向いています。',
+      detail: '予定の合間に短いメールを1通作る余白があります。'
+    },
+    {
+      main: '移動時間をうまく使えそうです。',
+      detail: '次の予定までのすき間で、訪問メモの整理ができそうです。'
+    },
+    {
+      main: '午後の集中時間を確保できそうです。',
+      detail: '急ぎでない作業はまとめて処理すると、商談準備に時間を残せます。'
+    },
+    {
+      main: '今日は次の一手を作りやすい日です。',
+      detail: '直近の予定を確認して、追加訪問かフォローのどちらかを選べそうです。'
+    }
+  ];
+
+  return insights[Math.floor(Math.random() * insights.length)];
+}
+
+function playAiInsightLineMotion() {
+  const card = document.getElementById('aiInsightCard');
+
+  if (!card) {
+    return;
+  }
+
+  card.classList.remove('is-insight-refresh');
+  void card.offsetWidth;
+  card.classList.add('is-insight-refresh');
+
+  window.setTimeout(function() {
+    card.classList.remove('is-insight-refresh');
+  }, 620);
+}
 function showCalendarScreen(options) {
   if (shouldUsePageTransition(options)) {
     playPageTransition(function() {
@@ -3652,6 +4158,7 @@ function isPrimaryMotionButton(button) {
     !button.classList.contains('todo-add-button') &&
     !button.classList.contains('schedule-tab-button') &&
     !button.classList.contains('schedule-range-button') &&
+    !button.classList.contains('schedule-day-button') &&
     !button.classList.contains('voice-button');
 }
 
@@ -4389,12 +4896,40 @@ function getScheduleDateRange(view, dateKey) {
 }
 
 function renderScheduleEvents(events, view, dateKey) {
+  const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
+
   if (view === 'week' || view === 'month') {
-    renderGroupedScheduleEvents(events, view);
+    renderGroupedScheduleEvents(visibleEvents, view);
     return;
   }
 
-  renderTodayEvents(events, view, dateKey);
+  renderTodayEvents(visibleEvents, view, dateKey);
+}
+
+function filterScheduleEventsForView(events, view, dateKey) {
+  if (!Array.isArray(events)) {
+    return [];
+  }
+
+  if (dateKey || (view !== 'week' && view !== 'month')) {
+    return events;
+  }
+
+  const todayKey = formatScheduleDateKey(startOfDay(new Date()));
+
+  return events.filter(function(event) {
+    return getScheduleEventDateKey(event) >= todayKey;
+  });
+}
+
+function getScheduleEventDateKey(event) {
+  const source = event && (event.start || event.startIso || event.date);
+
+  if (!source) {
+    return '';
+  }
+
+  return formatScheduleDateKey(startOfDay(new Date(source)));
 }
 
 function renderTodayEvents(events, view, dateKey) {
