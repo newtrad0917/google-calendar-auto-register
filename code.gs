@@ -462,6 +462,79 @@ function getTodayCalendarEvents() {
       };
     });
 }
+function getCalendarEventsByRange(startDate, endDate) {
+  const calendar = CalendarApp.getDefaultCalendar();
+  const rangeStart = parseCalendarRangeDate_(startDate);
+  const rangeEnd = parseCalendarRangeDate_(endDate);
+
+  if (!rangeStart || !rangeEnd || rangeEnd.getTime() <= rangeStart.getTime()) {
+    throw new Error('予定取得範囲の日付を確認してください。');
+  }
+
+  const now = new Date();
+  const timeZone = Session.getScriptTimeZone();
+  const events = calendar.getEvents(rangeStart, rangeEnd);
+
+  return events
+    .sort(function(a, b) {
+      return a.getStartTime().getTime() - b.getStartTime().getTime();
+    })
+    .map(function(event) {
+      return mapCalendarEventForList_(event, timeZone, now);
+    });
+}
+
+function parseCalendarRangeDate_(value) {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const dateMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (dateMatch) {
+    return new Date(
+      Number(dateMatch[1]),
+      Number(dateMatch[2]) - 1,
+      Number(dateMatch[3]),
+      0,
+      0,
+      0,
+      0
+    );
+  }
+
+  const parsed = new Date(text);
+
+  if (isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function mapCalendarEventForList_(event, timeZone, now) {
+  const startTime = event.getStartTime();
+  const endTime = event.getEndTime();
+  const isCurrent =
+    startTime.getTime() <= now.getTime() &&
+    endTime.getTime() > now.getTime();
+
+  return {
+    id: event.getId(),
+    title: event.getTitle(),
+    start: startTime.toISOString(),
+    end: endTime.toISOString(),
+    startTime: Utilities.formatDate(startTime, timeZone, 'HH:mm'),
+    endTime: Utilities.formatDate(endTime, timeZone, 'HH:mm'),
+    dateKey: Utilities.formatDate(startTime, timeZone, 'yyyy-MM-dd'),
+    location: event.getLocation() || '',
+    description: event.getDescription() || '',
+    status: isCurrent ? 'current' : 'next',
+    allDay: event.isAllDayEvent()
+  };
+}
 
 /**
  * Tasksシートへ新しいTODOを追加します。
@@ -815,6 +888,32 @@ function doGet(e) {
     }
   }
 
+  if (action === 'rangeEvents') {
+    const callback = e && e.parameter && e.parameter.callback;
+    const startDate = e && e.parameter && e.parameter.startDate;
+    const endDate = e && e.parameter && e.parameter.endDate;
+
+    try {
+      const events = getCalendarEventsByRange(startDate, endDate);
+
+      if (callback) {
+        return createJsonpResponse_(callback, events);
+      }
+
+      return createJsonResponse(events);
+    } catch (error) {
+      const errorData = {
+        error: true,
+        message: error && error.message ? error.message : '予定を取得できませんでした。'
+      };
+
+      if (callback) {
+        return createJsonpResponse_(callback, errorData);
+      }
+
+      return createJsonResponse(errorData);
+    }
+  }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('営業AI秘書')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');

@@ -279,7 +279,7 @@ overflow-wrap: anywhere;
       transform: translateY(1px);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.voice-button)::after {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button)::after {
       content: "";
       position: absolute;
       inset: -38% auto -38% -35%;
@@ -297,14 +297,14 @@ overflow-wrap: anywhere;
       transform: translateX(-110%) skewX(-18deg);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.voice-button):not(:disabled):active {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button):not(:disabled):active {
       transform: scale(0.96);
       box-shadow:
         inset 0 2px 8px rgba(15, 23, 42, 0.18),
         0 0 0 4px rgba(96, 165, 250, 0.10);
     }
 
-    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.voice-button)::after {
+    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button)::after {
       animation: primary-button-light-sweep 140ms ease-out;
     }
 
@@ -897,6 +897,195 @@ body.ai-processing #gmailDraftSection::before {
   font-size: 14px;
 }
 
+.today-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.today-title {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.schedule-segment {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #dde5ef;
+  border-radius: 999px;
+  background: #f5f7fa;
+}
+
+.schedule-range-button {
+  width: auto;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  color: #526070;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.schedule-range-button:hover {
+  color: #1d1d1f;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.schedule-range-button.active {
+  color: #1769aa;
+  background: #e8f2ff;
+  box-shadow: inset 0 0 0 1px rgba(23, 105, 170, 0.08);
+}
+
+.schedule-day-group {
+  padding: 10px 0;
+  border-top: 1px solid #edf1f5;
+}
+
+.schedule-day-group:first-child {
+  border-top: 0;
+}
+
+.schedule-day-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  color: #0f172a;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: left;
+  box-shadow: none;
+}
+
+.schedule-day-button:hover {
+  background: transparent;
+}
+
+.schedule-day-button::after {
+  content: "›";
+  color: #94a3b8;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.schedule-event-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+.schedule-event-row {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.schedule-event-time {
+  color: #64748b;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.schedule-event-body {
+  min-width: 0;
+}
+
+.schedule-event-title {
+  overflow: hidden;
+  color: #0f172a;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-event-location {
+  overflow: hidden;
+  margin-top: 1px;
+  color: #64748b;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-day-group.compact {
+  padding: 8px 0;
+}
+
+.schedule-day-group.compact .schedule-event-list {
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.schedule-day-group.compact .schedule-event-row {
+  grid-template-columns: 72px minmax(0, 1fr);
+  font-size: 12px;
+}
+
+.schedule-day-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf1f5;
+}
+
+.schedule-day-add-button {
+  width: auto;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #cfe1f5;
+  border-radius: 999px;
+  color: #1769aa;
+  background: #f4f9ff;
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.schedule-day-add-button:hover {
+  background: #e8f2ff;
+}
+
+@media (max-width: 520px) {
+  .today-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .schedule-segment {
+    width: 100%;
+  }
+
+  .schedule-range-button {
+    flex: 1 1 0;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .schedule-event-row {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+}
+
 .todo-card {
   padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);
@@ -935,6 +1124,33 @@ body.ai-processing #gmailDraftSection::before {
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
+}
+
+.todo-card-actions {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.todo-edit-button {
+  width: auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  color: #526070;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.todo-edit-button:hover {
+  color: #1d1d1f;
+  background: #f5f7fa;
 }
 
 .todo-add-button {
@@ -1605,12 +1821,24 @@ body.ai-processing #gmailDraftSection::before {
   </div>
 
   <div class="today-card">
-  <h3 class="today-title">📅 本日の予定</h3>
+    <div class="today-card-header">
+      <h3 id="scheduleTitle" class="today-title">本日の予定</h3>
+      <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
+        <button type="button" id="scheduleViewToday" class="schedule-range-button active" onclick="setScheduleView('today')">本日</button>
+        <button type="button" id="scheduleViewTomorrow" class="schedule-range-button" onclick="setScheduleView('tomorrow')">明日</button>
+        <button type="button" id="scheduleViewWeek" class="schedule-range-button" onclick="setScheduleView('week')">今週</button>
+        <button type="button" id="scheduleViewMonth" class="schedule-range-button" onclick="setScheduleView('month')">今月</button>
+      </div>
+    </div>
 
-  <div id="todayEvents">
-    <p class="today-empty">予定を読み込み中です...</p>
+    <div id="todayEvents">
+      <p class="today-empty">予定を読み込み中です...</p>
+    </div>
+
+    <div id="scheduleDayAction" class="schedule-day-action hidden">
+      <button type="button" class="schedule-day-add-button" onclick="addEventForSelectedScheduleDate()">この日に予定を追加</button>
+    </div>
   </div>
-</div>
 
   <div class="todo-card">
     <div class="todo-card-header">
@@ -1618,9 +1846,12 @@ body.ai-processing #gmailDraftSection::before {
         <h3 class="todo-title">TODOリスト</h3>
         <span id="todoStatusSummary" class="todo-status">確認中</span>
       </div>
-      <button type="button" class="todo-add-button" onclick="handleTodoAddButtonClick(event)" aria-label="TODOを追加">
-        +
-      </button>
+      <div class="todo-card-actions">
+        <button type="button" class="todo-edit-button" onclick="handleTodoEditButtonClick()">編集</button>
+        <button type="button" class="todo-add-button" onclick="handleTodoAddButtonClick(event)" aria-label="TODOを追加">
+          +
+        </button>
+      </div>
     </div>
 
     <div class="task-filter" aria-label="TODOカテゴリ切替">
@@ -2012,6 +2243,9 @@ body.ai-processing #gmailDraftSection::before {
     let pageTransitionTimer = null;
     let screenEnterTimer = null;
     let isPageTransitioning = false;
+    let currentScheduleView = 'today';
+    let selectedScheduleDate = '';
+    const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
 
     function showHomeScreen(options) {
   if (shouldUsePageTransition(options)) {
@@ -2048,7 +2282,8 @@ document.getElementById('stepList').classList.add('hidden');
 function showCalendarScreen(options) {
   if (shouldUsePageTransition(options)) {
     playPageTransition(function() {
-      showCalendarScreen({ skipTransition: true });
+      const nextOptions = Object.assign({}, options || {}, { skipTransition: true });
+      showCalendarScreen(nextOptions);
     }, 'inputSection');
     return;
   }
@@ -2068,6 +2303,7 @@ const contactSection = document.getElementById('contactSection');
   todoSection.classList.add('hidden');
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.remove('hidden');
+  applyCalendarDatePrefill(options && options.prefillDate);
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -2976,6 +3212,13 @@ function showTaskForm(options) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function handleTodoEditButtonClick() {
+  showAssistantBriefing(
+    'TODO編集は次回対応します',
+    '今は追加と完了だけを安全に使える状態です。'
+  );
+}
+
 function handleTodoAddButtonClick(event) {
   if (isSavingTask) {
     return;
@@ -3474,12 +3717,26 @@ function setTaskFilter(category) {
   loadTasks(currentTaskFilter);
 }
 function loadTodayEvents() {
+  loadScheduleEvents(currentScheduleView || 'today', selectedScheduleDate || '');
+}
+
+function setScheduleView(view) {
+  currentScheduleView = view || 'today';
+  selectedScheduleDate = '';
+  updateScheduleSegmentState();
+  loadTodayEvents();
+}
+
+function loadScheduleEvents(view, dateKey) {
   const container = document.getElementById('todayEvents');
 
   if (!container) {
     return;
   }
 
+  updateScheduleSegmentState();
+  updateScheduleTitle(view, dateKey);
+  updateScheduleDayAction(dateKey);
   container.innerHTML = '<p class="today-empty">予定を読み込み中です...</p>';
 
   const oldScript = document.getElementById('todayEventsJsonp');
@@ -3490,7 +3747,7 @@ function loadTodayEvents() {
   const callbackName = 'handleTodayEvents_' + Date.now();
   let settled = false;
 
-  function showTodayEventsError() {
+  function showScheduleEventsError() {
     if (settled) {
       return;
     }
@@ -3518,36 +3775,86 @@ function loadTodayEvents() {
       return;
     }
 
-    renderTodayEvents(response);
+    renderScheduleEvents(response, view, dateKey);
   };
 
-  const baseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
   const script = document.createElement('script');
+  const params = buildScheduleQueryParams(view, dateKey, callbackName);
 
   script.id = 'todayEventsJsonp';
-  script.src = baseUrl + '?action=todayEvents&callback=' + encodeURIComponent(callbackName) + '&v=' + Date.now();
-
-  script.onerror = showTodayEventsError;
-
+  script.src = calendarEventsBaseUrl + '?' + params.join('&') + '&v=' + Date.now();
+  script.onerror = showScheduleEventsError;
   script.onload = function() {
     window.setTimeout(function() {
       if (!settled) {
-        showTodayEventsError();
+        showScheduleEventsError();
       }
     }, 0);
   };
 
-  window.setTimeout(showTodayEventsError, 10000);
-
+  window.setTimeout(showScheduleEventsError, 10000);
   document.body.appendChild(script);
 }
 
-function renderTodayEvents(events) {
+function buildScheduleQueryParams(view, dateKey, callbackName) {
+  if (view === 'today' && !dateKey) {
+    return [
+      'action=todayEvents',
+      'callback=' + encodeURIComponent(callbackName)
+    ];
+  }
+
+  const range = getScheduleDateRange(view, dateKey);
+
+  return [
+    'action=rangeEvents',
+    'startDate=' + encodeURIComponent(range.startDate),
+    'endDate=' + encodeURIComponent(range.endDate),
+    'callback=' + encodeURIComponent(callbackName)
+  ];
+}
+
+function getScheduleDateRange(view, dateKey) {
+  const today = startOfDay(new Date());
+  let startDate = today;
+  let endDate = addDays(today, 1);
+
+  if (dateKey) {
+    startDate = parseScheduleDateKey(dateKey);
+    endDate = addDays(startDate, 1);
+  } else if (view === 'tomorrow') {
+    startDate = addDays(today, 1);
+    endDate = addDays(today, 2);
+  } else if (view === 'week') {
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    startDate = addDays(today, mondayOffset);
+    endDate = addDays(startDate, 7);
+  } else if (view === 'month') {
+    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  }
+
+  return {
+    startDate: formatScheduleDateKey(startDate),
+    endDate: formatScheduleDateKey(endDate)
+  };
+}
+
+function renderScheduleEvents(events, view, dateKey) {
+  if (view === 'week' || view === 'month') {
+    renderGroupedScheduleEvents(events, view === 'month');
+    return;
+  }
+
+  renderTodayEvents(events, view, dateKey);
+}
+
+function renderTodayEvents(events, view, dateKey) {
   const container = document.getElementById('todayEvents');
 
   if (!events || !events.length) {
-    container.innerHTML =
-      '<p class="today-empty">本日の予定はありません。</p>';
+    container.innerHTML = '<p class="today-empty">' + getScheduleEmptyText(view, dateKey) + '</p>';
     return;
   }
 
@@ -3580,24 +3887,26 @@ function renderTodayEvents(events) {
     const time = document.createElement('div');
     time.style.fontWeight = '900';
     time.style.fontSize = '17px';
-    time.textContent = event.startTime + '〜' + event.endTime;
+    time.textContent = getScheduleEventTimeText(event);
 
     const title = document.createElement('div');
     title.style.marginTop = '2px';
     title.style.fontWeight = '700';
     title.textContent = event.title || 'タイトルなし';
-if (event.location) {
-  item.style.cursor = 'pointer';
-  item.title = 'Googleマップで開く';
 
-  item.addEventListener('click', function() {
-    const mapUrl =
-      'https://www.google.com/maps/search/?api=1&query=' +
-      encodeURIComponent(event.location);
+    if (event.location) {
+      item.style.cursor = 'pointer';
+      item.title = 'Googleマップで開く';
 
-    window.open(mapUrl, '_blank');
-  });
-}
+      item.addEventListener('click', function() {
+        const mapUrl =
+          'https://www.google.com/maps/search/?api=1&query=' +
+          encodeURIComponent(event.location);
+
+        window.open(mapUrl, '_blank');
+      });
+    }
+
     item.appendChild(badge);
     item.appendChild(time);
     item.appendChild(title);
@@ -3613,6 +3922,217 @@ if (event.location) {
 
     container.appendChild(item);
   });
+}
+
+function renderGroupedScheduleEvents(events, isCompact) {
+  const container = document.getElementById('todayEvents');
+
+  if (!events || !events.length) {
+    container.innerHTML = '<p class="today-empty">表示できる予定はありません。</p>';
+    return;
+  }
+
+  const groups = groupScheduleEventsByDate(events);
+  container.replaceChildren();
+
+  Object.keys(groups).forEach(function(dateKey) {
+    const group = document.createElement('section');
+    group.className = 'schedule-day-group' + (isCompact ? ' compact' : '');
+
+    const dayButton = document.createElement('button');
+    dayButton.type = 'button';
+    dayButton.className = 'schedule-day-button';
+    dayButton.textContent = formatScheduleDateLabel(dateKey);
+    dayButton.addEventListener('click', function() {
+      showScheduleDay(dateKey);
+    });
+
+    const list = document.createElement('div');
+    list.className = 'schedule-event-list';
+
+    groups[dateKey].forEach(function(event) {
+      list.appendChild(createScheduleEventRow(event, isCompact));
+    });
+
+    group.appendChild(dayButton);
+    group.appendChild(list);
+    container.appendChild(group);
+  });
+}
+
+function createScheduleEventRow(event, isCompact) {
+  const row = document.createElement('div');
+  row.className = 'schedule-event-row';
+
+  const time = document.createElement('div');
+  time.className = 'schedule-event-time';
+  time.textContent = getScheduleEventTimeText(event);
+
+  const body = document.createElement('div');
+  body.className = 'schedule-event-body';
+
+  const title = document.createElement('div');
+  title.className = 'schedule-event-title';
+  title.textContent = event.title || 'タイトルなし';
+  body.appendChild(title);
+
+  if (event.location && !isCompact) {
+    const location = document.createElement('div');
+    location.className = 'schedule-event-location';
+    location.textContent = '📍 ' + event.location;
+    body.appendChild(location);
+  }
+
+  row.appendChild(time);
+  row.appendChild(body);
+  return row;
+}
+
+function showScheduleDay(dateKey) {
+  selectedScheduleDate = dateKey;
+  currentScheduleView = 'day';
+  updateScheduleSegmentState();
+  loadTodayEvents();
+}
+
+function addEventForSelectedScheduleDate() {
+  if (!selectedScheduleDate) {
+    return;
+  }
+
+  showCalendarScreen({ prefillDate: selectedScheduleDate });
+}
+
+function applyCalendarDatePrefill(dateKey) {
+  if (!dateKey) {
+    return;
+  }
+
+  const startInput = document.getElementById('startTime');
+
+  if (!startInput) {
+    return;
+  }
+
+  const currentValue = startInput.value || '';
+  const currentTime = currentValue.indexOf('T') !== -1
+    ? currentValue.split('T')[1]
+    : '';
+  startInput.value = dateKey + 'T' + (currentTime || '09:00');
+}
+
+function updateScheduleSegmentState() {
+  [
+    ['scheduleViewToday', 'today'],
+    ['scheduleViewTomorrow', 'tomorrow'],
+    ['scheduleViewWeek', 'week'],
+    ['scheduleViewMonth', 'month']
+  ].forEach(function(item) {
+    const button = document.getElementById(item[0]);
+
+    if (button) {
+      button.classList.toggle('active', item[1] === currentScheduleView);
+      button.setAttribute('aria-selected', item[1] === currentScheduleView ? 'true' : 'false');
+    }
+  });
+}
+
+function updateScheduleTitle(view, dateKey) {
+  const title = document.getElementById('scheduleTitle');
+
+  if (!title) {
+    return;
+  }
+
+  if (dateKey) {
+    title.textContent = formatScheduleDateShort(dateKey) + 'の予定';
+    return;
+  }
+
+  if (view === 'tomorrow') {
+    title.textContent = '明日の予定';
+  } else if (view === 'week') {
+    title.textContent = '今週の予定';
+  } else if (view === 'month') {
+    title.textContent = '今月の予定';
+  } else {
+    title.textContent = '本日の予定';
+  }
+}
+
+function updateScheduleDayAction(dateKey) {
+  const action = document.getElementById('scheduleDayAction');
+
+  if (!action) {
+    return;
+  }
+
+  action.classList.toggle('hidden', !dateKey);
+}
+
+function groupScheduleEventsByDate(events) {
+  return events.reduce(function(groups, event) {
+    const dateKey = event.dateKey || formatScheduleDateKey(new Date(event.start));
+
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+
+    groups[dateKey].push(event);
+    return groups;
+  }, {});
+}
+
+function getScheduleEmptyText(view, dateKey) {
+  if (dateKey) {
+    return formatScheduleDateShort(dateKey) + 'の予定はありません。';
+  }
+
+  if (view === 'tomorrow') {
+    return '明日の予定はありません。';
+  }
+
+  return '本日の予定はありません。';
+}
+
+function getScheduleEventTimeText(event) {
+  if (event.allDay) {
+    return '終日';
+  }
+
+  if (event.startTime && event.endTime) {
+    return event.startTime + '〜' + event.endTime;
+  }
+
+  const start = new Date(event.start);
+  const end = new Date(event.end);
+  return formatScheduleTime(start) + '〜' + formatScheduleTime(end);
+}
+
+function formatScheduleDateKey(date) {
+  return date.getFullYear() + '-' +
+    padTwoDigits(date.getMonth() + 1) + '-' +
+    padTwoDigits(date.getDate());
+}
+
+function parseScheduleDateKey(dateKey) {
+  const parts = String(dateKey || '').split('-').map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
+function formatScheduleDateLabel(dateKey) {
+  const date = parseScheduleDateKey(dateKey);
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  return (date.getMonth() + 1) + '月' + date.getDate() + '日（' + weekdays[date.getDay()] + '）';
+}
+
+function formatScheduleDateShort(dateKey) {
+  const date = parseScheduleDateKey(dateKey);
+  return (date.getMonth() + 1) + '月' + date.getDate() + '日';
+}
+
+function formatScheduleTime(date) {
+  return padTwoDigits(date.getHours()) + ':' + padTwoDigits(date.getMinutes());
 }
 
 function loadAiSystemStatus() {
