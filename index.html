@@ -2842,6 +2842,170 @@ body {
     overflow-wrap: anywhere;
   }
 }
+/* Calendar color selection polish */
+.calendar-color-field {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.calendar-color-field legend {
+  padding: 0 4px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.calendar-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.calendar-color-option {
+  --calendar-accent: #64748b;
+  --calendar-selected-bg: #f8fafc;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 42px;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 34px 9px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.30);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-color-option input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  min-width: 1px;
+  height: 1px;
+  min-height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.calendar-color-option[data-calendar-color="default"] {
+  --calendar-accent: #64748b;
+  --calendar-selected-bg: #f8fafc;
+}
+
+.calendar-color-option[data-calendar-color="blue"] {
+  --calendar-accent: #3b82f6;
+  --calendar-selected-bg: #eff6ff;
+}
+
+.calendar-color-option[data-calendar-color="green"] {
+  --calendar-accent: #22c55e;
+  --calendar-selected-bg: #f0fdf4;
+}
+
+.calendar-color-option[data-calendar-color="red"] {
+  --calendar-accent: #ef4444;
+  --calendar-selected-bg: #fef2f2;
+}
+
+.calendar-color-option[data-calendar-color="yellow"] {
+  --calendar-accent: #eab308;
+  --calendar-selected-bg: #fefce8;
+}
+
+.calendar-color-option[data-calendar-color="purple"] {
+  --calendar-accent: #8b5cf6;
+  --calendar-selected-bg: #f5f3ff;
+}
+
+.calendar-color-option[data-calendar-color="gray"] {
+  --calendar-accent: #64748b;
+  --calendar-selected-bg: #f8fafc;
+}
+
+.calendar-color-option.is-selected {
+  border-color: color-mix(in srgb, var(--calendar-accent) 72%, #ffffff);
+  background: var(--calendar-selected-bg);
+  color: #0f172a;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--calendar-accent) 14%, transparent), 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.calendar-color-option.is-selected::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--calendar-accent);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.calendar-color-option.is-color-changing {
+  animation: calendar-color-select-pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+.calendar-color-swatch {
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  border-radius: 999px;
+  background: var(--calendar-accent);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.10), 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.calendar-color-default {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+}
+
+@keyframes calendar-color-select-pop {
+  0% {
+    transform: scale(0.985);
+  }
+  55% {
+    transform: scale(1.012);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .calendar-color-field {
+    padding: 12px;
+  }
+
+  .calendar-color-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .calendar-color-option {
+    min-height: 40px;
+    padding: 8px 30px 8px 9px;
+    font-size: 12px;
+  }
+}
   </style>
 </head>
 
@@ -3719,6 +3883,52 @@ function showContactScreen(options) {
         .createCalendarEvent(data);
     }
 
+function initCalendarColorOptions() {
+  const inputs = document.querySelectorAll('input[name="eventColor"]');
+
+  inputs.forEach(function(input) {
+    const option = input.closest('.calendar-color-option');
+
+    if (option) {
+      option.dataset.calendarColor = input.value || 'default';
+    }
+
+    if (!input.dataset.colorSelectionReady) {
+      input.addEventListener('change', function() {
+        updateCalendarColorSelection(true);
+      });
+      input.dataset.colorSelectionReady = 'true';
+    }
+  });
+
+  updateCalendarColorSelection(false);
+}
+
+function updateCalendarColorSelection(animate) {
+  const options = document.querySelectorAll('.calendar-color-option');
+  let selectedOption = null;
+
+  options.forEach(function(option) {
+    const input = option.querySelector('input[name="eventColor"]');
+    const isSelected = Boolean(input && input.checked);
+
+    option.classList.toggle('is-selected', isSelected);
+    option.classList.remove('is-color-changing');
+
+    if (isSelected) {
+      selectedOption = option;
+    }
+  });
+
+  if (animate && selectedOption) {
+    void selectedOption.offsetWidth;
+    selectedOption.classList.add('is-color-changing');
+
+    window.setTimeout(function() {
+      selectedOption.classList.remove('is-color-changing');
+    }, 240);
+  }
+}
 function getSelectedEventColor() {
   const selected = document.querySelector('input[name="eventColor"]:checked');
   return selected ? selected.value : '';
@@ -5809,6 +6019,7 @@ function getAiStatusDotClass(state) {
 
     document.addEventListener('DOMContentLoaded', function() {
        initMotionInteractions();
+       initCalendarColorOptions();
        showHomeScreen();
        loadTodayEvents();
        loadAiSystemStatus();
