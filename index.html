@@ -3561,11 +3561,18 @@ document.getElementById('stepList').classList.remove('hidden');
 }
 
 function showMailScreen(options) {
-  if (shouldUsePageTransition(options)) {
+  const mailOptions = options || {};
+
+  if (shouldUsePageTransition(mailOptions)) {
     playPageTransition(function() {
-      showMailScreen({ skipTransition: true });
+      const nextOptions = Object.assign({}, mailOptions, { skipTransition: true });
+      showMailScreen(nextOptions);
     }, 'gmailDraftSection');
     return;
+  }
+
+  if (!mailOptions.keepMeetContext) {
+    pendingMeetMailData = null;
   }
 
   clearScreenMessages();
@@ -4102,11 +4109,15 @@ function generateAiMail() {
   const originalSubject = subjectField.value.trim();
   const originalBody = bodyField.value.trim();
   const originalPurpose = purposeField.value.trim();
-  const protectedInfo = collectProtectedMailInfo(originalSubject, originalBody);
+  const isMeetFollowup = isMeetFollowupMode(originalBody);
+  const protectedInfo = isMeetFollowup
+    ? collectProtectedMailInfo(originalSubject, originalBody)
+    : null;
   const data = buildAiMailRequestData(
     originalSubject,
     originalBody,
-    originalPurpose
+    originalPurpose,
+    isMeetFollowup
   );
 
   if (!data) {
@@ -4135,7 +4146,7 @@ function generateAiMail() {
     .generateAiMail(data);
 }
 
-function buildAiMailRequestData(subject, body, purpose) {
+function buildAiMailRequestData(subject, body, purpose, isMeetFollowup) {
   const hasDraftContent = Boolean(subject || body);
   const shouldPolish = Boolean(body);
 
@@ -4144,8 +4155,8 @@ function buildAiMailRequestData(subject, body, purpose) {
       company: subject,
       purpose: [
         '次の件名と本文を、自然な日本語ビジネスメールとして整えてください。',
-        '既存の日時、Google Meet URL、場所、メモは削除しないでください。',
-        'meet.google.com を含むURLは絶対に残してください。',
+        isMeetFollowup ? '既存の日時、Google Meet URL、場所、メモは削除しないでください。' : '',
+        isMeetFollowup ? 'meet.google.com を含むURLは絶対に残してください。' : '',
         purpose ? '補足目的：' + purpose : '',
         '件名：' + subject,
         '本文：',
@@ -4163,8 +4174,8 @@ function buildAiMailRequestData(subject, body, purpose) {
     company: subject,
     purpose: [
       '次の入力内容から、Gmail下書きに保存できる日本語ビジネスメールを新しく作成してください。',
-      '本文に Google Meet URL がある場合は必ず保持し、Google Meet：{URL} の形で残してください。',
-      '日時、タイトル、場所、メモが含まれる場合も可能な限り保持してください。',
+      isMeetFollowup ? '本文に Google Meet URL がある場合は必ず保持し、Google Meet：{URL} の形で残してください。' : '',
+      isMeetFollowup ? '日時、タイトル、場所、メモが含まれる場合も可能な限り保持してください。' : '',
       purpose ? 'メールの目的：' + purpose : '',
       subject ? '現在の件名：' + subject : '',
       body ? '現在の本文：\n' + body : ''
@@ -4186,12 +4197,24 @@ function setAiMailButtonsLoading(isLoading) {
   }
 }
 
-function collectProtectedMailInfo(subject, body) {
-  const meetUrl = extractMeetUrl(body);
-  const shouldUsePendingMeet =
+function isMeetFollowupMode(body) {
+  return Boolean(
     pendingMeetMailData &&
     pendingMeetMailData.meetLink &&
-    meetUrl === pendingMeetMailData.meetLink;
+    String(body || '').includes(pendingMeetMailData.meetLink)
+  );
+}
+function collectProtectedMailInfo(subject, body) {
+  if (!isMeetFollowupMode(body)) {
+    return {};
+  }
+
+  const meetUrl = extractMeetUrl(body);
+  const shouldUsePendingMeet = Boolean(
+    pendingMeetMailData &&
+    pendingMeetMailData.meetLink &&
+    meetUrl === pendingMeetMailData.meetLink
+  );
 
   return {
     title: extractLabeledValue(body, '内容') ||
@@ -4537,7 +4560,7 @@ function openMeetMailDraft(calendarData, meetLink) {
     meetLink: meetLink || ''
   };
 
-  showMailScreen();
+  showMailScreen({ keepMeetContext: true });
   fillMeetMailDraft(pendingMeetMailData);
   showDraftMessage('Google Meet付き案内メールを作成しました。');
 }
