@@ -2703,6 +2703,145 @@ body {
     overflow-wrap: anywhere;
   }
 }
+/* Customer select Ver1 */
+.customer-select-field {
+  position: relative;
+}
+
+.customer-select-wrap {
+  position: relative;
+}
+
+.customer-select-wrap::after {
+  content: "⌄";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-54%);
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.customer-select {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 40px 11px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 14px;
+  appearance: none;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 750;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.customer-select:focus {
+  border-color: rgba(59, 130, 246, 0.55);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.customer-preview-card {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 13px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.customer-preview-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  width: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0), rgba(59, 130, 246, 0.95), rgba(125, 211, 252, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.customer-preview-card.is-customer-selected::before {
+  animation: customer-line-flow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+.customer-preview-name {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.customer-preview-person,
+.customer-preview-meta,
+.customer-preview-memo {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.customer-preview-map {
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  color: #1769aa;
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-preview-map:hover {
+  text-decoration: underline;
+}
+
+@keyframes customer-line-flow {
+  0% {
+    width: 0;
+    opacity: 0;
+    transform: translateX(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    width: calc(100% - 28px);
+    opacity: 1;
+  }
+  100% {
+    width: calc(100% - 28px);
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@media (max-width: 520px) {
+  .customer-preview-card,
+  .customer-select {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .customer-preview-map,
+  .customer-preview-name,
+  .customer-preview-person,
+  .customer-preview-meta,
+  .customer-preview-memo {
+    overflow-wrap: anywhere;
+  }
+}
   </style>
 </head>
 
@@ -2960,6 +3099,18 @@ body {
           必要に応じて内容を直してから登録してください。
         </p>
 
+        <div class="field customer-select-field">
+          <label for="calendarCustomerSelect">顧客を選択</label>
+          <div class="customer-select-wrap">
+            <select id="calendarCustomerSelect" class="customer-select" onchange="handleCalendarCustomerChange()">
+              <option value="">顧客を選択してください</option>
+              <option value="imajuku-hospital">今宿病院</option>
+              <option value="jurenkai">十連会</option>
+              <option value="marumaru-factory">○○工場</option>
+            </select>
+          </div>
+          <div id="calendarCustomerPreview" class="customer-preview"></div>
+        </div>
         <div class="field">
           <label for="title">タイトル</label>
           <input
@@ -3056,6 +3207,18 @@ body {
 <p class="section-description">
   目的を選んで、AIでメール本文を作成し、Gmail下書きに保存します。
 </p>
+<div class="field customer-select-field">
+  <label for="mailCustomerSelect">顧客を選択</label>
+  <div class="customer-select-wrap">
+    <select id="mailCustomerSelect" class="customer-select" onchange="handleMailCustomerChange()">
+      <option value="">顧客を選択してください</option>
+      <option value="imajuku-hospital">今宿病院</option>
+      <option value="jurenkai">十連会</option>
+      <option value="marumaru-factory">○○工場</option>
+    </select>
+  </div>
+  <div id="mailCustomerPreview" class="customer-preview"></div>
+</div>
 <div class="field">
   <label for="emailPurpose">メールの目的</label>
   <textarea
@@ -3096,6 +3259,10 @@ body {
     <input id="draftTo" type="email">
   </div>
 
+  <div class="field">
+    <label for="draftCc">CC</label>
+    <input id="draftCc" type="email">
+  </div>
   <div class="field">
     <label for="draftSubject">件名</label>
     <input id="draftSubject" type="text">
@@ -3229,6 +3396,44 @@ body {
     let isPageTransitioning = false;
     let currentScheduleView = 'today';
     let selectedScheduleDate = '';
+    const DEMO_CUSTOMERS = [
+      {
+        id: 'imajuku-hospital',
+        companyName: '今宿病院',
+        department: '地域連携室',
+        personName: '山口 太郎',
+        title: '室長',
+        email: 'yamaguchi@example.com',
+        cc: 'renkei@example.com',
+        address: '福岡県福岡市西区今宿2-12-7',
+        phone: '092-000-1234',
+        memo: 'リハビリ機器の入れ替え相談。午後訪問が比較的つながりやすい。'
+      },
+      {
+        id: 'jurenkai',
+        companyName: '十連会',
+        department: '事務局',
+        personName: '田中 花子',
+        title: 'ご担当',
+        email: 'tanaka@example.com',
+        cc: 'office@example.com',
+        address: '福岡県福岡市中央区天神1-1-1',
+        phone: '092-000-5678',
+        memo: '次回会合の日程調整と資料送付を希望。'
+      },
+      {
+        id: 'marumaru-factory',
+        companyName: '○○工場',
+        department: '総務部',
+        personName: '佐藤 健',
+        title: '部長',
+        email: 'sato@example.com',
+        cc: 'soumu@example.com',
+        address: '福岡県北九州市若松区南二島2-23-1',
+        phone: '093-000-2468',
+        memo: '安全衛生関連の打ち合わせ。駐車場は正門横を利用。'
+      }
+    ];
     const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
 
     function showHomeScreen(options) {
@@ -3509,11 +3714,170 @@ function getSelectedEventColor() {
   const selected = document.querySelector('input[name="eventColor"]:checked');
   return selected ? selected.value : '';
 }
+function getOptionalFieldValue(elementId) {
+  const field = document.getElementById(elementId);
+  return field ? field.value.trim() : '';
+}
+
+function getCustomerById(customerId) {
+  return DEMO_CUSTOMERS.find(function(customer) {
+    return customer.id === customerId;
+  }) || null;
+}
+
+function handleCalendarCustomerChange() {
+  const select = document.getElementById('calendarCustomerSelect');
+  const customer = select ? getCustomerById(select.value) : null;
+
+  renderCustomerPreview('calendarCustomerPreview', customer);
+
+  if (customer) {
+    applyCalendarCustomer(customer);
+  }
+}
+
+function handleMailCustomerChange() {
+  const select = document.getElementById('mailCustomerSelect');
+  const customer = select ? getCustomerById(select.value) : null;
+
+  renderCustomerPreview('mailCustomerPreview', customer);
+
+  if (customer) {
+    applyMailCustomer(customer);
+  }
+}
+
+function applyCalendarCustomer(customer) {
+  const locationField = document.getElementById('location');
+  const memoField = document.getElementById('memo');
+
+  if (locationField) {
+    locationField.value = customer.address || '';
+  }
+
+  if (memoField) {
+    memoField.value = buildCalendarCustomerMemo(customer);
+  }
+}
+
+function applyMailCustomer(customer) {
+  const toField = document.getElementById('draftTo');
+  const ccField = document.getElementById('draftCc');
+  const subjectField = document.getElementById('draftSubject');
+  const bodyField = document.getElementById('draftBody');
+
+  if (toField) {
+    toField.value = customer.email || '';
+  }
+
+  if (ccField) {
+    ccField.value = customer.cc || '';
+  }
+
+  if (subjectField) {
+    subjectField.value = customer.companyName + ' ご連絡';
+  }
+
+  if (bodyField) {
+    setMailBodyCustomerOpening(bodyField, buildMailCustomerOpening(customer));
+  }
+}
+
+function buildCalendarCustomerMemo(customer) {
+  return [
+    '担当：' + customer.title + ' ' + customer.personName,
+    '電話：' + customer.phone,
+    customer.memo
+  ].filter(Boolean).join('\n');
+}
+
+function buildMailCustomerOpening(customer) {
+  return [
+    customer.companyName,
+    customer.department + ' ' + customer.title,
+    customer.personName + '様'
+  ].join('\n');
+}
+
+function setMailBodyCustomerOpening(bodyField, opening) {
+  const previousOpening = bodyField.dataset.customerOpening || '';
+  let currentBody = bodyField.value || '';
+
+  if (previousOpening && currentBody.indexOf(previousOpening) === 0) {
+    currentBody = currentBody.slice(previousOpening.length).replace(/^\n{1,2}/, '');
+  }
+
+  bodyField.dataset.customerOpening = opening;
+  bodyField.value = opening + (currentBody ? '\n\n' + currentBody : '\n\n');
+}
+
+function renderCustomerPreview(containerId, customer) {
+  const container = document.getElementById(containerId);
+
+  if (!container) {
+    return;
+  }
+
+  container.replaceChildren();
+
+  if (!customer) {
+    return;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'customer-preview-card';
+
+  const name = document.createElement('div');
+  name.className = 'customer-preview-name';
+  name.textContent = customer.companyName;
+  card.appendChild(name);
+
+  const person = document.createElement('div');
+  person.className = 'customer-preview-person';
+  person.textContent = customer.department + ' / ' + customer.title + ' ' + customer.personName;
+  card.appendChild(person);
+
+  const meta = document.createElement('div');
+  meta.className = 'customer-preview-meta';
+  meta.textContent = customer.email + (customer.phone ? ' / ' + customer.phone : '');
+  card.appendChild(meta);
+
+  if (customer.address) {
+    const map = document.createElement('a');
+    map.className = 'customer-preview-map';
+    map.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(customer.address);
+    map.target = '_blank';
+    map.rel = 'noopener';
+    map.textContent = '📍 ' + customer.address;
+    card.appendChild(map);
+  }
+
+  if (customer.memo) {
+    const memo = document.createElement('div');
+    memo.className = 'customer-preview-memo';
+    memo.textContent = customer.memo;
+    card.appendChild(memo);
+  }
+
+  container.appendChild(card);
+  playCustomerCardLine(card);
+}
+
+function playCustomerCardLine(card) {
+  card.classList.remove('is-customer-selected');
+  void card.offsetWidth;
+  card.classList.add('is-customer-selected');
+
+  window.setTimeout(function() {
+    card.classList.remove('is-customer-selected');
+  }, 620);
+}
 function saveDraft() {
 
 const data = {
 to: document.getElementById('draftTo').value.trim(),
 subject: document.getElementById('draftSubject').value.trim(),
+cc: getOptionalFieldValue('draftCc'),
 body: document.getElementById('draftBody').value.trim()
 };
 
