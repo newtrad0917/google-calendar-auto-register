@@ -1783,6 +1783,492 @@ body.ai-processing #gmailDraftSection::before {
     transition-duration: 1ms !important;
   }
 }
+
+/* Smartphone-first schedule card refinements */
+.schedule-tab-button {
+  background: #ffffff;
+}
+
+.schedule-tab-button.active {
+  background: #e8f2ff;
+}
+
+.weather-badge {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .today-card {
+    padding: 14px;
+  }
+
+  .today-card-header {
+    gap: 8px;
+  }
+
+  .schedule-segment {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    width: 100%;
+    padding: 3px;
+    border-radius: 15px;
+    background: #f6f7f9;
+  }
+
+  .schedule-tab-button,
+  .schedule-range-button {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    min-height: 38px;
+    padding: 5px 2px;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .schedule-tab-button.active,
+  .schedule-range-button.active {
+    background: #e8f2ff;
+  }
+
+  .schedule-tab-icon {
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .schedule-tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .schedule-day-group {
+    padding: 11px 0;
+    border-top: 1px solid #edf1f5;
+  }
+
+  .schedule-day-button {
+    min-height: 34px;
+    padding: 2px 0 6px;
+  }
+
+  .schedule-event-list {
+    gap: 8px;
+    margin-top: 5px;
+  }
+
+  .schedule-event-row,
+  .schedule-day-group.compact .schedule-event-row {
+    display: block;
+    padding: 9px 10px;
+    border: 1px solid #edf1f5;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  .schedule-event-time {
+    display: block;
+    margin-bottom: 3px;
+    color: #1769aa;
+    font-size: 12px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .schedule-event-title {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 1px;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .schedule-event-location {
+    overflow: hidden;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .schedule-more-count {
+    margin: 5px 0 0 0;
+    padding-left: 10px;
+  }
+}
+
+/* Schedule tab stability: no zoom, no jump, quiet color-only feedback */
+.schedule-tab-button,
+.schedule-range-button {
+  background: #ffffff;
+  transform: none !important;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.schedule-tab-button:hover,
+.schedule-range-button:hover,
+.schedule-tab-button:active,
+.schedule-range-button:active,
+.schedule-tab-button.is-motion-press,
+.schedule-range-button.is-motion-press {
+  transform: none !important;
+}
+
+.schedule-tab-button::after,
+.schedule-range-button::after {
+  display: none !important;
+}
+
+.schedule-tab-button.active,
+.schedule-range-button.active {
+  background: #e8f2ff;
+  color: #1769aa;
+}
+
+.schedule-tab-icon {
+  opacity: 1;
+}
+
+.schedule-event-card {
+  display: block;
+  padding: 10px 0;
+  border-top: 1px solid #edf1f5;
+}
+
+.schedule-event-card:first-child {
+  border-top: 0;
+}
+
+.schedule-event-time {
+  display: block;
+  margin-bottom: 3px;
+  color: #1769aa;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.schedule-event-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #0f172a;
+  font-weight: 850;
+  line-height: 1.35;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.schedule-event-location {
+  overflow: hidden;
+  margin-top: 3px;
+  color: #64748b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-weather-card {
+  align-items: center;
+}
+
+.weather-main {
+  width: 100%;
+}
+
+.weather-copy {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 8px;
+}
+
+.weather-title,
+.weather-detail {
+  min-width: 0;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .schedule-segment {
+    overflow: hidden;
+  }
+
+  .schedule-tab-button,
+  .schedule-range-button {
+    min-width: 0;
+    min-height: 36px;
+    padding: 5px 2px;
+  }
+
+  .schedule-tab-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 12px;
+  }
+
+  .schedule-event-card,
+  .schedule-event-row,
+  .schedule-day-group.compact .schedule-event-row {
+    display: block;
+    padding: 9px 10px;
+    border: 1px solid #edf1f5;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+}
+
+/* Final schedule-tab motion guard */
+.schedule-segment {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  overflow: hidden !important;
+}
+
+.schedule-tab-button,
+.schedule-tab-button:hover,
+.schedule-tab-button:active,
+.schedule-tab-button:focus,
+.schedule-tab-button:focus-visible,
+.schedule-tab-button.is-motion-press,
+.schedule-range-button,
+.schedule-range-button:hover,
+.schedule-range-button:active,
+.schedule-range-button:focus,
+.schedule-range-button:focus-visible,
+.schedule-range-button.is-motion-press {
+  width: 100% !important;
+  min-width: 0 !important;
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  color: #40516a !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease !important;
+}
+
+.schedule-tab-button.active,
+.schedule-tab-button.active:hover,
+.schedule-tab-button.active:active,
+.schedule-tab-button.active:focus,
+.schedule-tab-button.active:focus-visible,
+.schedule-range-button.active,
+.schedule-range-button.active:hover,
+.schedule-range-button.active:active,
+.schedule-range-button.active:focus,
+.schedule-range-button.active:focus-visible {
+  color: #1769aa !important;
+  background: #e8f2ff !important;
+  box-shadow: inset 0 0 0 1px rgba(23, 105, 170, 0.08) !important;
+}
+
+.schedule-tab-button::before,
+.schedule-tab-button::after,
+.schedule-range-button::before,
+.schedule-range-button::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+  transform: none !important;
+  opacity: 0 !important;
+}
+
+.schedule-tab-button *,
+.schedule-tab-button:hover *,
+.schedule-tab-button:active *,
+.schedule-tab-button.is-motion-press *,
+.schedule-range-button *,
+.schedule-range-button:hover *,
+.schedule-range-button:active *,
+.schedule-range-button.is-motion-press * {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  color: inherit !important;
+}
+
+.schedule-tab-icon,
+.weather-tab-icon {
+  opacity: 1 !important;
+  filter: none !important;
+  color: inherit !important;
+  font-size: 14px !important;
+}
+
+@media (max-width: 520px) {
+  .schedule-segment {
+    width: 100% !important;
+    gap: 3px !important;
+    padding: 3px !important;
+    border-radius: 14px !important;
+    background: #f5f7fa !important;
+  }
+
+  .schedule-tab-button,
+  .schedule-range-button {
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 5px 2px !important;
+    border-radius: 11px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .schedule-tab-icon,
+  .weather-tab-icon {
+    width: 17px !important;
+    height: 17px !important;
+    font-size: 13px !important;
+  }
+
+  .schedule-tab-label {
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: inherit !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Final mobile overflow and schedule-tab guard */
+body,
+.app,
+.panel,
+.home-section,
+.brand-card,
+.today-card,
+.todo-card,
+.schedule-segment {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.schedule-segment {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.schedule-tab-button,
+.schedule-range-button {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  color: #40516a !important;
+  background: #ffffff !important;
+}
+
+.schedule-tab-button:hover,
+.schedule-tab-button:active,
+.schedule-tab-button.is-motion-press,
+.schedule-range-button:hover,
+.schedule-range-button:active,
+.schedule-range-button.is-motion-press {
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.schedule-tab-button.active,
+.schedule-range-button.active {
+  color: #1769aa !important;
+  background: #e8f2ff !important;
+}
+
+.schedule-tab-icon,
+.schedule-tab-button .schedule-tab-icon,
+.schedule-range-button .schedule-tab-icon,
+.weather-tab-icon {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  font-size: 15px !important;
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+}
+
+.schedule-tab-button.active .schedule-tab-icon,
+.schedule-range-button.active .schedule-tab-icon {
+  color: #1769aa !important;
+}
+
+.schedule-tab-button *,
+.schedule-range-button * {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+  scale: 1 !important;
+  animation: none !important;
+}
+
+@media (max-width: 520px) {
+  .brand-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .brand-title,
+  .brand-description,
+  .assistant-briefing-title,
+  .assistant-briefing-text {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .schedule-segment {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 3px !important;
+    padding: 3px !important;
+    overflow: hidden !important;
+  }
+
+  .schedule-tab-button,
+  .schedule-range-button {
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 5px 2px !important;
+    border-radius: 11px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .schedule-tab-label {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    color: inherit !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
   </style>
 </head>
 
@@ -1825,7 +2311,7 @@ body.ai-processing #gmailDraftSection::before {
       <h3 id="scheduleTitle" class="today-title">本日の予定</h3>
       <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
         <button type="button" id="scheduleViewToday" class="schedule-tab-button active" onclick="setScheduleView('today')" aria-selected="true">
-          <span class="schedule-tab-icon" aria-hidden="true">📅</span>
+          <span class="schedule-tab-icon" aria-hidden="true">☀️</span>
           <span class="schedule-tab-label">本日</span>
         </button>
         <button type="button" id="scheduleViewTomorrow" class="schedule-tab-button" onclick="setScheduleView('tomorrow')" aria-selected="false">
@@ -3164,6 +3650,8 @@ function isPrimaryMotionButton(button) {
     !button.classList.contains('action-card') &&
     !button.classList.contains('task-filter-button') &&
     !button.classList.contains('todo-add-button') &&
+    !button.classList.contains('schedule-tab-button') &&
+    !button.classList.contains('schedule-range-button') &&
     !button.classList.contains('voice-button');
 }
 
@@ -3902,7 +4390,7 @@ function getScheduleDateRange(view, dateKey) {
 
 function renderScheduleEvents(events, view, dateKey) {
   if (view === 'week' || view === 'month') {
-    renderGroupedScheduleEvents(events, view === 'month');
+    renderGroupedScheduleEvents(events, view);
     return;
   }
 
@@ -3947,10 +4435,6 @@ function createDailyScheduleEventItem(event) {
   const body = document.createElement('div');
   body.className = 'schedule-event-body';
 
-  const badge = document.createElement('div');
-  badge.className = 'schedule-event-badge' + (event.status === 'current' ? ' current' : '');
-  badge.textContent = event.status === 'current' ? '現在進行中' : '次の予定';
-  body.appendChild(badge);
 
   const title = document.createElement('div');
   title.className = 'schedule-event-title';
@@ -3980,11 +4464,12 @@ function createDailyScheduleEventItem(event) {
   return item;
 }
 
-function renderGroupedScheduleEvents(events, isCompact) {
+function renderGroupedScheduleEvents(events, view) {
   const container = document.getElementById('todayEvents');
+  const isCompact = view === 'month';
 
   if (!events || !events.length) {
-    container.innerHTML = '<p class="today-empty">表示できる予定はありません。</p>';
+    container.innerHTML = '<p class="today-empty">' + getScheduleEmptyText(view, '') + '</p>';
     return;
   }
 
@@ -4056,7 +4541,7 @@ function createScheduleEventRow(event, isCompact) {
   title.textContent = event.title || 'タイトルなし';
   body.appendChild(title);
 
-  if (event.location && !isCompact) {
+  if (event.location) {
     const location = document.createElement('div');
     location.className = 'schedule-event-location';
     location.textContent = '📍 ' + event.location;
@@ -4097,16 +4582,13 @@ function createWeatherPreviewCard(view) {
   detail.className = 'weather-detail';
   detail.textContent = weather.temperature + ' ' + weather.condition;
 
-  const badge = document.createElement('span');
-  badge.className = 'weather-badge';
-  badge.textContent = '仮表示';
+
 
   copy.appendChild(title);
   copy.appendChild(detail);
   main.appendChild(icon);
   main.appendChild(copy);
   card.appendChild(main);
-  card.appendChild(badge);
   return card;
 }
 
@@ -4230,6 +4712,14 @@ function getScheduleEmptyText(view, dateKey) {
 
   if (view === 'tomorrow') {
     return '明日の予定はありません。';
+  }
+
+  if (view === 'week') {
+    return '今週の予定はありません。';
+  }
+
+  if (view === 'month') {
+    return '今月の予定はありません。';
   }
 
   return '本日の予定はありません。';
