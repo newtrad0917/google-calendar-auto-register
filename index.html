@@ -279,7 +279,7 @@ overflow-wrap: anywhere;
       transform: translateY(1px);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button)::after {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       content: "";
       position: absolute;
       inset: -38% auto -38% -35%;
@@ -297,14 +297,14 @@ overflow-wrap: anywhere;
       transform: translateX(-110%) skewX(-18deg);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button):not(:disabled):active {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
       transform: scale(0.96);
       box-shadow:
         inset 0 2px 8px rgba(15, 23, 42, 0.18),
         0 0 0 4px rgba(96, 165, 250, 0.10);
     }
 
-    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-day-add-button):not(.voice-button)::after {
+    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       animation: primary-button-light-sweep 140ms ease-out;
     }
 
@@ -1824,10 +1824,22 @@ body.ai-processing #gmailDraftSection::before {
     <div class="today-card-header">
       <h3 id="scheduleTitle" class="today-title">本日の予定</h3>
       <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
-        <button type="button" id="scheduleViewToday" class="schedule-range-button active" onclick="setScheduleView('today')">本日</button>
-        <button type="button" id="scheduleViewTomorrow" class="schedule-range-button" onclick="setScheduleView('tomorrow')">明日</button>
-        <button type="button" id="scheduleViewWeek" class="schedule-range-button" onclick="setScheduleView('week')">今週</button>
-        <button type="button" id="scheduleViewMonth" class="schedule-range-button" onclick="setScheduleView('month')">今月</button>
+        <button type="button" id="scheduleViewToday" class="schedule-tab-button active" onclick="setScheduleView('today')" aria-selected="true">
+          <span class="schedule-tab-icon" aria-hidden="true">📅</span>
+          <span class="schedule-tab-label">本日</span>
+        </button>
+        <button type="button" id="scheduleViewTomorrow" class="schedule-tab-button" onclick="setScheduleView('tomorrow')" aria-selected="false">
+          <span class="schedule-tab-icon weather-tab-icon" aria-hidden="true">🌦️</span>
+          <span class="schedule-tab-label">明日</span>
+        </button>
+        <button type="button" id="scheduleViewWeek" class="schedule-tab-button" onclick="setScheduleView('week')" aria-selected="false">
+          <span class="schedule-tab-icon" aria-hidden="true">☷</span>
+          <span class="schedule-tab-label">今週</span>
+        </button>
+        <button type="button" id="scheduleViewMonth" class="schedule-tab-button" onclick="setScheduleView('month')" aria-selected="false">
+          <span class="schedule-tab-icon" aria-hidden="true">▦</span>
+          <span class="schedule-tab-label">今月</span>
+        </button>
       </div>
     </div>
 
@@ -2047,6 +2059,47 @@ body.ai-processing #gmailDraftSection::before {
           <textarea id="memo" rows="5"></textarea>
         </div>
 
+
+        <fieldset class="calendar-color-field">
+          <legend>予定カラー</legend>
+          <div class="calendar-color-grid" aria-label="予定カラー選択">
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="" checked>
+              <span class="calendar-color-swatch calendar-color-default" aria-hidden="true"></span>
+              デフォルト
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="blue">
+              <span class="calendar-color-swatch calendar-color-blue" aria-hidden="true"></span>
+              ブルー
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="green">
+              <span class="calendar-color-swatch calendar-color-green" aria-hidden="true"></span>
+              グリーン
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="red">
+              <span class="calendar-color-swatch calendar-color-red" aria-hidden="true"></span>
+              レッド
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="yellow">
+              <span class="calendar-color-swatch calendar-color-yellow" aria-hidden="true"></span>
+              イエロー
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="purple">
+              <span class="calendar-color-swatch calendar-color-purple" aria-hidden="true"></span>
+              パープル
+            </label>
+            <label class="calendar-color-option">
+              <input type="radio" name="eventColor" value="gray">
+              <span class="calendar-color-swatch calendar-color-gray" aria-hidden="true"></span>
+              グレー
+            </label>
+          </div>
+        </fieldset>
         <label class="meet-option" for="createMeet">
           <input id="createMeet" type="checkbox">
           <span>Google Meetを作成する</span>
@@ -2423,6 +2476,7 @@ function showContactScreen(options) {
           document.getElementById('durationMinutes').value,
         location: document.getElementById('location').value.trim(),
         memo: document.getElementById('memo').value.trim(),
+        eventColor: getSelectedEventColor(),
         createMeet: document.getElementById('createMeet').checked
       };
 
@@ -2458,6 +2512,11 @@ function showContactScreen(options) {
         })
         .createCalendarEvent(data);
     }
+
+function getSelectedEventColor() {
+  const selected = document.querySelector('input[name="eventColor"]:checked');
+  return selected ? selected.value : '';
+}
 function saveDraft() {
 
 const data = {
@@ -3853,75 +3912,72 @@ function renderScheduleEvents(events, view, dateKey) {
 function renderTodayEvents(events, view, dateKey) {
   const container = document.getElementById('todayEvents');
 
+  container.replaceChildren();
+
+  if (shouldShowWeatherCard(view, dateKey)) {
+    container.appendChild(createWeatherPreviewCard(view));
+  }
+
   if (!events || !events.length) {
-    container.innerHTML = '<p class="today-empty">' + getScheduleEmptyText(view, dateKey) + '</p>';
+    const empty = document.createElement('p');
+    empty.className = 'today-empty';
+    empty.textContent = getScheduleEmptyText(view, dateKey);
+    container.appendChild(empty);
     return;
   }
 
-  container.innerHTML = '';
+  const list = document.createElement('div');
+  list.className = 'schedule-daily-list';
 
   events.forEach(function(event) {
-    const item = document.createElement('div');
-
-    item.style.padding = '12px 0';
-    item.style.borderTop = '1px solid #e5e7eb';
-
-    const badge = document.createElement('div');
-    badge.style.display = 'inline-block';
-    badge.style.marginBottom = '6px';
-    badge.style.padding = '3px 8px';
-    badge.style.borderRadius = '999px';
-    badge.style.fontSize = '12px';
-    badge.style.fontWeight = '800';
-
-    if (event.status === 'current') {
-      badge.textContent = '🟢 現在進行中';
-      badge.style.background = '#e6f4ea';
-      badge.style.color = '#116b4d';
-    } else {
-      badge.textContent = '⏰ 次の予定';
-      badge.style.background = '#e8f0fe';
-      badge.style.color = '#1769aa';
-    }
-
-    const time = document.createElement('div');
-    time.style.fontWeight = '900';
-    time.style.fontSize = '17px';
-    time.textContent = getScheduleEventTimeText(event);
-
-    const title = document.createElement('div');
-    title.style.marginTop = '2px';
-    title.style.fontWeight = '700';
-    title.textContent = event.title || 'タイトルなし';
-
-    if (event.location) {
-      item.style.cursor = 'pointer';
-      item.title = 'Googleマップで開く';
-
-      item.addEventListener('click', function() {
-        const mapUrl =
-          'https://www.google.com/maps/search/?api=1&query=' +
-          encodeURIComponent(event.location);
-
-        window.open(mapUrl, '_blank');
-      });
-    }
-
-    item.appendChild(badge);
-    item.appendChild(time);
-    item.appendChild(title);
-
-    if (event.location) {
-      const location = document.createElement('div');
-      location.style.marginTop = '4px';
-      location.style.color = '#5f6368';
-      location.style.fontSize = '13px';
-      location.textContent = '📍 ' + event.location;
-      item.appendChild(location);
-    }
-
-    container.appendChild(item);
+    list.appendChild(createDailyScheduleEventItem(event));
   });
+
+  container.appendChild(list);
+}
+
+function createDailyScheduleEventItem(event) {
+  const item = document.createElement('div');
+  item.className = 'schedule-event-card';
+
+  const time = document.createElement('div');
+  time.className = 'schedule-event-time';
+  time.textContent = getScheduleEventTimeText(event);
+
+  const body = document.createElement('div');
+  body.className = 'schedule-event-body';
+
+  const badge = document.createElement('div');
+  badge.className = 'schedule-event-badge' + (event.status === 'current' ? ' current' : '');
+  badge.textContent = event.status === 'current' ? '現在進行中' : '次の予定';
+  body.appendChild(badge);
+
+  const title = document.createElement('div');
+  title.className = 'schedule-event-title';
+  title.textContent = event.title || 'タイトルなし';
+  body.appendChild(title);
+
+  if (event.location) {
+    item.style.cursor = 'pointer';
+    item.title = 'Googleマップで開く';
+
+    item.addEventListener('click', function() {
+      const mapUrl =
+        'https://www.google.com/maps/search/?api=1&query=' +
+        encodeURIComponent(event.location);
+
+      window.open(mapUrl, '_blank');
+    });
+
+    const location = document.createElement('div');
+    location.className = 'schedule-event-location';
+    location.textContent = '📍 ' + event.location;
+    body.appendChild(location);
+  }
+
+  item.appendChild(time);
+  item.appendChild(body);
+  return item;
 }
 
 function renderGroupedScheduleEvents(events, isCompact) {
@@ -3933,31 +3989,55 @@ function renderGroupedScheduleEvents(events, isCompact) {
   }
 
   const groups = groupScheduleEventsByDate(events);
+  const groupedList = document.createElement('div');
+  groupedList.className = 'schedule-grouped-list';
   container.replaceChildren();
 
   Object.keys(groups).forEach(function(dateKey) {
+    const groupEvents = groups[dateKey];
     const group = document.createElement('section');
     group.className = 'schedule-day-group' + (isCompact ? ' compact' : '');
 
     const dayButton = document.createElement('button');
     dayButton.type = 'button';
     dayButton.className = 'schedule-day-button';
-    dayButton.textContent = formatScheduleDateLabel(dateKey);
     dayButton.addEventListener('click', function() {
       showScheduleDay(dateKey);
     });
 
+    const dayLabel = document.createElement('span');
+    dayLabel.textContent = formatScheduleDateLabel(dateKey);
+    dayButton.appendChild(dayLabel);
+
+    if (isCompact) {
+      const count = document.createElement('span');
+      count.className = 'schedule-day-count';
+      count.textContent = groupEvents.length + '件';
+      dayButton.appendChild(count);
+    }
+
     const list = document.createElement('div');
     list.className = 'schedule-event-list';
 
-    groups[dateKey].forEach(function(event) {
+    const visibleEvents = isCompact ? groupEvents.slice(0, 2) : groupEvents;
+    visibleEvents.forEach(function(event) {
       list.appendChild(createScheduleEventRow(event, isCompact));
     });
 
     group.appendChild(dayButton);
     group.appendChild(list);
-    container.appendChild(group);
+
+    if (isCompact && groupEvents.length > 2) {
+      const more = document.createElement('div');
+      more.className = 'schedule-more-count';
+      more.textContent = 'ほか' + (groupEvents.length - 2) + '件';
+      group.appendChild(more);
+    }
+
+    groupedList.appendChild(group);
   });
+
+  container.appendChild(groupedList);
 }
 
 function createScheduleEventRow(event, isCompact) {
@@ -3986,6 +4066,66 @@ function createScheduleEventRow(event, isCompact) {
   row.appendChild(time);
   row.appendChild(body);
   return row;
+}
+
+function shouldShowWeatherCard(view, dateKey) {
+  return !dateKey && (view === 'today' || view === 'tomorrow');
+}
+
+function createWeatherPreviewCard(view) {
+  const weather = getWeatherPreview(view);
+  const card = document.createElement('div');
+  card.className = 'schedule-weather-card';
+  card.id = view === 'tomorrow' ? 'weatherTomorrowCard' : 'weatherTodayCard';
+
+  const main = document.createElement('div');
+  main.className = 'weather-main';
+
+  const icon = document.createElement('span');
+  icon.className = 'weather-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = weather.icon;
+
+  const copy = document.createElement('span');
+  copy.className = 'weather-copy';
+
+  const title = document.createElement('span');
+  title.className = 'weather-title';
+  title.textContent = weather.label;
+
+  const detail = document.createElement('span');
+  detail.className = 'weather-detail';
+  detail.textContent = weather.temperature + ' ' + weather.condition;
+
+  const badge = document.createElement('span');
+  badge.className = 'weather-badge';
+  badge.textContent = '仮表示';
+
+  copy.appendChild(title);
+  copy.appendChild(detail);
+  main.appendChild(icon);
+  main.appendChild(copy);
+  card.appendChild(main);
+  card.appendChild(badge);
+  return card;
+}
+
+function getWeatherPreview(view) {
+  if (view === 'tomorrow') {
+    return {
+      icon: '🌦️',
+      label: '明日の天気',
+      temperature: '23℃',
+      condition: 'くもりのち雨'
+    };
+  }
+
+  return {
+    icon: '☀️',
+    label: '本日の天気',
+    temperature: '25℃',
+    condition: '晴れ'
+  };
 }
 
 function showScheduleDay(dateKey) {
@@ -4123,7 +4263,7 @@ function parseScheduleDateKey(dateKey) {
 function formatScheduleDateLabel(dateKey) {
   const date = parseScheduleDateKey(dateKey);
   const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-  return (date.getMonth() + 1) + '月' + date.getDate() + '日（' + weekdays[date.getDay()] + '）';
+  return (date.getMonth() + 1) + '/' + date.getDate() + '（' + weekdays[date.getDay()] + '）';
 }
 
 function formatScheduleDateShort(dateKey) {
@@ -4260,7 +4400,7 @@ function getAiStatusDotClass(state) {
        loadAiSystemStatus();
 setInterval(loadTodayEvents, 60 * 1000);
     });
-  
+
   </script>
 </body>
 </html>

@@ -61,6 +61,8 @@ function createCalendarEvent(data) {
         }
       );
 
+      applyCalendarEventColor_(fallbackEvent, data.eventColor);
+
       return {
         success: true,
         message: '予定は登録しましたが、Google Meet作成は確認が必要です。',
@@ -82,6 +84,8 @@ function createCalendarEvent(data) {
     }
   );
 
+  applyCalendarEventColor_(event, data.eventColor);
+
   // 登録できたことをHTML画面へ返します。
   return {
     success: true,
@@ -93,6 +97,7 @@ function createCalendarEvent(data) {
 
 function createCalendarEventWithMeet_(calendar, data, startTime, endTime) {
   const timeZone = Session.getScriptTimeZone();
+  const colorId = getCalendarEventColorId_(data.eventColor);
   const resource = {
     summary: data.title,
     location: data.location || '',
@@ -115,6 +120,10 @@ function createCalendarEventWithMeet_(calendar, data, startTime, endTime) {
     }
   };
 
+  if (colorId) {
+    resource.colorId = colorId;
+  }
+
   const createdEvent = Calendar.Events.insert(
     resource,
     calendar.getId(),
@@ -129,6 +138,60 @@ function createCalendarEventWithMeet_(calendar, data, startTime, endTime) {
   };
 }
 
+
+function applyCalendarEventColor_(event, eventColor) {
+  const calendarColor = getCalendarAppEventColor_(eventColor);
+
+  if (!calendarColor) {
+    return;
+  }
+
+  try {
+    event.setColor(calendarColor);
+  } catch (error) {
+    // 色設定に失敗しても予定登録自体は成功させます。
+  }
+}
+
+function getCalendarEventColorId_(eventColor) {
+  const value = String(eventColor || '').trim().toLowerCase();
+  const colorMap = {
+    blue: '1',
+    green: '2',
+    purple: '3',
+    red: '4',
+    yellow: '5',
+    gray: '8',
+    grey: '8',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '8': '8'
+  };
+
+  return colorMap[value] || '';
+}
+
+function getCalendarAppEventColor_(eventColor) {
+  const colorId = getCalendarEventColorId_(eventColor);
+
+  if (!colorId) {
+    return '';
+  }
+
+  const eventColorMap = {
+    '1': CalendarApp.EventColor.PALE_BLUE,
+    '2': CalendarApp.EventColor.PALE_GREEN,
+    '3': CalendarApp.EventColor.MAUVE,
+    '4': CalendarApp.EventColor.PALE_RED,
+    '5': CalendarApp.EventColor.YELLOW,
+    '8': CalendarApp.EventColor.GRAY
+  };
+
+  return eventColorMap[colorId] || colorId;
+}
 function getMeetLinkFromEvent_(event) {
   if (!event) {
     return '';
