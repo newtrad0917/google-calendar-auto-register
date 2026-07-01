@@ -3398,6 +3398,7 @@ body.ai-processing .assistant-briefing-icon {
 
 .customer-hub-card,
 .customer-hub-profile,
+.customer-hub-sales-memo,
 .customer-hub-action {
   border: 1px solid var(--ux-card-border) !important;
   border-radius: var(--ux-card-radius) !important;
@@ -3421,7 +3422,40 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .customer-hub-card-body {
+  display: grid;
+  gap: 6px;
   min-width: 0;
+}
+
+.customer-hub-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.customer-hub-card-tag,
+.customer-hub-next-schedule {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #295176;
+  background: #f0f7ff;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.customer-hub-next-schedule {
+  border-color: #e2e8f0;
+  color: #64748b;
+  background: #f8fafc;
 }
 
 .customer-hub-detail-button {
@@ -3455,13 +3489,100 @@ body.ai-processing .assistant-briefing-icon {
   display: none !important;
 }
 
+.customer-hub-sales-memo {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 7px;
+  padding: 16px 16px 16px 18px;
+}
+
+.customer-hub-sales-memo::before,
+.customer-hub-profile::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0), rgba(23, 105, 170, 0.95), rgba(125, 211, 252, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.customer-hub-memo-kicker {
+  color: #1769aa;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.customer-hub-memo-text {
+  margin: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
+.customer-hub-detail.is-detail-entering .customer-hub-profile::before {
+  animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-profile,
+.customer-hub-detail.is-detail-entering .customer-hub-sales-memo,
+.customer-hub-detail.is-detail-entering .customer-hub-back-row,
 .customer-hub-detail.is-detail-entering .customer-hub-actions {
   animation: ux-card-stream-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+.customer-hub-detail.is-detail-entering .customer-hub-profile {
+  animation-delay: 42ms;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-actions {
-  animation-delay: 48ms;
+  animation-delay: 84ms;
+}
+
+.customer-hub-detail.is-detail-entering .customer-hub-back-row {
+  animation-delay: 126ms;
+}
+
+.customer-hub-back-row {
+  justify-content: flex-start;
+}
+
+.customer-hub-list-back-button {
+  width: auto;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.customer-hub-list-back-button:hover {
+  color: #1769aa;
+  background: #f4f9ff;
+}
+
+@media (max-width: 520px) {
+  .customer-hub-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .customer-hub-detail-button {
+    width: 100%;
+  }
 }
 
 /* UX Sprint Ver1: Motion */
@@ -4091,6 +4212,9 @@ body.ai-processing .assistant-briefing-icon {
         cc: 'renkei@example.com',
         address: '福岡県福岡市西区今宿2-12-7',
         phone: '092-000-1234',
+        area: '福岡市西区',
+        nextSchedule: '未設定',
+        salesMemo: '前回はLEDの話をしています。\n次回は補助金・空調も提案候補です。',
         memo: 'リハビリ機器の入れ替え相談。午後訪問が比較的つながりやすい。'
       },
       {
@@ -4103,6 +4227,9 @@ body.ai-processing .assistant-briefing-icon {
         cc: 'office@example.com',
         address: '福岡県福岡市中央区天神1-1-1',
         phone: '092-000-5678',
+        area: '福岡市中央区',
+        nextSchedule: '未設定',
+        salesMemo: '前回は会合日程の話をしています。\n次回は資料送付後の確認と追加提案が候補です。',
         memo: '次回会合の日程調整と資料送付を希望。'
       },
       {
@@ -4115,6 +4242,9 @@ body.ai-processing .assistant-briefing-icon {
         cc: 'soumu@example.com',
         address: '福岡県北九州市若松区南二島2-23-1',
         phone: '093-000-2468',
+        area: '北九州市若松区',
+        nextSchedule: '未設定',
+        salesMemo: '前回は安全衛生関連の話をしています。\n次回は現場確認と空調更新も提案候補です。',
         memo: '安全衛生関連の打ち合わせ。駐車場は正門横を利用。'
       }
     ];
@@ -4377,15 +4507,25 @@ function renderCustomerHubList() {
 
     const meta = document.createElement('span');
     meta.className = 'customer-hub-card-meta';
-    meta.textContent = customer.department + ' / ' + customer.title + ' ' + customer.personName;
+    meta.textContent = '担当者：' + customer.title + ' ' + customer.personName;
 
-    const address = document.createElement('span');
-    address.className = 'customer-hub-card-address';
-    address.textContent = customer.address;
+    const tags = document.createElement('span');
+    tags.className = 'customer-hub-card-tags';
+
+    const area = document.createElement('span');
+    area.className = 'customer-hub-card-tag';
+    area.textContent = 'エリア：' + getCustomerAreaText(customer);
+
+    const nextSchedule = document.createElement('span');
+    nextSchedule.className = 'customer-hub-next-schedule';
+    nextSchedule.textContent = '次回予定：' + getCustomerNextScheduleText(customer);
+
+    tags.appendChild(area);
+    tags.appendChild(nextSchedule);
 
     body.appendChild(title);
     body.appendChild(meta);
-    body.appendChild(address);
+    body.appendChild(tags);
 
     const detailButton = createCustomerHubDetailButton(customer, card);
 
@@ -4393,6 +4533,14 @@ function renderCustomerHubList() {
     card.appendChild(detailButton);
     list.appendChild(card);
   });
+}
+
+function getCustomerAreaText(customer) {
+  return customer.area || '未設定';
+}
+
+function getCustomerNextScheduleText(customer) {
+  return customer.nextSchedule || '未設定';
 }
 
 function createCustomerHubDetailButton(customer, card) {
@@ -4459,6 +4607,8 @@ function showCustomerHubDetail(customerId) {
   markCustomerHubCardSelected(customerId);
   detail.replaceChildren();
 
+  detail.appendChild(createCustomerHubSalesMemoCard(customer));
+
   const profile = document.createElement('section');
   profile.className = 'customer-hub-profile';
 
@@ -4481,7 +4631,30 @@ function showCustomerHubDetail(customerId) {
   profile.appendChild(grid);
   detail.appendChild(profile);
   detail.appendChild(createCustomerHubActions(customer));
+  detail.appendChild(createCustomerHubBackRow());
   playCustomerHubDetailMotion(detail);
+}
+
+function createCustomerHubSalesMemoCard(customer) {
+  const memo = document.createElement('section');
+  memo.className = 'customer-hub-sales-memo';
+  memo.setAttribute('aria-label', '営業メモ');
+
+  const kicker = document.createElement('span');
+  kicker.className = 'customer-hub-memo-kicker';
+  kicker.textContent = 'AIより';
+
+  const text = document.createElement('p');
+  text.className = 'customer-hub-memo-text';
+  text.textContent = getCustomerSalesMemoText(customer);
+
+  memo.appendChild(kicker);
+  memo.appendChild(text);
+  return memo;
+}
+
+function getCustomerSalesMemoText(customer) {
+  return customer.salesMemo || '前回はLEDの話をしています。\n次回は補助金・空調も提案候補です。';
 }
 
 function markCustomerHubCardSelected(customerId) {
@@ -4504,6 +4677,33 @@ function playCustomerHubDetailMotion(detail) {
   window.setTimeout(function() {
     detail.classList.remove('is-detail-entering');
   }, 460);
+}
+
+function createCustomerHubBackRow() {
+  const row = document.createElement('div');
+  row.className = 'customer-hub-back-row';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'customer-hub-list-back-button';
+  button.textContent = '顧客一覧へ戻る';
+  button.addEventListener('click', scrollCustomerHubListIntoView);
+
+  row.appendChild(button);
+  return row;
+}
+
+function scrollCustomerHubListIntoView() {
+  const list = document.getElementById('customerHubList');
+
+  if (!list) {
+    return;
+  }
+
+  list.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
 }
 
 function createCustomerHubDetailRow(label, value, href) {
@@ -4541,21 +4741,23 @@ function createCustomerHubActions(customer) {
   const actions = document.createElement('div');
   actions.className = 'customer-hub-actions';
 
-  actions.appendChild(createCustomerHubButton('📧 メール', function(target) {
-    playCustomerHubLine(target);
-    startCustomerMail(customer.id);
-  }));
+  actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer)));
 
   actions.appendChild(createCustomerHubButton('📅 予定登録', function(target) {
     playCustomerHubLine(target);
     startCustomerCalendar(customer.id);
   }));
 
-  actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer)));
+  actions.appendChild(createCustomerHubButton('📧 メール', function(target) {
+    playCustomerHubLine(target);
+    startCustomerMail(customer.id);
+  }));
+
+  actions.appendChild(createCustomerHubLink('☎ 電話', 'tel:' + customer.phone));
+
   actions.appendChild(createCustomerHubButton('📄 案件（準備中）', function(target) {
     playCustomerHubLine(target);
   }, true));
-  actions.appendChild(createCustomerHubLink('☎ 電話', 'tel:' + customer.phone));
 
   return actions;
 }
