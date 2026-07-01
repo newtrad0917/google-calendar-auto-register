@@ -3295,7 +3295,26 @@ body::before {
 }
 
 .schedule-weather-card {
+  position: relative;
+  overflow: hidden;
   margin-bottom: 10px;
+}
+
+.schedule-weather-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0), rgba(23, 105, 170, 0.95), rgba(125, 211, 252, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.schedule-weather-card.is-weather-updated::before {
+  animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
 }
 
 .weather-main {
@@ -3325,6 +3344,16 @@ body::before {
   color: #64748b;
   font-size: 12px;
   font-weight: 800;
+}
+
+.weather-advice {
+  display: block;
+  margin-top: 8px;
+  padding-left: 40px;
+  color: #7c4a03;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.45;
 }
 
 /* UX Sprint Ver1: TODO */
@@ -4199,6 +4228,17 @@ body.ai-processing .assistant-briefing-icon {
     let currentScheduleView = 'today';
     let selectedScheduleDate = '';
     let selectedCustomerHubId = '';
+    let weatherForecastState = 'idle';
+    let weatherForecastDays = [];
+    let weatherForecastAnimationPending = false;
+    let lastScheduleEvents = null;
+    let lastScheduleView = '';
+    let lastScheduleDateKey = '';
+    const WEATHER_LOCATION = {
+      name: '福岡県久留米市',
+      latitude: 33.3193,
+      longitude: 130.5084
+    };
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
     const DEMO_CUSTOMERS = [
@@ -4654,7 +4694,10 @@ function createCustomerHubSalesMemoCard(customer) {
 }
 
 function getCustomerSalesMemoText(customer) {
-  return customer.salesMemo || '前回はLEDの話をしています。\n次回は補助金・空調も提案候補です。';
+  const baseMemo = customer.salesMemo || '前回はLEDの話をしています。\n次回は補助金・空調も提案候補です。';
+  const weatherAdvice = getWeatherSalesAdviceText();
+
+  return weatherAdvice ? baseMemo + '\n' + weatherAdvice : baseMemo;
 }
 
 function markCustomerHubCardSelected(customerId) {
@@ -6557,6 +6600,10 @@ function getScheduleDateRange(view, dateKey) {
 }
 
 function renderScheduleEvents(events, view, dateKey) {
+  lastScheduleEvents = Array.isArray(events) ? events.slice() : [];
+  lastScheduleView = view || 'today';
+  lastScheduleDateKey = dateKey || '';
+
   const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
 
   if (view === 'week' || view === 'month') {
@@ -6663,16 +6710,24 @@ function createDailyScheduleEventItem(event) {
 function renderGroupedScheduleEvents(events, view) {
   const container = document.getElementById('todayEvents');
   const isCompact = view === 'month';
+  const groupedList = document.createElement('div');
+
+  container.replaceChildren();
+
+  if (shouldShowWeatherCard(view, '')) {
+    container.appendChild(createWeatherPreviewCard(view));
+  }
 
   if (!events || !events.length) {
-    container.innerHTML = '<p class="today-empty">' + getScheduleEmptyText(view, '') + '</p>';
+    const empty = document.createElement('p');
+    empty.className = 'today-empty';
+    empty.textContent = getScheduleEmptyText(view, '');
+    container.appendChild(empty);
     return;
   }
 
   const groups = groupScheduleEventsByDate(events);
-  const groupedList = document.createElement('div');
   groupedList.className = 'schedule-grouped-list';
-  container.replaceChildren();
 
   Object.keys(groups).forEach(function(dateKey) {
     const groupEvents = groups[dateKey];
@@ -6750,7 +6805,96 @@ function createScheduleEventRow(event, isCompact) {
 }
 
 function shouldShowWeatherCard(view, dateKey) {
-  return !dateKey && (view === 'today' || view === 'tomorrow');
+  return !dateKey && ['today', 'tomorrow', 'week', 'month'].indexOf(view) !== -1;
+}
+
+function loadWeatherForecast() {
+  weatherForecastState = 'loading';
+  updateScheduleWeatherTabs();
+
+  if (!window.fetch) {
+    setWeatherForecastError();
+    return;
+  }
+
+  fetch(buildOpenMeteoForecastUrl())
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('天気APIの取得に失敗しました。');
+      }
+
+      return response.json();
+    })
+    .then(function(data) {
+      weatherForecastDays = normalizeOpenMeteoForecast(data);
+
+      if (!weatherForecastDays.length) {
+        throw new Error('天気データを確認できませんでした。');
+      }
+
+      weatherForecastState = 'ready';
+      weatherForecastAnimationPending = true;
+      updateScheduleWeatherTabs();
+      refreshWeatherDependentViews();
+    })
+    .catch(function(error) {
+      console.error(error);
+      setWeatherForecastError();
+    });
+}
+
+function buildOpenMeteoForecastUrl() {
+  // Open-Meteoは非商用利用ではAPIキー不要。将来商用利用する場合は有料プランを検討する。
+  const params = new URLSearchParams({
+    latitude: WEATHER_LOCATION.latitude,
+    longitude: WEATHER_LOCATION.longitude,
+    current: 'temperature_2m,weather_code',
+    daily: 'precipitation_probability_max,weather_code,temperature_2m_max,temperature_2m_min',
+    timezone: 'Asia/Tokyo',
+    forecast_days: '2'
+  });
+
+  return 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+}
+
+function normalizeOpenMeteoForecast(data) {
+  if (!data || !data.daily || !Array.isArray(data.daily.time)) {
+    return [];
+  }
+
+  return data.daily.time.slice(0, 2).map(function(date, index) {
+    const isToday = index === 0;
+    const code = isToday && data.current && typeof data.current.weather_code !== 'undefined'
+      ? data.current.weather_code
+      : data.daily.weather_code && data.daily.weather_code[index];
+    const weather = convertWmoWeatherCode(code);
+    const temperature = isToday && data.current && typeof data.current.temperature_2m !== 'undefined'
+      ? data.current.temperature_2m
+      : data.daily.temperature_2m_max && data.daily.temperature_2m_max[index];
+    const precipitationProbability = data.daily.precipitation_probability_max
+      ? data.daily.precipitation_probability_max[index]
+      : null;
+
+    return {
+      date: date,
+      view: isToday ? 'today' : 'tomorrow',
+      icon: weather.icon,
+      condition: weather.label,
+      temperatureText: formatWeatherTemperature(temperature),
+      precipitationText: formatPrecipitationProbability(precipitationProbability),
+      precipitationProbability: Number(precipitationProbability),
+      needsRainAttention: isFinite(Number(precipitationProbability)) && Number(precipitationProbability) >= 70
+    };
+  }).filter(function(day) {
+    return Boolean(day.date);
+  });
+}
+
+function setWeatherForecastError() {
+  weatherForecastState = 'error';
+  weatherForecastDays = [];
+  updateScheduleWeatherTabs();
+  refreshWeatherDependentViews();
 }
 
 function createWeatherPreviewCard(view) {
@@ -6783,15 +6927,201 @@ function createWeatherPreviewCard(view) {
   main.appendChild(icon);
   main.appendChild(copy);
   card.appendChild(main);
+
+  if (weather.advice) {
+    const advice = document.createElement('span');
+    advice.className = 'weather-advice';
+    advice.textContent = weather.advice;
+    card.appendChild(advice);
+  }
+
+  if (weather.source === 'api' && weatherForecastAnimationPending) {
+    weatherForecastAnimationPending = false;
+    window.requestAnimationFrame(function() {
+      card.classList.add('is-weather-updated');
+
+      window.setTimeout(function() {
+        card.classList.remove('is-weather-updated');
+      }, 620);
+    });
+  }
+
   return card;
 }
 
 function getWeatherPreviewStatus(view) {
+  if (weatherForecastState === 'error') {
+    return {
+      icon: '--',
+      label: '天気：取得できませんでした',
+      statusText: '',
+      source: 'error'
+    };
+  }
+
+  const forecast = getWeatherForecastForView(view);
+
+  if (weatherForecastState === 'ready' && forecast) {
+    return {
+      icon: forecast.icon,
+      label: view === 'tomorrow' ? '明日の天気' : '本日の天気',
+      statusText: forecast.temperatureText + ' ' + forecast.condition + ' / 降水確率' + forecast.precipitationText,
+      advice: forecast.needsRainAttention ? '雨具・移動時間に注意' : '',
+      source: 'api'
+    };
+  }
+
   return {
     icon: '--',
     label: view === 'tomorrow' ? '明日の天気' : '本日の天気',
-    statusText: '取得準備中'
+    statusText: '取得中...',
+    source: 'loading'
   };
+}
+
+function getWeatherForecastForView(view) {
+  const targetView = view === 'tomorrow' ? 'tomorrow' : 'today';
+
+  return weatherForecastDays.find(function(day) {
+    return day.view === targetView;
+  }) || null;
+}
+
+function convertWmoWeatherCode(code) {
+  const numericCode = Number(code);
+
+  if (numericCode === 0) {
+    return { icon: '☀️', label: '晴れ' };
+  }
+
+  if (numericCode === 1 || numericCode === 2) {
+    return { icon: '🌤️', label: '晴れ時々くもり' };
+  }
+
+  if (numericCode === 3) {
+    return { icon: '☁️', label: 'くもり' };
+  }
+
+  if (numericCode === 45 || numericCode === 48) {
+    return { icon: '🌫️', label: '霧' };
+  }
+
+  if (numericCode === 51 || numericCode === 53 || numericCode === 55) {
+    return { icon: '🌦️', label: '霧雨' };
+  }
+
+  if (numericCode === 61 || numericCode === 63 || numericCode === 65) {
+    return { icon: '☔', label: '雨' };
+  }
+
+  if (numericCode === 80 || numericCode === 81 || numericCode === 82) {
+    return { icon: '🌧️', label: 'にわか雨' };
+  }
+
+  if (numericCode === 95 || numericCode === 96 || numericCode === 99) {
+    return { icon: '⛈️', label: '雷雨' };
+  }
+
+  return { icon: '--', label: '天気' };
+}
+
+function formatWeatherTemperature(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return '--℃';
+  }
+
+  const numberValue = Number(value);
+
+  if (!isFinite(numberValue)) {
+    return '--℃';
+  }
+
+  return Math.round(numberValue) + '℃';
+}
+
+function formatPrecipitationProbability(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return '--%';
+  }
+
+  const numberValue = Number(value);
+
+  if (!isFinite(numberValue)) {
+    return '--%';
+  }
+
+  return Math.round(numberValue) + '%';
+}
+
+function updateScheduleWeatherTabs() {
+  updateScheduleWeatherTabIcon('today');
+  updateScheduleWeatherTabIcon('tomorrow');
+}
+
+function updateScheduleWeatherTabIcon(view) {
+  const button = document.getElementById(view === 'tomorrow' ? 'scheduleViewTomorrow' : 'scheduleViewToday');
+  const icon = button ? button.querySelector('.schedule-tab-icon') : null;
+
+  if (!icon) {
+    return;
+  }
+
+  icon.textContent = getWeatherPreviewStatus(view).icon;
+}
+
+function refreshWeatherDependentViews() {
+  refreshCurrentScheduleWeatherView();
+
+  if (selectedCustomerHubId) {
+    const customerHubSection = document.getElementById('customerHubSection');
+
+    if (customerHubSection && !customerHubSection.classList.contains('hidden')) {
+      showCustomerHubDetail(selectedCustomerHubId);
+    }
+  }
+}
+
+function refreshCurrentScheduleWeatherView() {
+  const dateKey = selectedScheduleDate || '';
+
+  if (
+    Array.isArray(lastScheduleEvents) &&
+    lastScheduleView === (currentScheduleView || 'today') &&
+    lastScheduleDateKey === dateKey
+  ) {
+    renderScheduleEvents(lastScheduleEvents, lastScheduleView, lastScheduleDateKey);
+    return;
+  }
+
+  if (replaceVisibleWeatherCard()) {
+    return;
+  }
+
+  loadTodayEvents();
+}
+
+function replaceVisibleWeatherCard() {
+  const container = document.getElementById('todayEvents');
+  const existingCard = container ? container.querySelector('.schedule-weather-card') : null;
+
+  if (!existingCard || !shouldShowWeatherCard(currentScheduleView || 'today', selectedScheduleDate || '')) {
+    return false;
+  }
+
+  existingCard.replaceWith(createWeatherPreviewCard(currentScheduleView || 'today'));
+  return true;
+}
+
+function getWeatherSalesAdviceText() {
+  if (weatherForecastState !== 'ready') {
+    return '';
+  }
+
+  const rainyDay = weatherForecastDays.find(function(day) {
+    return day.needsRainAttention;
+  });
+
+  return rainyDay ? '雨の日は訪問時間に余裕を見てください。' : '';
 }
 
 function showScheduleDay(dateKey) {
@@ -7070,6 +7400,7 @@ function getAiStatusDotClass(state) {
     document.addEventListener('DOMContentLoaded', function() {
        initMotionInteractions();
        initCalendarColorOptions();
+       loadWeatherForecast();
        showHomeScreen();
        loadTodayEvents();
        loadAiSystemStatus();
