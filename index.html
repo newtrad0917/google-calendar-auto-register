@@ -4315,9 +4315,10 @@ body.ai-processing .assistant-briefing-icon {
     let lastScheduleView = '';
     let lastScheduleDateKey = '';
     const WEATHER_LOCATION = {
-      name: '福岡県久留米市',
-      latitude: 33.3193,
-      longitude: 130.5084
+      name: '朝倉',
+      latitude: 33.42,
+      longitude: 130.67,
+      timezone: 'Asia/Tokyo'
     };
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
@@ -7306,8 +7307,9 @@ function buildOpenMeteoForecastUrl() {
     latitude: WEATHER_LOCATION.latitude,
     longitude: WEATHER_LOCATION.longitude,
     current: 'temperature_2m,weather_code',
+    hourly: 'precipitation_probability',
     daily: 'precipitation_probability_max,weather_code,temperature_2m_max,temperature_2m_min',
-    timezone: 'Asia/Tokyo',
+    timezone: WEATHER_LOCATION.timezone,
     forecast_days: '2'
   });
 
@@ -7319,6 +7321,9 @@ function normalizeOpenMeteoForecast(data) {
     return [];
   }
 
+  const hourlyForecasts = normalizeOpenMeteoHourlyForecasts(data.hourly);
+  const currentTime = data.current && data.current.time ? data.current.time : '';
+
   return data.daily.time.slice(0, 2).map(function(date, index) {
     const isToday = index === 0;
     const code = isToday && data.current && typeof data.current.weather_code !== 'undefined'
@@ -7328,23 +7333,112 @@ function normalizeOpenMeteoForecast(data) {
     const temperature = isToday && data.current && typeof data.current.temperature_2m !== 'undefined'
       ? data.current.temperature_2m
       : data.daily.temperature_2m_max && data.daily.temperature_2m_max[index];
-    const precipitationProbability = data.daily.precipitation_probability_max
-      ? data.daily.precipitation_probability_max[index]
-      : null;
+    const dayHourlyForecasts = hourlyForecasts.filter(function(hourly) {
+      return hourly.time.indexOf(date) === 0;
+    });
+    const precipitationProbability = isToday
+      ? getNearestHourlyPrecipitationProbability(dayHourlyForecasts, currentTime)
+      : getDailyPrecipitationProbability(data.daily, index);
+    const precipitationNumber = toWeatherProbabilityNumber(precipitationProbability);
 
     return {
       date: date,
       view: isToday ? 'today' : 'tomorrow',
+      hourly: dayHourlyForecasts,
       icon: weather.icon,
       condition: weather.label,
       temperatureText: formatWeatherTemperature(temperature),
       precipitationText: formatPrecipitationProbability(precipitationProbability),
-      precipitationProbability: Number(precipitationProbability),
-      needsRainAttention: isFinite(Number(precipitationProbability)) && Number(precipitationProbability) >= 70
+      precipitationLabel: isToday ? '現在の降水確率' : '降水確率',
+      precipitationProbability: precipitationNumber,
+      precipitationSource: isToday ? 'hourly-nearest-current' : 'daily-max',
+      weatherAdvice: getWeatherMoveAdviceText(precipitationNumber),
+      needsRainAttention: isFinite(precipitationNumber) && precipitationNumber >= 50
     };
   }).filter(function(day) {
     return Boolean(day.date);
   });
+}
+
+function normalizeOpenMeteoHourlyForecasts(hourly) {
+  if (!hourly || !Array.isArray(hourly.time)) {
+    return [];
+  }
+
+  return hourly.time.map(function(time, index) {
+    return {
+      time: time,
+      precipitationProbability: hourly.precipitation_probability
+        ? hourly.precipitation_probability[index]
+        : null
+    };
+  }).filter(function(hourlyForecast) {
+    return Boolean(hourlyForecast.time);
+  });
+}
+
+function getNearestHourlyPrecipitationProbability(hourlyForecasts, currentTime) {
+  if (!Array.isArray(hourlyForecasts) || !hourlyForecasts.length || !currentTime) {
+    return null;
+  }
+
+  const currentDate = new Date(currentTime);
+
+  if (isNaN(currentDate.getTime())) {
+    return null;
+  }
+
+  const nearestForecast = hourlyForecasts.reduce(function(nearest, hourlyForecast) {
+    const forecastDate = new Date(hourlyForecast.time);
+
+    if (isNaN(forecastDate.getTime())) {
+      return nearest;
+    }
+
+    const diff = Math.abs(forecastDate.getTime() - currentDate.getTime());
+
+    if (!nearest || diff < nearest.diff) {
+      return {
+        diff: diff,
+        value: hourlyForecast.precipitationProbability
+      };
+    }
+
+    return nearest;
+  }, null);
+
+  return nearestForecast ? nearestForecast.value : null;
+}
+
+function getDailyPrecipitationProbability(daily, index) {
+  return daily && daily.precipitation_probability_max
+    ? daily.precipitation_probability_max[index]
+    : null;
+}
+
+function toWeatherProbabilityNumber(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return NaN;
+  }
+
+  const numberValue = Number(value);
+  return isFinite(numberValue) ? numberValue : NaN;
+}
+
+function getWeatherMoveAdviceText(precipitationProbability) {
+  if (!isFinite(precipitationProbability)) {
+    return '';
+  }
+
+  if (precipitationProbability >= 50) {
+    return '雨具・移動時間に注意';
+  }
+
+  if (precipitationProbability >= 30) {
+    return '折りたたみ傘があると安心';
+  }
+
+  return '天気による移動リスクは低め';
 }
 
 function setWeatherForecastError() {
@@ -7410,7 +7504,7 @@ function getWeatherPreviewStatus(view) {
   if (weatherForecastState === 'error') {
     return {
       icon: '--',
-      label: '天気：取得できませんでした',
+      label: '天気（' + WEATHER_LOCATION.name + '）：取得できませんでした',
       statusText: '',
       source: 'error'
     };
@@ -7421,16 +7515,16 @@ function getWeatherPreviewStatus(view) {
   if (weatherForecastState === 'ready' && forecast) {
     return {
       icon: forecast.icon,
-      label: view === 'tomorrow' ? '明日の天気' : '本日の天気',
-      statusText: forecast.temperatureText + ' ' + forecast.condition + ' / 降水確率' + forecast.precipitationText,
-      advice: forecast.needsRainAttention ? '雨具・移動時間に注意' : '',
+      label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + WEATHER_LOCATION.name + '）',
+      statusText: forecast.temperatureText + ' ' + forecast.condition + ' / ' + forecast.precipitationLabel + forecast.precipitationText,
+      advice: forecast.weatherAdvice,
       source: 'api'
     };
   }
 
   return {
     icon: '--',
-    label: view === 'tomorrow' ? '明日の天気' : '本日の天気',
+    label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + WEATHER_LOCATION.name + '）',
     statusText: '取得中...',
     source: 'loading'
   };
