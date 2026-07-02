@@ -688,6 +688,213 @@ function setupTaskSpreadsheet() {
   };
 }
 
+function setupCustomerDbSheet() {
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName(CUSTOMER_SHEET_NAME);
+  var wasCreated = false;
+  var insertedSample = false;
+  var headers = getCustomerDbHeaders_();
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(CUSTOMER_SHEET_NAME);
+    wasCreated = true;
+  }
+
+  var lastRow = sheet.getLastRow();
+  var headerResult = ensureCustomerDbHeaders_(sheet, headers);
+  var currentHeaders = getCustomerDbHeaderValues_(sheet);
+
+  if (sheet.getLastRow() < 2 && currentHeaders.length) {
+    sheet
+      .getRange(2, 1, 1, currentHeaders.length)
+      .setValues([buildCustomerDbSampleRowForHeaders_(currentHeaders)]);
+    insertedSample = true;
+  }
+
+  styleCustomerDbSheet_(sheet, headers);
+
+  PropertiesService
+    .getScriptProperties()
+    .setProperty('CUSTOMER_SPREADSHEET_ID', spreadsheet.getId());
+
+  var result = {
+    message: CUSTOMER_SHEET_NAME + 'シートの初期化が完了しました。',
+    spreadsheetId: spreadsheet.getId(),
+    sheetName: CUSTOMER_SHEET_NAME,
+    wasCreated: wasCreated,
+    wroteHeaders: headerResult.wroteHeaders,
+    addedHeaders: headerResult.addedHeaders,
+    renamedPhoneToOfficePhone: headerResult.renamedPhoneToOfficePhone,
+    insertedSample: insertedSample,
+    existingRows: lastRow
+  };
+
+  Logger.log(JSON.stringify(result, null, 2));
+
+  return result;
+}
+
+function getCustomerDbHeaders_() {
+  return [
+    'id',
+    'companyName',
+    'corporationName',
+    'contactName',
+    'department',
+    'industry',
+    'prefecture',
+    'city',
+    'officePhone',
+    'mobilePhone',
+    'email',
+    'ccEmail',
+    'address',
+    'googleMapUrl',
+    'lastVisit',
+    'nextVisit',
+    'memo',
+    'projectCount',
+    'hotLevel',
+    'aiSummary',
+    'createdAt',
+    'updatedAt',
+    'notes'
+  ];
+}
+
+function getCustomerDbSampleRow_() {
+  return [
+    'customer_001',
+    'テスト病院',
+    '',
+    '山田 太郎',
+    '事務長',
+    '病院',
+    '福岡県',
+    '朝倉市',
+    '090-0000-0000',
+    '',
+    'test@example.com',
+    '',
+    '福岡県朝倉市',
+    'http://maps.google.com',
+    '2026-07-01',
+    '2026-07-10',
+    'LED提案中',
+    1,
+    'WARM',
+    '初回訪問予定',
+    '2026-07-02',
+    '2026-07-02',
+    ''
+  ];
+}
+
+function getCustomerDbHeaderValues_(sheet) {
+  var lastColumn = sheet.getLastColumn();
+
+  if (!lastColumn) {
+    return [];
+  }
+
+  return sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .map(function(header) {
+      return String(header || '').trim();
+    });
+}
+
+function buildCustomerDbSampleRowForHeaders_(headers) {
+  var defaultHeaders = getCustomerDbHeaders_();
+  var defaultRow = getCustomerDbSampleRow_();
+  var sampleByHeader = {};
+
+  defaultHeaders.forEach(function(header, index) {
+    sampleByHeader[header] = defaultRow[index] || '';
+  });
+
+  return headers.map(function(header) {
+    return Object.prototype.hasOwnProperty.call(sampleByHeader, header)
+      ? sampleByHeader[header]
+      : '';
+  });
+}
+
+function ensureCustomerDbHeaders_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  var hasExistingHeaders = headerValues.some(function(value) {
+    return String(value || '').trim() !== '';
+  });
+  var result = {
+    wroteHeaders: false,
+    addedHeaders: [],
+    renamedPhoneToOfficePhone: false
+  };
+
+  if (!hasExistingHeaders) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    result.wroteHeaders = true;
+    return result;
+  }
+
+  var phoneIndex = headerValues.indexOf('phone');
+
+  if (phoneIndex !== -1 && headerValues.indexOf('officePhone') === -1) {
+    sheet.getRange(1, phoneIndex + 1).setValue('officePhone');
+    headerValues[phoneIndex] = 'officePhone';
+    result.renamedPhoneToOfficePhone = true;
+  }
+
+  desiredHeaders.forEach(function(header) {
+    if (headerValues.indexOf(header) === -1) {
+      headerValues.push(header);
+      result.addedHeaders.push(header);
+    }
+  });
+
+  sheet.getRange(1, 1, 1, headerValues.length).setValues([headerValues]);
+  result.wroteHeaders = result.addedHeaders.length > 0 || result.renamedPhoneToOfficePhone;
+  return result;
+}
+
+function styleCustomerDbSheet_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
+
+  if (!sheet.getFilter()) {
+    sheet
+      .getRange(1, 1, Math.max(sheet.getLastRow(), 1), lastColumn)
+      .createFilter();
+  }
+
+  sheet.setColumnWidths(1, lastColumn, 130);
+  setCustomerDbColumnWidth_(sheet, 'companyName', 180);
+  setCustomerDbColumnWidth_(sheet, 'corporationName', 180);
+  setCustomerDbColumnWidth_(sheet, 'contactName', 140);
+  setCustomerDbColumnWidth_(sheet, 'officePhone', 150);
+  setCustomerDbColumnWidth_(sheet, 'mobilePhone', 150);
+  setCustomerDbColumnWidth_(sheet, 'email', 190);
+  setCustomerDbColumnWidth_(sheet, 'ccEmail', 190);
+  setCustomerDbColumnWidth_(sheet, 'address', 220);
+  setCustomerDbColumnWidth_(sheet, 'googleMapUrl', 220);
+  setCustomerDbColumnWidth_(sheet, 'memo', 220);
+  setCustomerDbColumnWidth_(sheet, 'aiSummary', 240);
+  setCustomerDbColumnWidth_(sheet, 'notes', 220);
+}
+
+function setCustomerDbColumnWidth_(sheet, headerName, width) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var index = headers.indexOf(headerName);
+
+  if (index !== -1) {
+    sheet.setColumnWidth(index + 1, width);
+  }
+}
+
 /**
  * TODO保存先スプレッドシートはScript PropertiesのTASK_SPREADSHEET_IDで管理します。
  * 将来、顧客DB、案件DB、活動履歴DB、AI提案DBも同じ方式でID管理する予定です。
@@ -755,26 +962,43 @@ function normalizeCustomerRow_(row, headers) {
   var address = text('address');
   var companyName = text('companyName');
   var googleMapUrl = text('googleMapUrl');
-  var nextAction = text('nextAction');
+  var nextAction = text('nextAction') || dateText('nextVisit');
+  var memo = text('memo');
+  var aiSummary = text('aiSummary');
+  var legacyPhone = text('phone');
+  var officePhone = text('officePhone') || legacyPhone;
+  var mobilePhone = text('mobilePhone');
 
   return {
     id: text('id'),
     companyName: companyName,
+    corporationName: text('corporationName'),
     contactName: text('contactName'),
     personName: text('contactName'),
     title: '',
-    department: '',
+    department: text('department'),
+    industry: text('industry'),
+    prefecture: text('prefecture'),
+    city: text('city'),
     address: address,
-    phone: text('phone'),
+    officePhone: officePhone,
+    mobilePhone: mobilePhone,
+    phone: mobilePhone || officePhone || legacyPhone,
     email: text('email'),
     cc: text('ccEmail'),
     ccEmail: text('ccEmail'),
     googleMapUrl: googleMapUrl,
-    memo: text('memo'),
-    salesMemo: text('memo'),
-    lastContactDate: dateText('lastContactDate'),
+    memo: memo,
+    salesMemo: aiSummary || memo,
+    lastContactDate: dateText('lastContactDate') || dateText('lastVisit'),
+    lastVisit: dateText('lastVisit'),
+    nextVisit: dateText('nextVisit'),
     nextAction: nextAction,
     nextSchedule: nextAction || '未設定',
+    projectCount: text('projectCount'),
+    hotLevel: text('hotLevel'),
+    aiSummary: aiSummary,
+    notes: text('notes'),
     status: text('status'),
     createdAt: dateText('createdAt'),
     updatedAt: dateText('updatedAt')
@@ -782,12 +1006,13 @@ function normalizeCustomerRow_(row, headers) {
 }
 
 function getCustomerSheet_() {
-  var spreadsheetId = CUSTOMER_SPREADSHEET_ID || PropertiesService
-    .getScriptProperties()
-    .getProperty('CUSTOMER_SPREADSHEET_ID');
+  var properties = PropertiesService.getScriptProperties();
+  var spreadsheetId = CUSTOMER_SPREADSHEET_ID ||
+    properties.getProperty('CUSTOMER_SPREADSHEET_ID') ||
+    properties.getProperty('TASK_SPREADSHEET_ID');
 
   if (!spreadsheetId) {
-    throw new Error('CUSTOMER_SPREADSHEET_IDが未設定です。顧客DBシート作成後に設定してください。');
+    throw new Error('TASK_SPREADSHEET_IDが未設定です。setupTaskSpreadsheet()を実行してからsetupCustomerDbSheet()を実行してください。');
   }
 
   var spreadsheet = SpreadsheetApp.openById(spreadsheetId);

@@ -4727,11 +4727,17 @@ function setCustomerData(customers, options) {
 function normalizeCustomerForClient(customer) {
   const personName = customer.personName || customer.contactName || '';
   const cc = customer.cc || customer.ccEmail || '';
+  const officePhone = customer.officePhone || customer.phone || '';
+  const mobilePhone = customer.mobilePhone || '';
 
   return {
     id: String(customer.id || '').trim(),
     companyName: customer.companyName || '',
+    corporationName: customer.corporationName || '',
     department: customer.department || '',
+    industry: customer.industry || '',
+    prefecture: customer.prefecture || '',
+    city: customer.city || '',
     personName: personName,
     contactName: personName,
     title: customer.title || '',
@@ -4739,14 +4745,24 @@ function normalizeCustomerForClient(customer) {
     cc: cc,
     ccEmail: cc,
     address: customer.address || '',
-    phone: customer.phone || '',
+    officePhone: officePhone,
+    mobilePhone: mobilePhone,
+    phone: customer.phone || mobilePhone || officePhone,
     googleMapUrl: customer.googleMapUrl || '',
     memo: customer.memo || '',
     salesMemo: customer.salesMemo || customer.memo || '',
     area: customer.area || '',
-    nextSchedule: customer.nextSchedule || customer.nextAction || '未設定',
+    lastVisit: customer.lastVisit || customer.lastContactDate || '',
+    nextVisit: customer.nextVisit || '',
+    nextSchedule: customer.nextSchedule || customer.nextAction || customer.nextVisit || '未設定',
     nextAction: customer.nextAction || '',
-    status: customer.status || ''
+    projectCount: customer.projectCount || '',
+    hotLevel: customer.hotLevel || '',
+    aiSummary: customer.aiSummary || customer.salesMemo || '',
+    notes: customer.notes || '',
+    status: customer.status || '',
+    createdAt: customer.createdAt || '',
+    updatedAt: customer.updatedAt || ''
   };
 }
 
@@ -4796,27 +4812,45 @@ function renderCustomerHubList() {
 
     const title = document.createElement('span');
     title.className = 'customer-hub-card-title';
-    title.textContent = customer.companyName;
+    title.textContent = formatCustomerValue(customer.companyName);
+
+    if (customer.corporationName) {
+      const corporation = document.createElement('span');
+      corporation.className = 'customer-hub-card-meta';
+      corporation.textContent = '法人名：' + customer.corporationName;
+      title.dataset.corporationName = corporation.textContent;
+    }
 
     const meta = document.createElement('span');
     meta.className = 'customer-hub-card-meta';
-    meta.textContent = '担当者：' + formatCustomerContactName(customer);
+    meta.textContent = [
+      '担当者：' + formatCustomerContactName(customer),
+      '部署：' + formatCustomerValue(customer.department),
+      '業種：' + formatCustomerValue(customer.industry)
+    ].join(' / ');
 
     const tags = document.createElement('span');
     tags.className = 'customer-hub-card-tags';
 
-    const area = document.createElement('span');
-    area.className = 'customer-hub-card-tag';
-    area.textContent = 'エリア：' + getCustomerAreaText(customer);
-
-    const nextSchedule = document.createElement('span');
-    nextSchedule.className = 'customer-hub-next-schedule';
-    nextSchedule.textContent = '次回予定：' + getCustomerNextScheduleText(customer);
-
-    tags.appendChild(area);
-    tags.appendChild(nextSchedule);
+    [
+      ['市区', getCustomerAreaText(customer), 'customer-hub-card-tag'],
+      ['温度感', formatCustomerValue(customer.hotLevel), 'customer-hub-card-tag'],
+      ['前回訪問', formatCustomerValue(customer.lastVisit), 'customer-hub-card-tag'],
+      ['次回訪問', getCustomerNextScheduleText(customer), 'customer-hub-next-schedule']
+    ].forEach(function(item) {
+      const tag = document.createElement('span');
+      tag.className = item[2];
+      tag.textContent = item[0] + '：' + item[1];
+      tags.appendChild(tag);
+    });
 
     body.appendChild(title);
+    if (title.dataset.corporationName) {
+      const corporation = document.createElement('span');
+      corporation.className = 'customer-hub-card-meta';
+      corporation.textContent = title.dataset.corporationName;
+      body.appendChild(corporation);
+    }
     body.appendChild(meta);
     body.appendChild(tags);
 
@@ -4829,11 +4863,11 @@ function renderCustomerHubList() {
 }
 
 function getCustomerAreaText(customer) {
-  return customer.area || '未設定';
+  return customer.city || customer.area || '未登録';
 }
 
 function getCustomerNextScheduleText(customer) {
-  return customer.nextSchedule || '未設定';
+  return customer.nextVisit || customer.nextSchedule || '未登録';
 }
 
 function createCustomerHubDetailButton(customer, card) {
@@ -4912,11 +4946,26 @@ function showCustomerHubDetail(customerId) {
   const grid = document.createElement('div');
   grid.className = 'customer-hub-detail-grid';
   [
+    ['表示名', customer.companyName],
+    ['法人名', customer.corporationName],
     ['担当者', formatCustomerContactName(customer)],
     ['部署', customer.department],
-    ['電話', customer.phone, 'tel:' + customer.phone],
-    ['メール', customer.email, 'mailto:' + customer.email],
-    ['住所', customer.address, getCustomerMapUrl(customer)]
+    ['業種', customer.industry],
+    ['都道府県', customer.prefecture],
+    ['市区', customer.city],
+    ['代表電話', customer.officePhone, customer.officePhone ? 'tel:' + customer.officePhone : ''],
+    ['携帯電話', customer.mobilePhone, customer.mobilePhone ? 'tel:' + customer.mobilePhone : ''],
+    ['メール', customer.email, customer.email ? 'mailto:' + customer.email : ''],
+    ['CC', customer.ccEmail],
+    ['住所', customer.address, customer.address || customer.googleMapUrl ? getCustomerMapUrl(customer) : ''],
+    ['GoogleMap', customer.googleMapUrl, customer.googleMapUrl],
+    ['前回訪問', customer.lastVisit],
+    ['次回訪問', customer.nextVisit],
+    ['メモ', customer.memo],
+    ['案件数', customer.projectCount],
+    ['温度感', customer.hotLevel],
+    ['AI要約', customer.aiSummary],
+    ['備考', customer.notes]
   ].forEach(function(row) {
     grid.appendChild(createCustomerHubDetailRow(row[0], row[1], row[2]));
   });
@@ -4935,7 +4984,16 @@ function renderCustomerDetail(customerId) {
 function formatCustomerContactName(customer) {
   return [customer.title, customer.personName || customer.contactName]
     .filter(Boolean)
-    .join(' ') || '未設定';
+    .join(' ') || '未登録';
+}
+
+function formatCustomerValue(value) {
+  const text = String(value || '').trim();
+  return text || '未登録';
+}
+
+function getCustomerPrimaryPhone(customer) {
+  return customer.mobilePhone || customer.officePhone || customer.phone || '';
 }
 
 function createCustomerHubSalesMemoCard(customer) {
@@ -5015,6 +5073,7 @@ function scrollCustomerHubListIntoView() {
 function createCustomerHubDetailRow(label, value, href) {
   const row = document.createElement('div');
   row.className = 'customer-hub-detail-row';
+  const displayValue = formatCustomerValue(value);
 
   const labelNode = document.createElement('span');
   labelNode.className = 'customer-hub-detail-label';
@@ -5026,7 +5085,7 @@ function createCustomerHubDetailRow(label, value, href) {
   if (href) {
     const link = document.createElement('a');
     link.href = href;
-    link.textContent = value || '';
+    link.textContent = displayValue;
 
     if (href.indexOf('http') === 0) {
       link.target = '_blank';
@@ -5035,7 +5094,7 @@ function createCustomerHubDetailRow(label, value, href) {
 
     valueNode.appendChild(link);
   } else {
-    valueNode.textContent = value || '';
+    valueNode.textContent = displayValue;
   }
 
   row.appendChild(labelNode);
@@ -5046,6 +5105,7 @@ function createCustomerHubDetailRow(label, value, href) {
 function createCustomerHubActions(customer) {
   const actions = document.createElement('div');
   actions.className = 'customer-hub-actions';
+  const phone = getCustomerPrimaryPhone(customer);
 
   actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer)));
 
@@ -5059,7 +5119,11 @@ function createCustomerHubActions(customer) {
     startCustomerMail(customer.id);
   }));
 
-  actions.appendChild(createCustomerHubLink('☎ 電話', 'tel:' + customer.phone));
+  if (phone) {
+    actions.appendChild(createCustomerHubLink('☎ 電話', 'tel:' + phone));
+  } else {
+    actions.appendChild(createCustomerHubButton('☎ 電話番号未登録', function() {}, true));
+  }
 
   actions.appendChild(createCustomerHubButton('📄 案件（準備中）', function(target) {
     playCustomerHubLine(target);
@@ -5405,9 +5469,15 @@ function applyMailCustomer(customer) {
 }
 
 function buildCalendarCustomerMemo(customer) {
+  const phone = getCustomerPrimaryPhone(customer);
+
   return [
     '担当：' + formatCustomerContactName(customer),
-    '電話：' + customer.phone,
+    '代表電話：' + formatCustomerValue(customer.officePhone),
+    '携帯電話：' + formatCustomerValue(customer.mobilePhone),
+    phone && !customer.officePhone && !customer.mobilePhone ? '電話：' + phone : '',
+    '前回訪問：' + formatCustomerValue(customer.lastVisit),
+    '次回訪問：' + formatCustomerValue(customer.nextVisit),
     customer.memo
   ].filter(Boolean).join('\n');
 }
@@ -5415,6 +5485,7 @@ function buildCalendarCustomerMemo(customer) {
 function buildMailCustomerOpening(customer) {
   return [
     customer.companyName,
+    customer.corporationName ? '法人名：' + customer.corporationName : '',
     [customer.department, customer.title].filter(Boolean).join(' '),
     (customer.personName || customer.contactName || 'ご担当者') + '様'
   ].filter(Boolean).join('\n');
@@ -5455,12 +5526,20 @@ function renderCustomerPreview(containerId, customer) {
 
   const person = document.createElement('div');
   person.className = 'customer-preview-person';
-  person.textContent = [customer.department, formatCustomerContactName(customer)].filter(Boolean).join(' / ');
+  person.textContent = [
+    customer.department,
+    customer.industry,
+    formatCustomerContactName(customer)
+  ].filter(Boolean).join(' / ');
   card.appendChild(person);
 
   const meta = document.createElement('div');
   meta.className = 'customer-preview-meta';
-  meta.textContent = customer.email + (customer.phone ? ' / ' + customer.phone : '');
+  meta.textContent = [
+    customer.email,
+    getCustomerPrimaryPhone(customer),
+    customer.city
+  ].filter(Boolean).join(' / ') || '未登録';
   card.appendChild(meta);
 
   if (customer.address) {
