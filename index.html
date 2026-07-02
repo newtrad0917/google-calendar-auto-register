@@ -4320,6 +4320,12 @@ body.ai-processing .assistant-briefing-icon {
       longitude: 130.67,
       timezone: 'Asia/Tokyo'
     };
+    const JMA_FORECAST_CONFIG = {
+      areaLabel: '筑後地方',
+      officeCode: '400000',
+      popAreaCode: '400040',
+      forecastUrl: 'https://www.jma.go.jp/bosai/forecast/data/forecast/400000.json'
+    };
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
     const DEMO_CUSTOMERS = [
@@ -7284,7 +7290,24 @@ function loadWeatherForecast() {
       return response.json();
     })
     .then(function(data) {
-      weatherForecastDays = normalizeOpenMeteoForecast(data);
+      return loadJmaForecast()
+        .then(function(jmaForecast) {
+          return {
+            openMeteo: data,
+            jmaForecast: jmaForecast
+          };
+        })
+        .catch(function(error) {
+          console.error('JMA forecast load failed. Falling back to Open-Meteo precipitation.', error);
+          return {
+            openMeteo: data,
+            jmaForecast: null
+          };
+        });
+    })
+    .then(function(weatherData) {
+      weatherForecastDays = normalizeOpenMeteoForecast(weatherData.openMeteo);
+      applyJmaPrecipitationToWeatherForecast(weatherForecastDays, weatherData.jmaForecast);
 
       if (!weatherForecastDays.length) {
         throw new Error('天気データを確認できませんでした。');
@@ -7314,6 +7337,172 @@ function buildOpenMeteoForecastUrl() {
   });
 
   return 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+}
+
+function buildJmaForecastUrl() {
+  return JMA_FORECAST_CONFIG.forecastUrl;
+}
+
+function loadJmaForecast() {
+  return fetch(buildJmaForecastUrl())
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('気象庁データの取得に失敗しました。');
+      }
+
+      return response.json();
+    })
+    .then(normalizeJmaForecast);
+}
+
+function normalizeJmaForecast(data) {
+  const forecast = Array.isArray(data) ? data[0] : null;
+  const timeSeries = forecast && Array.isArray(forecast.timeSeries)
+    ? forecast.timeSeries[1]
+    : null;
+  const area = timeSeries && Array.isArray(timeSeries.areas)
+    ? timeSeries.areas.find(function(item) {
+        return item.area && item.area.code === JMA_FORECAST_CONFIG.popAreaCode;
+      })
+    : null;
+
+  if (!timeSeries || !Array.isArray(timeSeries.timeDefines) || !area || !Array.isArray(area.pops)) {
+    throw new Error('気象庁の降水確率データを確認できませんでした。');
+  }
+
+  return {
+    areaName: area.area && area.area.name ? area.area.name : JMA_FORECAST_CONFIG.areaLabel,
+    entries: timeSeries.timeDefines.map(function(time, index) {
+      return {
+        time: time,
+        pop: area.pops[index]
+      };
+    }).filter(function(entry) {
+      return entry.time;
+    })
+  };
+}
+
+function applyJmaPrecipitationToWeatherForecast(days, jmaForecast) {
+  if (!Array.isArray(days) || !jmaForecast || !Array.isArray(jmaForecast.entries)) {
+    return;
+  }
+
+  const referenceDate = new Date();
+
+  days.forEach(function(day) {
+    const jmaPop = getCurrentJmaPop(jmaForecast, day.date, referenceDate);
+    const jmaPopNumber = toWeatherProbabilityNumber(jmaPop);
+
+    if (!isFinite(jmaPopNumber)) {
+      return;
+    }
+
+    day.precipitationText = formatPrecipitationProbability(jmaPopNumber);
+    day.precipitationLabel = '降水';
+    day.precipitationProbability = jmaPopNumber;
+    day.precipitationSource = 'jma-pops';
+    day.precipitationAreaLabel = jmaForecast.areaName || JMA_FORECAST_CONFIG.areaLabel;
+    day.weatherAdvice = getWeatherMoveAdviceText(jmaPopNumber);
+    day.needsRainAttention = jmaPopNumber >= 50;
+  });
+}
+
+function getCurrentJmaPop(jmaForecast, targetDateText, referenceDate) {
+  if (!jmaForecast || !Array.isArray(jmaForecast.entries) || !targetDateText) {
+    return null;
+  }
+
+  const targetEntries = jmaForecast.entries.filter(function(entry) {
+    return entry.time.indexOf(targetDateText) === 0;
+  });
+
+  if (!targetEntries.length) {
+    return null;
+  }
+
+  const reference = referenceDate instanceof Date && !isNaN(referenceDate.getTime())
+    ? referenceDate
+    : new Date();
+  const referenceDateText = formatScheduleDateKey(reference);
+
+  if (targetDateText === referenceDateText) {
+    const currentEntry = findJmaPopEntryForCurrentTime(targetEntries, reference);
+    return currentEntry ? currentEntry.pop : null;
+  }
+
+  const targetReference = createJmaTargetReferenceDate(targetDateText, reference);
+  const nearestEntry = targetEntries.reduce(function(nearest, entry) {
+    const entryDate = new Date(entry.time);
+
+    if (isNaN(entryDate.getTime())) {
+      return nearest;
+    }
+
+    const diff = Math.abs(entryDate.getTime() - targetReference.getTime());
+
+    if (!nearest || diff < nearest.diff) {
+      return {
+        diff: diff,
+        pop: entry.pop
+      };
+    }
+
+    return nearest;
+  }, null);
+
+  return nearestEntry ? nearestEntry.pop : null;
+}
+
+function findJmaPopEntryForCurrentTime(entries, referenceDate) {
+  const sortedEntries = entries.slice().sort(function(a, b) {
+    return new Date(a.time).getTime() - new Date(b.time).getTime();
+  });
+  const referenceTime = referenceDate.getTime();
+
+  for (let index = 0; index < sortedEntries.length; index++) {
+    const start = new Date(sortedEntries[index].time);
+    const end = sortedEntries[index + 1]
+      ? new Date(sortedEntries[index + 1].time)
+      : new Date(start.getTime() + 6 * 60 * 60 * 1000);
+
+    if (
+      !isNaN(start.getTime()) &&
+      !isNaN(end.getTime()) &&
+      referenceTime >= start.getTime() &&
+      referenceTime < end.getTime()
+    ) {
+      return sortedEntries[index];
+    }
+  }
+
+  return sortedEntries.reduce(function(nearest, entry) {
+    const entryDate = new Date(entry.time);
+
+    if (isNaN(entryDate.getTime())) {
+      return nearest;
+    }
+
+    const diff = Math.abs(entryDate.getTime() - referenceTime);
+
+    if (!nearest || diff < nearest.diff) {
+      return {
+        diff: diff,
+        pop: entry.pop
+      };
+    }
+
+    return nearest;
+  }, null);
+}
+
+function createJmaTargetReferenceDate(targetDateText, referenceDate) {
+  return new Date(
+    targetDateText + 'T' +
+    padTwoDigits(referenceDate.getHours()) + ':' +
+    padTwoDigits(referenceDate.getMinutes()) +
+    ':00+09:00'
+  );
 }
 
 function normalizeOpenMeteoForecast(data) {
@@ -7515,7 +7704,7 @@ function getWeatherPreviewStatus(view) {
   if (weatherForecastState === 'ready' && forecast) {
     return {
       icon: forecast.icon,
-      label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + WEATHER_LOCATION.name + '）',
+      label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + getWeatherLocationLabel(forecast) + '）',
       statusText: forecast.temperatureText + ' ' + forecast.condition + ' / ' + forecast.precipitationLabel + forecast.precipitationText,
       advice: forecast.weatherAdvice,
       source: 'api'
@@ -7528,6 +7717,14 @@ function getWeatherPreviewStatus(view) {
     statusText: '取得中...',
     source: 'loading'
   };
+}
+
+function getWeatherLocationLabel(forecast) {
+  if (forecast && forecast.precipitationSource === 'jma-pops' && forecast.precipitationAreaLabel) {
+    return WEATHER_LOCATION.name + '・' + forecast.precipitationAreaLabel;
+  }
+
+  return WEATHER_LOCATION.name;
 }
 
 function getWeatherForecastForView(view) {
