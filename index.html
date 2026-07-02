@@ -3321,22 +3321,30 @@ body::before {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-left: 12px;
+  min-height: 34px;
 }
 
 .weather-icon {
   display: inline-grid;
   place-items: center;
+  align-self: center;
   width: 30px;
+  min-width: 30px;
   height: 30px;
+  flex: 0 0 30px;
   border: 1px solid #dbeafe;
   border-radius: 12px;
   color: #1769aa;
   background: #f4f9ff;
   font-size: 14px;
   font-weight: 900;
+  line-height: 1;
+  transform: translateY(1px);
 }
 
 .weather-copy {
+  align-items: center;
   flex-wrap: wrap;
 }
 
@@ -3372,17 +3380,75 @@ body::before {
   padding: 18px 18px 18px 20px !important;
 }
 
+.todo-card .todo-edit-button {
+  display: none !important;
+}
+
 .task-list {
   gap: 10px;
 }
 
 .task-item {
+  grid-template-columns: 26px minmax(0, 1fr) 44px !important;
+  gap: 12px !important;
   padding: 12px 14px 12px 16px !important;
   border-top: 1px solid var(--ux-card-border) !important;
 }
 
+.task-edit-item-button {
+  display: inline-grid;
+  place-items: center;
+  justify-self: end;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+  font-size: 17px;
+  line-height: 1;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.task-edit-item-button:hover {
+  color: #1769aa;
+  background: #f4f9ff;
+}
+
+.task-edit-item-button:active,
+.task-edit-item-button.is-motion-press {
+  transform: none !important;
+}
+
+.task-edit-item-button::after {
+  display: none !important;
+}
+
 .task-empty {
   padding: 12px 14px 12px 16px;
+}
+
+@media (max-width: 520px) {
+  .weather-main {
+    gap: 9px;
+    padding-left: 10px;
+  }
+
+  .task-item {
+    grid-template-columns: 26px minmax(0, 1fr) 42px !important;
+    gap: 10px !important;
+  }
+
+  .task-edit-item-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+  }
 }
 
 /* UX Sprint Ver1: AI Insight */
@@ -3423,6 +3489,17 @@ body.ai-processing .assistant-briefing-icon {
 /* UX Sprint Ver1: Customer Hub */
 .customer-hub-shell {
   gap: 16px;
+}
+
+.customer-hub-message {
+  padding: 10px 12px;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  color: #7c4a03;
+  background: #fffbeb;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
 }
 
 .customer-hub-card,
@@ -3734,7 +3811,6 @@ body.ai-processing .assistant-briefing-icon {
         <span id="todoStatusSummary" class="todo-status">確認中</span>
       </div>
       <div class="todo-card-actions">
-        <button type="button" class="todo-edit-button" onclick="handleTodoEditButtonClick()">編集</button>
         <button type="button" class="todo-add-button" onclick="handleTodoAddButtonClick(event)" aria-label="TODOを追加">
           +
         </button>
@@ -4146,6 +4222,7 @@ body.ai-processing .assistant-briefing-icon {
   </p>
 
   <div id="customerHubShell" class="customer-hub-shell">
+    <div id="customerHubMessage" class="customer-hub-message hidden" role="status" aria-live="polite"></div>
     <div id="customerHubList" class="customer-hub-list"></div>
     <div id="customerHubDetail" class="customer-hub-detail"></div>
   </div>
@@ -4158,8 +4235,8 @@ body.ai-processing .assistant-briefing-icon {
 </section>
 <hr class="divider">
 <section id="todoSection" class="hidden">
-<h2 class="section-title">TODO追加</h2>
-<p class="section-description">
+<h2 id="taskFormTitle" class="section-title">TODO追加</h2>
+<p id="taskFormDescription" class="section-description">
   新しいタスクを営業AI秘書DBへ保存します。
 </p>
 
@@ -4203,7 +4280,7 @@ body.ai-processing .assistant-briefing-icon {
 
 <div id="taskMessage" class="message hidden" role="status" aria-live="polite"></div>
 <div class="actions">
-  <button type="button" class="secondary-button" onclick="showHomeScreen()">
+  <button type="button" id="cancelTaskButton" class="secondary-button" onclick="cancelTaskForm()">
     ホームに戻る
   </button>
 </div>
@@ -4217,6 +4294,9 @@ body.ai-processing .assistant-briefing-icon {
   <script>
     let currentTaskFilter = '仕事';
     let isSavingTask = false;
+    let currentTasks = [];
+    let editingTaskId = '';
+    let scheduleRequestId = 0;
     let assistantBriefingTimer = null;
     let pendingMeetMailData = null;
     let messageHideTimers = {};
@@ -4288,6 +4368,8 @@ body.ai-processing .assistant-briefing-icon {
         memo: '安全衛生関連の打ち合わせ。駐車場は正門横を利用。'
       }
     ];
+    let customerData = DEMO_CUSTOMERS.slice();
+    let customerDataMessage = '';
     const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
 
     function showHomeScreen(options) {
@@ -4315,13 +4397,17 @@ const contactSection = document.getElementById('contactSection');
   todoSection.classList.add('hidden');
 document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
-  showAssistantBriefing(
-    '本日の優先タスクを確認しました。',
-    '必要な時にすぐ対応します。'
-  );
-  renderAiInsightCard();
-  loadTasks(currentTaskFilter);
-  playHomeEntranceMotion();
+  runInitialHomeTask('Assistant briefing', function() {
+    showAssistantBriefing(
+      '本日の優先タスクを確認しました。',
+      '必要な時にすぐ対応します。'
+    );
+  });
+  runInitialHomeTask('AI insight', renderAiInsightCard);
+  runInitialHomeTask('TODO', function() {
+    loadTasks(currentTaskFilter);
+  });
+  runInitialHomeTask('Home motion', playHomeEntranceMotion);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -4517,10 +4603,119 @@ function showCustomerHubScreen(options) {
   document.getElementById('appHeader').classList.remove('hidden');
   document.getElementById('stepList').classList.add('hidden');
 
-  selectedCustomerHubId = selectedCustomerHubId || (DEMO_CUSTOMERS[0] && DEMO_CUSTOMERS[0].id) || '';
-  renderCustomerHubList();
-  showCustomerHubDetail(selectedCustomerHubId);
+  renderCustomerHub();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function loadCustomersFromServer() {
+  try {
+    setCustomerData(DEMO_CUSTOMERS, { message: '' });
+  } catch (error) {
+    console.error('Customer Hub fallback initialization failed.', error);
+    return;
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    return;
+  }
+
+  try {
+    google.script.run
+      .withSuccessHandler(function(customers) {
+        try {
+          if (Array.isArray(customers) && customers.length) {
+            setCustomerData(customers, { message: '' });
+            return;
+          }
+
+          handleCustomerLoadFailure(new Error('Customer Hub returned no rows.'));
+        } catch (error) {
+          handleCustomerLoadFailure(error);
+        }
+      })
+      .withFailureHandler(function(error) {
+        handleCustomerLoadFailure(error);
+      })
+      .getCustomers();
+  } catch (error) {
+    handleCustomerLoadFailure(error);
+  }
+}
+
+function handleCustomerLoadFailure(error) {
+  console.error('Customer Hub load failed.', error);
+  try {
+    setCustomerData(DEMO_CUSTOMERS, {
+      message: '顧客データを取得できませんでした。仮データを表示しています。'
+    });
+  } catch (fallbackError) {
+    console.error('Customer Hub fallback rendering failed.', fallbackError);
+  }
+}
+
+function setCustomerData(customers, options) {
+  const normalizedCustomers = Array.isArray(customers)
+    ? customers.map(normalizeCustomerForClient).filter(function(customer) {
+        return customer.id && customer.companyName;
+      })
+    : [];
+
+  customerData = normalizedCustomers.length ? normalizedCustomers : DEMO_CUSTOMERS.slice();
+  customerDataMessage = options && options.message ? options.message : '';
+  updateCustomerSelectOptions();
+  renderCustomerHub();
+}
+
+function normalizeCustomerForClient(customer) {
+  const personName = customer.personName || customer.contactName || '';
+  const cc = customer.cc || customer.ccEmail || '';
+
+  return {
+    id: String(customer.id || '').trim(),
+    companyName: customer.companyName || '',
+    department: customer.department || '',
+    personName: personName,
+    contactName: personName,
+    title: customer.title || '',
+    email: customer.email || '',
+    cc: cc,
+    ccEmail: cc,
+    address: customer.address || '',
+    phone: customer.phone || '',
+    googleMapUrl: customer.googleMapUrl || '',
+    memo: customer.memo || '',
+    salesMemo: customer.salesMemo || customer.memo || '',
+    area: customer.area || '',
+    nextSchedule: customer.nextSchedule || customer.nextAction || '未設定',
+    nextAction: customer.nextAction || '',
+    status: customer.status || ''
+  };
+}
+
+function renderCustomerHub() {
+  renderCustomerHubMessage();
+  renderCustomerHubList();
+
+  const selectedCustomer = getCustomerById(selectedCustomerHubId);
+  const firstCustomer = customerData[0];
+  selectedCustomerHubId = selectedCustomer
+    ? selectedCustomer.id
+    : (firstCustomer ? firstCustomer.id : '');
+
+  if (selectedCustomerHubId) {
+    renderCustomerDetail(selectedCustomerHubId);
+  }
+}
+
+function renderCustomerHubMessage() {
+  const message = document.getElementById('customerHubMessage');
+
+  if (!message) {
+    return;
+  }
+
+  message.textContent = customerDataMessage;
+  message.classList.toggle('hidden', !customerDataMessage);
 }
 
 function renderCustomerHubList() {
@@ -4532,7 +4727,7 @@ function renderCustomerHubList() {
 
   list.replaceChildren();
 
-  DEMO_CUSTOMERS.forEach(function(customer) {
+  customerData.forEach(function(customer) {
     const card = document.createElement('article');
     card.className = 'customer-hub-card';
     card.dataset.customerId = customer.id;
@@ -4547,7 +4742,7 @@ function renderCustomerHubList() {
 
     const meta = document.createElement('span');
     meta.className = 'customer-hub-card-meta';
-    meta.textContent = '担当者：' + customer.title + ' ' + customer.personName;
+    meta.textContent = '担当者：' + formatCustomerContactName(customer);
 
     const tags = document.createElement('span');
     tags.className = 'customer-hub-card-tags';
@@ -4659,7 +4854,7 @@ function showCustomerHubDetail(customerId) {
   const grid = document.createElement('div');
   grid.className = 'customer-hub-detail-grid';
   [
-    ['担当者', customer.title + ' ' + customer.personName],
+    ['担当者', formatCustomerContactName(customer)],
     ['部署', customer.department],
     ['電話', customer.phone, 'tel:' + customer.phone],
     ['メール', customer.email, 'mailto:' + customer.email],
@@ -4673,6 +4868,16 @@ function showCustomerHubDetail(customerId) {
   detail.appendChild(createCustomerHubActions(customer));
   detail.appendChild(createCustomerHubBackRow());
   playCustomerHubDetailMotion(detail);
+}
+
+function renderCustomerDetail(customerId) {
+  showCustomerHubDetail(customerId);
+}
+
+function formatCustomerContactName(customer) {
+  return [customer.title, customer.personName || customer.contactName]
+    .filter(Boolean)
+    .join(' ') || '未設定';
 }
 
 function createCustomerHubSalesMemoCard(customer) {
@@ -4880,6 +5085,10 @@ function startCustomerCalendar(customerId) {
 }
 
 function getCustomerMapUrl(customer) {
+  if (customer.googleMapUrl) {
+    return customer.googleMapUrl;
+  }
+
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(customer.address || customer.companyName || '');
 }
 
@@ -5042,9 +5251,41 @@ function getOptionalFieldValue(elementId) {
 }
 
 function getCustomerById(customerId) {
-  return DEMO_CUSTOMERS.find(function(customer) {
+  return customerData.find(function(customer) {
     return customer.id === customerId;
   }) || null;
+}
+
+function updateCustomerSelectOptions() {
+  updateCustomerSelect('calendarCustomerSelect', '顧客を選択してください');
+  updateCustomerSelect('mailCustomerSelect', '顧客を選択してください');
+}
+
+function updateCustomerSelect(selectId, placeholder) {
+  const select = document.getElementById(selectId);
+
+  if (!select) {
+    return;
+  }
+
+  const previousValue = select.value;
+  select.replaceChildren();
+
+  const placeholderOption = document.createElement('option');
+  placeholderOption.value = '';
+  placeholderOption.textContent = placeholder;
+  select.appendChild(placeholderOption);
+
+  customerData.forEach(function(customer) {
+    const option = document.createElement('option');
+    option.value = customer.id;
+    option.textContent = customer.companyName;
+    select.appendChild(option);
+  });
+
+  if (previousValue && getCustomerById(previousValue)) {
+    select.value = previousValue;
+  }
 }
 
 function handleCalendarCustomerChange() {
@@ -5107,7 +5348,7 @@ function applyMailCustomer(customer) {
 
 function buildCalendarCustomerMemo(customer) {
   return [
-    '担当：' + customer.title + ' ' + customer.personName,
+    '担当：' + formatCustomerContactName(customer),
     '電話：' + customer.phone,
     customer.memo
   ].filter(Boolean).join('\n');
@@ -5116,9 +5357,9 @@ function buildCalendarCustomerMemo(customer) {
 function buildMailCustomerOpening(customer) {
   return [
     customer.companyName,
-    customer.department + ' ' + customer.title,
-    customer.personName + '様'
-  ].join('\n');
+    [customer.department, customer.title].filter(Boolean).join(' '),
+    (customer.personName || customer.contactName || 'ご担当者') + '様'
+  ].filter(Boolean).join('\n');
 }
 
 function setMailBodyCustomerOpening(bodyField, opening) {
@@ -5156,7 +5397,7 @@ function renderCustomerPreview(containerId, customer) {
 
   const person = document.createElement('div');
   person.className = 'customer-preview-person';
-  person.textContent = customer.department + ' / ' + customer.title + ' ' + customer.personName;
+  person.textContent = [customer.department, formatCustomerContactName(customer)].filter(Boolean).join(' / ');
   card.appendChild(person);
 
   const meta = document.createElement('div');
@@ -5167,7 +5408,7 @@ function renderCustomerPreview(containerId, customer) {
   if (customer.address) {
     const map = document.createElement('a');
     map.className = 'customer-preview-map';
-    map.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(customer.address);
+    map.href = getCustomerMapUrl(customer);
     map.target = '_blank';
     map.rel = 'noopener';
     map.textContent = '📍 ' + customer.address;
@@ -5941,7 +6182,8 @@ function formatMeetMailDateTime(startIso) {
 function showTaskForm(options) {
   if (shouldUsePageTransition(options)) {
     playPageTransition(function() {
-      showTaskForm({ skipTransition: true });
+      const nextOptions = Object.assign({}, options || {}, { skipTransition: true });
+      showTaskForm(nextOptions);
     }, 'todoSection');
     return;
   }
@@ -5965,9 +6207,97 @@ function showTaskForm(options) {
 
   document.getElementById('appHeader').classList.remove('hidden');
   document.getElementById('stepList').classList.add('hidden');
+  prepareTaskForm(options);
   hideTaskMessage();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prepareTaskForm(options) {
+  const formOptions = options || {};
+
+  if (formOptions.mode === 'edit' && formOptions.task) {
+    editingTaskId = formOptions.task.id || '';
+    populateTaskForm(formOptions.task);
+    updateTaskFormMode(true);
+    return;
+  }
+
+  editingTaskId = '';
+  resetTaskForm();
+  updateTaskFormMode(false);
+}
+
+function populateTaskForm(task) {
+  document.getElementById('taskTitle').value = task.title || '';
+  setTaskSelectValue('taskCategory', task.category || getDefaultTaskCategoryForEdit(), '仕事');
+  document.getElementById('taskDueDate').value = formatTaskDueDateForInput(task.dueDate);
+  setTaskSelectValue('taskPriority', task.priority || '中', '中');
+  document.getElementById('taskMemo').value = task.memo || '';
+}
+
+function setTaskSelectValue(selectId, value, fallbackValue) {
+  const select = document.getElementById(selectId);
+
+  if (!select) {
+    return;
+  }
+
+  const values = Array.from(select.options).map(function(option) {
+    return option.value;
+  });
+  select.value = values.indexOf(value) !== -1 ? value : fallbackValue;
+}
+
+function formatTaskDueDateForInput(value) {
+  if (!value) {
+    return '';
+  }
+
+  const text = String(value).trim();
+  const dateTimeMatch = text.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+
+  if (dateTimeMatch) {
+    return dateTimeMatch[1] + 'T' + dateTimeMatch[2];
+  }
+
+  const dateMatch = text.match(/^(\d{4}-\d{2}-\d{2})$/);
+
+  if (dateMatch) {
+    return dateMatch[1] + 'T09:00';
+  }
+
+  return '';
+}
+
+function updateTaskFormMode(isEditing) {
+  const title = document.getElementById('taskFormTitle');
+  const description = document.getElementById('taskFormDescription');
+  const saveButton = document.getElementById('saveTaskButton');
+  const cancelButton = document.getElementById('cancelTaskButton');
+
+  if (title) {
+    title.textContent = isEditing ? 'TODOを編集' : 'TODO追加';
+  }
+
+  if (description) {
+    description.textContent = isEditing
+      ? '既存TODOの内容を更新します。'
+      : '新しいタスクを営業AI秘書DBへ保存します。';
+  }
+
+  if (saveButton && !isSavingTask) {
+    saveButton.textContent = isEditing ? '更新する' : 'TODOを保存';
+  }
+
+  if (cancelButton) {
+    cancelButton.textContent = isEditing ? 'キャンセル' : 'ホームに戻る';
+  }
+}
+
+function cancelTaskForm() {
+  resetTaskForm();
+  showHomeScreen();
 }
 
 function handleTodoEditButtonClick() {
@@ -5990,7 +6320,9 @@ function handleTodoAddButtonClick(event) {
     button.classList.add('is-activating');
   }
 
-  window.setTimeout(showTaskForm, 180);
+  window.setTimeout(function() {
+    showTaskForm({ mode: 'add' });
+  }, 180);
 }
 
 function saveTask() {
@@ -6005,6 +6337,7 @@ function saveTask() {
     priority: document.getElementById('taskPriority').value,
     memo: document.getElementById('taskMemo').value.trim()
   };
+  const isEditing = Boolean(editingTaskId);
 
   if (!data.title) {
     showTaskMessage('タスク名を入力してください。', true);
@@ -6019,9 +6352,9 @@ function saveTask() {
     return;
   }
 
-  google.script.run
+  const runner = google.script.run
     .withSuccessHandler(function(result) {
-      showTaskMessage(result.message || 'TODOを追加しました。');
+      showTaskMessage(result.message || (isEditing ? 'TODOを更新しました。' : 'TODOを追加しました。'));
       resetTaskForm();
       setTaskSavingState(false);
 
@@ -6032,8 +6365,15 @@ function saveTask() {
     .withFailureHandler(function(error) {
       showTaskMessage('エラー：' + error.message, true);
       setTaskSavingState(false);
-    })
-    .addTask(data);
+    });
+
+  if (isEditing) {
+    data.id = editingTaskId;
+    runner.updateTask(data);
+    return;
+  }
+
+  runner.addTask(data);
 }
 
 function setTaskSavingState(isSaving) {
@@ -6043,10 +6383,18 @@ function setTaskSavingState(isSaving) {
 
   if (saveButton) {
     saveButton.disabled = isSaving;
-    saveButton.textContent = isSaving ? '保存中...' : 'TODOを保存';
+    if (isSaving) {
+      saveButton.textContent = editingTaskId ? '更新中...' : '保存中...';
+    } else {
+      saveButton.textContent = editingTaskId ? '更新する' : 'TODOを保存';
+    }
   }
 
   document.querySelectorAll('.todo-add-button').forEach(function(button) {
+    button.disabled = isSaving;
+  });
+
+  document.querySelectorAll('.task-edit-item-button').forEach(function(button) {
     button.disabled = isSaving;
   });
 }
@@ -6063,11 +6411,13 @@ function hideTaskMessage() {
 }
 
 function resetTaskForm() {
+  editingTaskId = '';
   document.getElementById('taskTitle').value = '';
   document.getElementById('taskCategory').value = '仕事';
   document.getElementById('taskDueDate').value = '';
   document.getElementById('taskPriority').value = '中';
   document.getElementById('taskMemo').value = '';
+  updateTaskFormMode(false);
 }
 
 function loadTasks(category) {
@@ -6087,16 +6437,53 @@ function loadTasks(category) {
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(function(tasks) {
-      renderTasks(tasks);
-    })
-    .withFailureHandler(function(error) {
-      container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
-      updateTodoStatusSummary([], '取得失敗');
-      console.error(error);
-    })
-    .getTasks(currentTaskFilter);
+  let settled = false;
+  const timeoutId = window.setTimeout(function() {
+    showTaskLoadError(new Error('TODO load timed out.'));
+  }, 10000);
+
+  function showTaskLoadError(error) {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    window.clearTimeout(timeoutId);
+    currentTasks = [];
+    container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
+    updateTodoStatusSummary([], 'TODO取得失敗');
+    console.error('TODO load failed.', error);
+  }
+
+  try {
+    google.script.run
+      .withSuccessHandler(function(tasks) {
+        if (settled) {
+          return;
+        }
+
+        if (!Array.isArray(tasks)) {
+          showTaskLoadError(new Error('TODO response was not an array.'));
+          return;
+        }
+
+        settled = true;
+        window.clearTimeout(timeoutId);
+
+        try {
+          renderTasks(tasks);
+        } catch (error) {
+          settled = false;
+          showTaskLoadError(error);
+        }
+      })
+      .withFailureHandler(function(error) {
+        showTaskLoadError(error);
+      })
+      .getTasks(currentTaskFilter);
+  } catch (error) {
+    showTaskLoadError(error);
+  }
 }
 
 function renderTasks(tasks) {
@@ -6107,6 +6494,7 @@ function renderTasks(tasks) {
   }
 
   container.replaceChildren();
+  currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
   updateTodoStatusSummary(tasks);
 
   if (!tasks || !tasks.length) {
@@ -6167,9 +6555,19 @@ function renderTasks(tasks) {
       body.appendChild(memo);
     }
 
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'task-edit-item-button';
+    editButton.textContent = '✏️';
+    editButton.setAttribute('aria-label', task.title + 'を編集する');
+    editButton.addEventListener('click', function() {
+      editTaskFromList(task.id);
+    });
+
     body.appendChild(meta);
     item.appendChild(checkButton);
     item.appendChild(body);
+    item.appendChild(editButton);
     container.appendChild(item);
 
     window.requestAnimationFrame(function() {
@@ -6402,6 +6800,41 @@ function padTwoDigits(value) {
   return String(value).padStart(2, '0');
 }
 
+function editTaskFromList(taskId) {
+  const task = currentTasks.find(function(item) {
+    return item.id === taskId;
+  });
+
+  if (!task) {
+    alert('TODOが見つかりません。');
+    return;
+  }
+
+  showTaskForm({
+    mode: 'edit',
+    task: Object.assign({}, task)
+  });
+}
+
+function getDefaultTaskCategoryForEdit() {
+  return currentTaskFilter === '仕事' || currentTaskFilter === 'プライベート'
+    ? currentTaskFilter
+    : '';
+}
+
+function setTaskEditingState(taskId, isEditing) {
+  const container = document.getElementById('homeTaskList');
+  const item = container ? container.querySelector('[data-task-id="' + taskId + '"]') : null;
+  const button = item ? item.querySelector('.task-edit-item-button') : null;
+
+  if (!button) {
+    return;
+  }
+
+  button.disabled = isEditing;
+  button.textContent = isEditing ? '…' : '✏️';
+}
+
 function completeTaskFromList(taskId) {
   const container = document.getElementById('homeTaskList');
   const item = container.querySelector('[data-task-id="' + taskId + '"]');
@@ -6487,71 +6920,95 @@ function setScheduleView(view) {
 
 function loadScheduleEvents(view, dateKey) {
   const container = document.getElementById('todayEvents');
+  const requestId = ++scheduleRequestId;
+  const callbackName = 'handleTodayEvents_' + Date.now();
+  let settled = false;
+  let timeoutId = null;
 
   if (!container) {
     return;
   }
 
-  updateScheduleSegmentState();
-  updateScheduleTitle(view, dateKey);
-  updateScheduleDayAction(dateKey);
-  container.innerHTML = '<p class="today-empty">予定を読み込み中です...</p>';
+  try {
+    updateScheduleSegmentState();
+    updateScheduleTitle(view, dateKey);
+    updateScheduleDayAction(dateKey);
+    container.innerHTML = '<p class="today-empty">予定を読み込み中です...</p>';
+  } catch (error) {
+    showScheduleEventsError(error);
+    return;
+  }
 
   const oldScript = document.getElementById('todayEventsJsonp');
   if (oldScript) {
     oldScript.remove();
   }
 
-  const callbackName = 'handleTodayEvents_' + Date.now();
-  let settled = false;
-
-  function showScheduleEventsError() {
-    if (settled) {
+  function showScheduleEventsError(error) {
+    if (settled || requestId !== scheduleRequestId) {
       return;
     }
 
     settled = true;
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
     delete window[callbackName];
     container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+    console.error('Schedule load failed.', error);
   }
 
   window[callbackName] = function(response) {
-    if (settled) {
+    if (settled || requestId !== scheduleRequestId) {
       return;
     }
 
-    settled = true;
-    delete window[callbackName];
-
     if (response && response.error) {
-      container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+      showScheduleEventsError(response);
       return;
     }
 
     if (!Array.isArray(response)) {
-      container.innerHTML = '<p class="today-empty">予定を取得できませんでした。</p>';
+      showScheduleEventsError(new Error('Schedule response was not an array.'));
       return;
     }
 
-    renderScheduleEvents(response, view, dateKey);
-  };
-
-  const script = document.createElement('script');
-  const params = buildScheduleQueryParams(view, dateKey, callbackName);
-
-  script.id = 'todayEventsJsonp';
-  script.src = calendarEventsBaseUrl + '?' + params.join('&') + '&v=' + Date.now();
-  script.onerror = showScheduleEventsError;
-  script.onload = function() {
-    window.setTimeout(function() {
-      if (!settled) {
-        showScheduleEventsError();
+    try {
+      renderScheduleEvents(response, view, dateKey);
+      settled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
       }
-    }, 0);
+      delete window[callbackName];
+    } catch (error) {
+      showScheduleEventsError(error);
+    }
   };
 
-  window.setTimeout(showScheduleEventsError, 10000);
-  document.body.appendChild(script);
+  try {
+    const script = document.createElement('script');
+    const params = buildScheduleQueryParams(view, dateKey, callbackName);
+
+    script.id = 'todayEventsJsonp';
+    script.src = calendarEventsBaseUrl + '?' + params.join('&') + '&v=' + Date.now();
+    script.onerror = function(event) {
+      showScheduleEventsError(event);
+    };
+    script.onload = function() {
+      window.setTimeout(function() {
+        if (!settled) {
+          showScheduleEventsError(new Error('Schedule JSONP callback was not called.'));
+        }
+      }, 0);
+    };
+
+    timeoutId = window.setTimeout(function() {
+      showScheduleEventsError(new Error('Schedule load timed out.'));
+    }, 10000);
+    document.body.appendChild(script);
+  } catch (error) {
+    showScheduleEventsError(error);
+  }
 }
 
 function buildScheduleQueryParams(view, dateKey, callbackName) {
@@ -7397,14 +7854,25 @@ function getAiStatusDotClass(state) {
   return 'status-muted';
 }
 
+function runInitialHomeTask(label, task) {
+  try {
+    task();
+  } catch (error) {
+    console.error(label + ' initialization failed.', error);
+  }
+}
+
     document.addEventListener('DOMContentLoaded', function() {
-       initMotionInteractions();
-       initCalendarColorOptions();
-       loadWeatherForecast();
-       showHomeScreen();
-       loadTodayEvents();
-       loadAiSystemStatus();
-setInterval(loadTodayEvents, 60 * 1000);
+       runInitialHomeTask('Motion', initMotionInteractions);
+       runInitialHomeTask('Calendar color', initCalendarColorOptions);
+       runInitialHomeTask('Customer Hub', loadCustomersFromServer);
+       runInitialHomeTask('Weather', loadWeatherForecast);
+       runInitialHomeTask('Home screen', showHomeScreen);
+       runInitialHomeTask('Schedule', loadTodayEvents);
+       runInitialHomeTask('AI status', loadAiSystemStatus);
+       window.setInterval(function() {
+         runInitialHomeTask('Schedule interval', loadTodayEvents);
+       }, 60 * 1000);
     });
 
   </script>

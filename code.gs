@@ -3,6 +3,9 @@
  * URLを開くと、Index.html が表示されます。
  */
 
+var CUSTOMER_SPREADSHEET_ID = '';
+var CUSTOMER_SHEET_NAME = '顧客DB';
+
 
 /**
  * HTML画面から受け取った予定をGoogleカレンダーへ登録します。
@@ -705,6 +708,99 @@ function getTaskSpreadsheet_() {
 }
 
 /**
+ * 顧客DBシートからCustomer Hub用の顧客一覧を取得します。
+ */
+function getCustomers() {
+  var sheet = getCustomerSheet_();
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    return [];
+  }
+
+  var headers = values[0].map(function(header) {
+    return String(header || '').trim();
+  });
+
+  return values
+    .slice(1)
+    .map(function(row) {
+      return normalizeCustomerRow_(row, headers);
+    })
+    .filter(function(customer) {
+      return customer.id && customer.companyName;
+    });
+}
+
+function normalizeCustomerRow_(row, headers) {
+  function value(name) {
+    var index = headers.indexOf(name);
+    return index === -1 ? '' : row[index];
+  }
+
+  function text(name) {
+    return String(value(name) || '').trim();
+  }
+
+  function dateText(name) {
+    var rawValue = value(name);
+
+    if (Object.prototype.toString.call(rawValue) === '[object Date]' && !isNaN(rawValue.getTime())) {
+      return Utilities.formatDate(rawValue, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+
+    return String(rawValue || '').trim();
+  }
+
+  var address = text('address');
+  var companyName = text('companyName');
+  var googleMapUrl = text('googleMapUrl');
+  var nextAction = text('nextAction');
+
+  return {
+    id: text('id'),
+    companyName: companyName,
+    contactName: text('contactName'),
+    personName: text('contactName'),
+    title: '',
+    department: '',
+    address: address,
+    phone: text('phone'),
+    email: text('email'),
+    cc: text('ccEmail'),
+    ccEmail: text('ccEmail'),
+    googleMapUrl: googleMapUrl,
+    memo: text('memo'),
+    salesMemo: text('memo'),
+    lastContactDate: dateText('lastContactDate'),
+    nextAction: nextAction,
+    nextSchedule: nextAction || '未設定',
+    status: text('status'),
+    createdAt: dateText('createdAt'),
+    updatedAt: dateText('updatedAt')
+  };
+}
+
+function getCustomerSheet_() {
+  var spreadsheetId = CUSTOMER_SPREADSHEET_ID || PropertiesService
+    .getScriptProperties()
+    .getProperty('CUSTOMER_SPREADSHEET_ID');
+
+  if (!spreadsheetId) {
+    throw new Error('CUSTOMER_SPREADSHEET_IDが未設定です。顧客DBシート作成後に設定してください。');
+  }
+
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName(CUSTOMER_SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error(CUSTOMER_SHEET_NAME + 'シートが見つかりません。');
+  }
+
+  return sheet;
+}
+
+/**
  * ホーム画面のAIステータスカードに表示する軽量な状態を返します。
  * 既存機能には影響しないよう、各項目を個別に確認します。
  */
@@ -858,6 +954,58 @@ function completeTask(taskId) {
 
       return {
         message: 'TODOを完了しました。'
+      };
+    }
+  }
+
+  throw new Error('TODOが見つかりません。');
+}
+
+/**
+ * 指定されたTODOを編集します。
+ */
+function updateTask(data) {
+  if (!data) {
+    throw new Error('TODOデータがありません。');
+  }
+
+  var id = String(data.id || '').trim();
+  var title = String(data.title || '').trim();
+
+  if (!id) {
+    throw new Error('TODOのIDがありません。');
+  }
+
+  if (!title) {
+    throw new Error('タスク名を入力してください。');
+  }
+
+  var sheet = getTaskSpreadsheet_().getSheetByName('Tasks');
+
+  if (!sheet) {
+    throw new Error('Tasksシートが見つかりません。');
+  }
+
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    throw new Error('TODOが見つかりません。');
+  }
+
+  var columns = getTaskColumns_(values[0]);
+
+  for (var index = 1; index < values.length; index++) {
+    if (String(values[index][columns.ID] || '').trim() === id) {
+      var rowNumber = index + 1;
+
+      sheet.getRange(rowNumber, columns.Title + 1).setValue(title);
+      sheet.getRange(rowNumber, columns.Category + 1).setValue(String(data.category || '').trim());
+      sheet.getRange(rowNumber, columns.DueDate + 1).setValue(String(data.dueDate || '').trim());
+      sheet.getRange(rowNumber, columns.Priority + 1).setValue(String(data.priority || '').trim());
+      sheet.getRange(rowNumber, columns.Memo + 1).setValue(String(data.memo || '').trim());
+
+      return {
+        message: 'TODOを更新しました。'
       };
     }
   }
