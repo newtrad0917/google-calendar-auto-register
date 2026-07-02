@@ -956,6 +956,14 @@ body.ai-processing #gmailDraftSection::before {
   border-top: 1px solid #edf1f5;
 }
 
+.schedule-day-group.is-saturday .schedule-day-button {
+  color: #245985;
+}
+
+.schedule-day-group.is-sunday .schedule-day-button {
+  color: #805056;
+}
+
 .schedule-day-group:first-child {
   border-top: 0;
 }
@@ -991,6 +999,17 @@ body.ai-processing #gmailDraftSection::before {
   display: grid;
   gap: 7px;
   margin-top: 6px;
+}
+
+.schedule-day-empty {
+  padding: 9px 10px;
+  border: 1px solid #edf1f5;
+  border-radius: 12px;
+  color: #8a96a8;
+  background: #fbfdff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .schedule-event-row {
@@ -1041,6 +1060,11 @@ body.ai-processing #gmailDraftSection::before {
 
 .schedule-day-group.compact .schedule-event-row {
   grid-template-columns: 72px minmax(0, 1fr);
+  font-size: 12px;
+}
+
+.schedule-day-group.compact .schedule-day-empty {
+  padding: 7px 9px;
   font-size: 12px;
 }
 
@@ -1233,6 +1257,19 @@ body.ai-processing #gmailDraftSection::before {
   margin-bottom: 12px;
 }
 
+.task-due-filter {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  margin-top: -4px;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.task-due-filter::-webkit-scrollbar {
+  display: none;
+}
+
 .task-filter-button {
   width: auto;
   min-height: 32px;
@@ -1248,6 +1285,12 @@ body.ai-processing #gmailDraftSection::before {
 .task-filter-button.active {
   color: #ffffff;
   background: #1f3a5f;
+}
+
+.task-due-filter .task-filter-button {
+  min-height: 34px;
+  padding-right: 12px;
+  padding-left: 12px;
 }
 
 .task-list {
@@ -3818,9 +3861,16 @@ body.ai-processing .assistant-briefing-icon {
     </div>
 
     <div class="task-filter" aria-label="TODOカテゴリ切替">
-      <button type="button" id="taskFilterWork" class="task-filter-button active" onclick="setTaskFilter('仕事')">仕事</button>
+      <button type="button" id="taskFilterWork" class="task-filter-button" onclick="setTaskFilter('仕事')">仕事</button>
       <button type="button" id="taskFilterPrivate" class="task-filter-button" onclick="setTaskFilter('プライベート')">プライベート</button>
-      <button type="button" id="taskFilterAll" class="task-filter-button" onclick="setTaskFilter('すべて')">すべて</button>
+      <button type="button" id="taskFilterAll" class="task-filter-button active" onclick="setTaskFilter('すべて')">すべて</button>
+    </div>
+    <div class="task-filter task-due-filter" aria-label="TODO期限切替">
+      <button type="button" id="taskDueFilterOverdue" class="task-filter-button" onclick="setTaskDueFilter('overdue')">期限切れ</button>
+      <button type="button" id="taskDueFilterToday" class="task-filter-button active" onclick="setTaskDueFilter('today')">今日</button>
+      <button type="button" id="taskDueFilterTomorrow" class="task-filter-button" onclick="setTaskDueFilter('tomorrow')">明日</button>
+      <button type="button" id="taskDueFilterWeek" class="task-filter-button" onclick="setTaskDueFilter('week')">今週</button>
+      <button type="button" id="taskDueFilterLater" class="task-filter-button" onclick="setTaskDueFilter('later')">以降</button>
     </div>
 
     <div id="homeTaskList" class="task-list">
@@ -4292,7 +4342,8 @@ body.ai-processing .assistant-briefing-icon {
   </main>
 
   <script>
-    let currentTaskFilter = '仕事';
+    let currentTaskFilter = 'すべて';
+    let currentTaskDueFilter = 'today';
     let isSavingTask = false;
     let currentTasks = [];
     let editingTaskId = '';
@@ -6494,6 +6545,11 @@ function loadTasks(category) {
 }
 
 function renderTasks(tasks) {
+  currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
+  renderVisibleTasks();
+}
+
+function renderVisibleTasks() {
   const container = document.getElementById('homeTaskList');
 
   if (!container) {
@@ -6501,15 +6557,15 @@ function renderTasks(tasks) {
   }
 
   container.replaceChildren();
-  currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
-  updateTodoStatusSummary(tasks);
+  const visibleTasks = filterTasksByDue(currentTasks, currentTaskDueFilter);
+  updateTodoStatusSummary(visibleTasks);
 
-  if (!tasks || !tasks.length) {
-    container.innerHTML = '<p class="task-empty">未完了のTODOはありません。</p>';
+  if (!visibleTasks.length) {
+    container.innerHTML = '<p class="task-empty">' + getTaskEmptyText() + '</p>';
     return;
   }
 
-  tasks.forEach(function(task) {
+  visibleTasks.forEach(function(task) {
     const item = document.createElement('div');
     item.className = 'task-item is-entering';
     item.dataset.taskId = task.id;
@@ -6668,6 +6724,64 @@ function updateTodoStatusSummary(tasks, fallbackText) {
   summary.textContent = '残り' + taskList.length + '件';
 }
 
+function filterTasksByDue(tasks, dueFilter) {
+  const taskList = Array.isArray(tasks) ? tasks : [];
+  const filter = dueFilter || 'today';
+
+  return taskList.filter(function(task) {
+    return getTaskDueFilterBucket(task) === filter;
+  });
+}
+
+function getTaskDueFilterBucket(task) {
+  const parsed = parseTaskDueDate(task && task.dueDate);
+
+  if (!parsed) {
+    return 'later';
+  }
+
+  const today = startOfDay(new Date());
+  const tomorrow = addDays(today, 1);
+  const dayAfterTomorrow = addDays(today, 2);
+  const weekStart = getWeekStartDate(today);
+  const weekEnd = addDays(weekStart, 7);
+  const dueDay = startOfDay(parsed.date);
+
+  if (dueDay.getTime() < today.getTime()) {
+    return 'overdue';
+  }
+
+  if (dueDay.getTime() === today.getTime()) {
+    return 'today';
+  }
+
+  if (dueDay.getTime() === tomorrow.getTime()) {
+    return 'tomorrow';
+  }
+
+  if (
+    dueDay.getTime() >= dayAfterTomorrow.getTime() &&
+    dueDay.getTime() >= weekStart.getTime() &&
+    dueDay.getTime() < weekEnd.getTime()
+  ) {
+    return 'week';
+  }
+
+  return 'later';
+}
+
+function getTaskEmptyText() {
+  const labels = {
+    overdue: '期限切れのTODOはありません。',
+    today: '今日のTODOはありません。',
+    tomorrow: '明日のTODOはありません。',
+    week: '今週のTODOはありません。',
+    later: '以降のTODOはありません。'
+  };
+
+  return labels[currentTaskDueFilter] || '未完了のTODOはありません。';
+}
+
 function isTaskDueToday(task) {
   const parsed = parseTaskDueDate(task && task.dueDate);
 
@@ -6783,6 +6897,13 @@ function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+function getWeekStartDate(date) {
+  const baseDate = startOfDay(date);
+  const day = baseDate.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  return addDays(baseDate, mondayOffset);
+}
+
 function addDays(date, days) {
   const nextDate = new Date(date);
   nextDate.setDate(nextDate.getDate() + days);
@@ -6872,14 +6993,12 @@ function completeTaskFromList(taskId) {
 
   google.script.run
     .withSuccessHandler(function() {
-      window.setTimeout(function() {
-        if (item) {
-          item.remove();
-        }
+      currentTasks = currentTasks.filter(function(task) {
+        return task.id !== taskId;
+      });
 
-        if (!container.querySelector('.task-item')) {
-          container.innerHTML = '<p class="task-empty">未完了のTODOはありません。</p>';
-        }
+      window.setTimeout(function() {
+        renderVisibleTasks();
       }, 620);
     })
     .withFailureHandler(function(error) {
@@ -6898,7 +7017,7 @@ function completeTaskFromList(taskId) {
 }
 
 function setTaskFilter(category) {
-  currentTaskFilter = category || '仕事';
+  currentTaskFilter = category || 'すべて';
 
   [
     ['taskFilterWork', '仕事'],
@@ -6913,6 +7032,26 @@ function setTaskFilter(category) {
   });
 
   loadTasks(currentTaskFilter);
+}
+
+function setTaskDueFilter(dueFilter) {
+  currentTaskDueFilter = dueFilter || 'today';
+
+  [
+    ['taskDueFilterOverdue', 'overdue'],
+    ['taskDueFilterToday', 'today'],
+    ['taskDueFilterTomorrow', 'tomorrow'],
+    ['taskDueFilterWeek', 'week'],
+    ['taskDueFilterLater', 'later']
+  ].forEach(function(filter) {
+    const button = document.getElementById(filter[0]);
+
+    if (button) {
+      button.classList.toggle('active', filter[1] === currentTaskDueFilter);
+    }
+  });
+
+  renderVisibleTasks();
 }
 function loadTodayEvents() {
   loadScheduleEvents(currentScheduleView || 'today', selectedScheduleDate || '');
@@ -7182,62 +7321,111 @@ function renderGroupedScheduleEvents(events, view) {
     container.appendChild(createWeatherPreviewCard(view));
   }
 
-  if (!events || !events.length) {
-    const empty = document.createElement('p');
-    empty.className = 'today-empty';
-    empty.textContent = getScheduleEmptyText(view, '');
-    container.appendChild(empty);
-    return;
-  }
-
   const groups = groupScheduleEventsByDate(events);
+  const dateKeys = getScheduleDateKeysForView(view);
   groupedList.className = 'schedule-grouped-list';
 
-  Object.keys(groups).forEach(function(dateKey) {
-    const groupEvents = groups[dateKey];
-    const group = document.createElement('section');
-    group.className = 'schedule-day-group' + (isCompact ? ' compact' : '');
+  dateKeys.forEach(function(dateKey) {
+    groupedList.appendChild(createScheduleDayGroup(dateKey, groups[dateKey] || [], isCompact));
+  });
 
-    const dayButton = document.createElement('button');
-    dayButton.type = 'button';
-    dayButton.className = 'schedule-day-button';
-    dayButton.addEventListener('click', function() {
-      showScheduleDay(dateKey);
-    });
+  container.appendChild(groupedList);
+}
 
-    const dayLabel = document.createElement('span');
-    dayLabel.textContent = formatScheduleDateLabel(dateKey);
-    dayButton.appendChild(dayLabel);
+function createScheduleDayGroup(dateKey, events, isCompact) {
+  const groupEvents = events.slice().sort(compareScheduleEventsByStart);
+  const group = document.createElement('section');
+  const groupDate = parseScheduleDateKey(dateKey);
+  group.className = 'schedule-day-group' + (isCompact ? ' compact' : '') + getScheduleWeekendClass(groupDate);
 
-    if (isCompact) {
-      const count = document.createElement('span');
-      count.className = 'schedule-day-count';
-      count.textContent = groupEvents.length + '件';
-      dayButton.appendChild(count);
-    }
+  const dayButton = document.createElement('button');
+  dayButton.type = 'button';
+  dayButton.className = 'schedule-day-button';
+  dayButton.addEventListener('click', function() {
+    showScheduleDay(dateKey);
+  });
 
-    const list = document.createElement('div');
-    list.className = 'schedule-event-list';
+  const dayLabel = document.createElement('span');
+  dayLabel.textContent = formatScheduleDateLabel(dateKey);
+  dayButton.appendChild(dayLabel);
 
+  if (isCompact) {
+    const count = document.createElement('span');
+    count.className = 'schedule-day-count';
+    count.textContent = groupEvents.length ? groupEvents.length + '件' : '予定なし';
+    dayButton.appendChild(count);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'schedule-event-list';
+
+  if (!groupEvents.length) {
+    list.appendChild(createScheduleEmptyRow());
+  } else {
     const visibleEvents = isCompact ? groupEvents.slice(0, 2) : groupEvents;
     visibleEvents.forEach(function(event) {
       list.appendChild(createScheduleEventRow(event, isCompact));
     });
+  }
 
-    group.appendChild(dayButton);
-    group.appendChild(list);
+  group.appendChild(dayButton);
+  group.appendChild(list);
 
-    if (isCompact && groupEvents.length > 2) {
-      const more = document.createElement('div');
-      more.className = 'schedule-more-count';
-      more.textContent = 'ほか' + (groupEvents.length - 2) + '件';
-      group.appendChild(more);
-    }
+  if (isCompact && groupEvents.length > 2) {
+    const more = document.createElement('div');
+    more.className = 'schedule-more-count';
+    more.textContent = 'ほか' + (groupEvents.length - 2) + '件';
+    group.appendChild(more);
+  }
 
-    groupedList.appendChild(group);
-  });
+  return group;
+}
 
-  container.appendChild(groupedList);
+function createScheduleEmptyRow() {
+  const empty = document.createElement('div');
+  empty.className = 'schedule-day-empty';
+  empty.textContent = '予定なし';
+  return empty;
+}
+
+function compareScheduleEventsByStart(a, b) {
+  return getScheduleEventStartTime(a) - getScheduleEventStartTime(b);
+}
+
+function getScheduleEventStartTime(event) {
+  const source = event && (event.start || event.startIso || event.date);
+  const date = source ? new Date(source) : null;
+  return date && !isNaN(date.getTime()) ? date.getTime() : 0;
+}
+
+function getScheduleDateKeysForView(view) {
+  const range = getScheduleDateRange(view);
+  const dateKeys = [];
+  let cursor = parseScheduleDateKey(range.startDate);
+  const endDate = parseScheduleDateKey(range.endDate);
+
+  while (cursor.getTime() < endDate.getTime()) {
+    dateKeys.push(formatScheduleDateKey(cursor));
+    cursor = addDays(cursor, 1);
+  }
+
+  return dateKeys;
+}
+
+function getScheduleWeekendClass(date) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return '';
+  }
+
+  if (date.getDay() === 0) {
+    return ' is-sunday';
+  }
+
+  if (date.getDay() === 6) {
+    return ' is-saturday';
+  }
+
+  return '';
 }
 
 function createScheduleEventRow(event, isCompact) {
