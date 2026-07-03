@@ -744,11 +744,11 @@ function getCustomerDbHeaders_() {
     'industry',
     'prefecture',
     'city',
+    'address',
     'officePhone',
     'mobilePhone',
     'email',
     'ccEmail',
-    'address',
     'googleMapUrl',
     'lastVisit',
     'nextVisit',
@@ -772,12 +772,12 @@ function getCustomerDbSampleRow_() {
     '病院',
     '福岡県',
     '朝倉市',
+    '福岡県朝倉市',
+    '092-000-0000',
     '090-0000-0000',
-    '',
     'test@example.com',
     '',
-    '福岡県朝倉市',
-    'http://maps.google.com',
+    'https://maps.google.com',
     '2026-07-01',
     '2026-07-10',
     'LED提案中',
@@ -939,6 +939,213 @@ function getCustomers() {
     });
 }
 
+function getCustomer(customerId) {
+  var id = String(customerId || '').trim();
+
+  if (!id) {
+    throw new Error('顧客IDがありません。');
+  }
+
+  var customer = getCustomers().filter(function(item) {
+    return item.id === id;
+  })[0];
+
+  if (!customer) {
+    throw new Error('顧客が見つかりません。');
+  }
+
+  return customer;
+}
+
+function addCustomer(customer) {
+  var data = customer || {};
+  var companyName = String(data.companyName || '').trim();
+
+  if (!companyName) {
+    throw new Error('顧客名を入力してください。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getCustomerSheet_();
+    ensureCustomerDbHeaders_(sheet, getCustomerDbHeaders_());
+    var headers = getCustomerDbHeaderValues_(sheet);
+    var now = new Date();
+    var id = String(data.id || '').trim() || generateCustomerId_();
+    var row = buildCustomerRowForHeaders_(Object.assign({}, data, {
+      id: id,
+      companyName: companyName,
+      createdAt: now,
+      updatedAt: now
+    }), headers);
+
+    sheet.appendRow(row);
+
+    return {
+      id: id,
+      message: '顧客を追加しました。',
+      customer: getCustomer(id),
+      customers: getCustomers()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function updateCustomer(customer) {
+  var data = customer || {};
+  var id = String(data.id || '').trim();
+  var companyName = String(data.companyName || '').trim();
+
+  if (!id) {
+    throw new Error('顧客IDがありません。');
+  }
+
+  if (!companyName) {
+    throw new Error('顧客名を入力してください。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getCustomerSheet_();
+    ensureCustomerDbHeaders_(sheet, getCustomerDbHeaders_());
+    var headers = getCustomerDbHeaderValues_(sheet);
+    var rowNumber = findCustomerRowById_(sheet, id);
+
+    if (!rowNumber) {
+      throw new Error('更新対象の顧客が見つかりません。');
+    }
+
+    var existingRow = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var createdAtIndex = headers.indexOf('createdAt');
+    var row = buildCustomerRowForHeaders_(Object.assign({}, data, {
+      id: id,
+      companyName: companyName,
+      createdAt: createdAtIndex === -1 ? '' : existingRow[createdAtIndex],
+      updatedAt: new Date()
+    }), headers, existingRow);
+
+    sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+
+    return {
+      id: id,
+      message: '顧客情報を更新しました。',
+      customer: getCustomer(id),
+      customers: getCustomers()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function deleteCustomer(customerId) {
+  var id = String(customerId || '').trim();
+
+  if (!id) {
+    throw new Error('顧客IDがありません。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getCustomerSheet_();
+    var rowNumber = findCustomerRowById_(sheet, id);
+
+    if (!rowNumber) {
+      throw new Error('削除対象の顧客が見つかりません。');
+    }
+
+    deleteCustomerRow_(sheet, rowNumber);
+
+    return {
+      id: id,
+      message: '顧客を削除しました。',
+      customers: getCustomers()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function generateCustomerId_() {
+  var sheet = getCustomerSheet_();
+  var headers = getCustomerDbHeaderValues_(sheet);
+  var idColumn = headers.indexOf('id');
+  var lastRow = sheet.getLastRow();
+  var maxNumber = 0;
+
+  if (idColumn === -1 || lastRow < 2) {
+    return 'C000001';
+  }
+
+  sheet
+    .getRange(2, idColumn + 1, lastRow - 1, 1)
+    .getValues()
+    .forEach(function(row) {
+      var id = String(row[0] || '').trim();
+      var match = id.match(/(\d+)$/);
+
+      if (match) {
+        maxNumber = Math.max(maxNumber, Number(match[1]));
+      }
+    });
+
+  return 'C' + ('000000' + (maxNumber + 1)).slice(-6);
+}
+
+function findCustomerRowById_(sheet, customerId) {
+  var id = String(customerId || '').trim();
+  var headers = getCustomerDbHeaderValues_(sheet);
+  var idColumn = headers.indexOf('id');
+  var lastRow = sheet.getLastRow();
+
+  if (!id || idColumn === -1 || lastRow < 2) {
+    return 0;
+  }
+
+  var values = sheet.getRange(2, idColumn + 1, lastRow - 1, 1).getValues();
+
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0] || '').trim() === id) {
+      return i + 2;
+    }
+  }
+
+  return 0;
+}
+
+function buildCustomerRowForHeaders_(customer, headers, existingRow) {
+  var data = customer || {};
+  var existing = existingRow || [];
+  var knownFields = getCustomerDbHeaders_().reduce(function(result, header) {
+    result[header] = true;
+    return result;
+  }, {});
+
+  return headers.map(function(header, index) {
+    if (Object.prototype.hasOwnProperty.call(data, header)) {
+      return data[header];
+    }
+
+    if (!knownFields[header]) {
+      return existing[index] === undefined || existing[index] === null
+        ? ''
+        : existing[index];
+    }
+
+    return '';
+  });
+}
+
+function deleteCustomerRow_(sheet, rowNumber) {
+  sheet.deleteRow(rowNumber);
+}
+
 function normalizeCustomerRow_(row, headers) {
   function value(name) {
     var index = headers.indexOf(name);
@@ -946,7 +1153,13 @@ function normalizeCustomerRow_(row, headers) {
   }
 
   function text(name) {
-    return String(value(name) || '').trim();
+    var rawValue = value(name);
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return '';
+    }
+
+    return String(rawValue).trim();
   }
 
   function dateText(name) {
@@ -956,7 +1169,11 @@ function normalizeCustomerRow_(row, headers) {
       return Utilities.formatDate(rawValue, Session.getScriptTimeZone(), 'yyyy-MM-dd');
     }
 
-    return String(rawValue || '').trim();
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return '';
+    }
+
+    return String(rawValue).trim();
   }
 
   var address = text('address');

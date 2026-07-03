@@ -3545,9 +3545,25 @@ body.ai-processing .assistant-briefing-icon {
   line-height: 1.5;
 }
 
+.customer-hub-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 12px 0 0;
+}
+
+.customer-hub-add-button {
+  width: auto;
+  min-height: 42px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
 .customer-hub-card,
 .customer-hub-profile,
 .customer-hub-sales-memo,
+.customer-hub-form,
 .customer-hub-action {
   border: 1px solid var(--ux-card-border) !important;
   border-radius: var(--ux-card-radius) !important;
@@ -3676,6 +3692,62 @@ body.ai-processing .assistant-briefing-icon {
   white-space: pre-line;
 }
 
+.customer-hub-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.customer-hub-form-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.customer-hub-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.customer-hub-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.customer-hub-form-actions {
+  position: sticky;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 2;
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #ffffff 30%);
+}
+
+.customer-hub-danger-button {
+  border: 1px solid #f0c8c4 !important;
+  color: #b3261e !important;
+  background: #fff7f6 !important;
+}
+
+.customer-hub-danger-button:hover {
+  background: #fce8e6 !important;
+}
+
+.customer-hub-empty {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: var(--ux-card-radius);
+  color: #64748b;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
 .customer-hub-detail.is-detail-entering .customer-hub-profile::before {
   animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
@@ -3731,6 +3803,22 @@ body.ai-processing .assistant-briefing-icon {
 
   .customer-hub-detail-button {
     width: 100%;
+  }
+
+  .customer-hub-topbar {
+    justify-content: stretch;
+  }
+
+  .customer-hub-add-button {
+    width: 100%;
+  }
+
+  .customer-hub-form {
+    padding: 16px;
+  }
+
+  .customer-hub-form-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -4271,10 +4359,139 @@ body.ai-processing .assistant-briefing-icon {
     顧客カルテから、メール・予定登録・地図・電話へすばやく移動します。
   </p>
 
+  <div class="customer-hub-topbar">
+    <button type="button" class="customer-hub-add-button" onclick="showCustomerForm()">
+      ＋ 顧客追加
+    </button>
+  </div>
+
   <div id="customerHubShell" class="customer-hub-shell">
     <div id="customerHubMessage" class="customer-hub-message hidden" role="status" aria-live="polite"></div>
     <div id="customerHubList" class="customer-hub-list"></div>
     <div id="customerHubDetail" class="customer-hub-detail"></div>
+
+    <form id="customerForm" class="customer-hub-form hidden" onsubmit="saveCustomerFromForm(); return false;">
+      <input id="customerFormId" type="hidden">
+      <h3 id="customerFormTitle" class="customer-hub-form-title">顧客追加</h3>
+
+      <div class="customer-hub-form-grid">
+        <div class="field full">
+          <label for="customerFormCompanyName">顧客名（必須）</label>
+          <input id="customerFormCompanyName" type="text" autocomplete="organization" required>
+        </div>
+
+        <div class="field">
+          <label for="customerFormCorporationName">法人名</label>
+          <input id="customerFormCorporationName" type="text" autocomplete="organization">
+        </div>
+
+        <div class="field">
+          <label for="customerFormContactName">担当者名</label>
+          <input id="customerFormContactName" type="text" autocomplete="name">
+        </div>
+
+        <div class="field">
+          <label for="customerFormDepartment">部署</label>
+          <input id="customerFormDepartment" type="text">
+        </div>
+
+        <div class="field">
+          <label for="customerFormIndustry">業種</label>
+          <select id="customerFormIndustry">
+            <option value=""></option>
+            <option value="病院">病院</option>
+            <option value="施設">施設</option>
+            <option value="工場">工場</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="customerFormPrefecture">都道府県</label>
+          <input id="customerFormPrefecture" type="text" autocomplete="address-level1">
+        </div>
+
+        <div class="field">
+          <label for="customerFormCity">市区町村</label>
+          <input id="customerFormCity" type="text" autocomplete="address-level2">
+        </div>
+
+        <div class="field full">
+          <label for="customerFormAddress">住所</label>
+          <input id="customerFormAddress" type="text" autocomplete="street-address">
+        </div>
+
+        <div class="field">
+          <label for="customerFormOfficePhone">代表電話</label>
+          <input id="customerFormOfficePhone" type="tel" autocomplete="tel">
+        </div>
+
+        <div class="field">
+          <label for="customerFormMobilePhone">携帯電話</label>
+          <input id="customerFormMobilePhone" type="tel" autocomplete="tel">
+        </div>
+
+        <div class="field">
+          <label for="customerFormEmail">メール</label>
+          <input id="customerFormEmail" type="email" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label for="customerFormCcEmail">CCメール</label>
+          <input id="customerFormCcEmail" type="email">
+        </div>
+
+        <div class="field full">
+          <label for="customerFormGoogleMapUrl">Google Map URL</label>
+          <input id="customerFormGoogleMapUrl" type="url" inputmode="url">
+        </div>
+
+        <div class="field">
+          <label for="customerFormLastVisit">最終訪問日</label>
+          <input id="customerFormLastVisit" type="date">
+        </div>
+
+        <div class="field">
+          <label for="customerFormNextVisit">次回訪問日</label>
+          <input id="customerFormNextVisit" type="date">
+        </div>
+
+        <div class="field">
+          <label for="customerFormProjectCount">案件数</label>
+          <input id="customerFormProjectCount" type="number" min="0" inputmode="numeric">
+        </div>
+
+        <div class="field">
+          <label for="customerFormHotLevel">温度感</label>
+          <select id="customerFormHotLevel">
+            <option value=""></option>
+            <option value="HOT">HOT</option>
+            <option value="WARM">WARM</option>
+            <option value="COLD">COLD</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="customerFormMemo">メモ</label>
+          <textarea id="customerFormMemo" rows="4"></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="customerFormAiSummary">AI要約</label>
+          <textarea id="customerFormAiSummary" rows="4"></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="customerFormNotes">備考</label>
+          <textarea id="customerFormNotes" rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="customer-hub-form-actions">
+        <button type="submit" id="saveCustomerButton">保存</button>
+        <button type="button" class="secondary-button" onclick="resetCustomerForm()">キャンセル</button>
+      </div>
+    </form>
   </div>
 
   <div class="actions">
@@ -4428,6 +4645,28 @@ body.ai-processing .assistant-briefing-icon {
     ];
     let customerData = DEMO_CUSTOMERS.slice();
     let customerDataMessage = '';
+    const CUSTOMER_FORM_FIELDS = {
+      companyName: 'customerFormCompanyName',
+      corporationName: 'customerFormCorporationName',
+      contactName: 'customerFormContactName',
+      department: 'customerFormDepartment',
+      industry: 'customerFormIndustry',
+      prefecture: 'customerFormPrefecture',
+      city: 'customerFormCity',
+      address: 'customerFormAddress',
+      officePhone: 'customerFormOfficePhone',
+      mobilePhone: 'customerFormMobilePhone',
+      email: 'customerFormEmail',
+      ccEmail: 'customerFormCcEmail',
+      googleMapUrl: 'customerFormGoogleMapUrl',
+      lastVisit: 'customerFormLastVisit',
+      nextVisit: 'customerFormNextVisit',
+      memo: 'customerFormMemo',
+      projectCount: 'customerFormProjectCount',
+      hotLevel: 'customerFormHotLevel',
+      aiSummary: 'customerFormAiSummary',
+      notes: 'customerFormNotes'
+    };
     const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
 
     function showHomeScreen(options) {
@@ -4681,12 +4920,12 @@ function loadCustomersFromServer() {
     google.script.run
       .withSuccessHandler(function(customers) {
         try {
-          if (Array.isArray(customers) && customers.length) {
-            setCustomerData(customers, { message: '' });
+          if (Array.isArray(customers)) {
+            setCustomerData(customers, { message: '', allowEmpty: true });
             return;
           }
 
-          handleCustomerLoadFailure(new Error('Customer Hub returned no rows.'));
+          handleCustomerLoadFailure(new Error('Customer Hub returned invalid rows.'));
         } catch (error) {
           handleCustomerLoadFailure(error);
         }
@@ -4718,7 +4957,9 @@ function setCustomerData(customers, options) {
       })
     : [];
 
-  customerData = normalizedCustomers.length ? normalizedCustomers : DEMO_CUSTOMERS.slice();
+  customerData = normalizedCustomers.length || (options && options.allowEmpty)
+    ? normalizedCustomers
+    : DEMO_CUSTOMERS.slice();
   customerDataMessage = options && options.message ? options.message : '';
   updateCustomerSelectOptions();
   renderCustomerHub();
@@ -4756,7 +4997,7 @@ function normalizeCustomerForClient(customer) {
     nextVisit: customer.nextVisit || '',
     nextSchedule: customer.nextSchedule || customer.nextAction || customer.nextVisit || '未設定',
     nextAction: customer.nextAction || '',
-    projectCount: customer.projectCount || '',
+    projectCount: customer.projectCount === 0 ? 0 : (customer.projectCount || ''),
     hotLevel: customer.hotLevel || '',
     aiSummary: customer.aiSummary || customer.salesMemo || '',
     notes: customer.notes || '',
@@ -4767,6 +5008,7 @@ function normalizeCustomerForClient(customer) {
 }
 
 function renderCustomerHub() {
+  resetCustomerForm({ keepDetail: true });
   renderCustomerHubMessage();
   renderCustomerHubList();
 
@@ -4778,6 +5020,13 @@ function renderCustomerHub() {
 
   if (selectedCustomerHubId) {
     renderCustomerDetail(selectedCustomerHubId);
+    return;
+  }
+
+  const detail = document.getElementById('customerHubDetail');
+
+  if (detail) {
+    detail.replaceChildren();
   }
 }
 
@@ -4800,6 +5049,14 @@ function renderCustomerHubList() {
   }
 
   list.replaceChildren();
+
+  if (!customerData.length) {
+    const empty = document.createElement('p');
+    empty.className = 'customer-hub-empty';
+    empty.textContent = '顧客はまだ登録されていません。';
+    list.appendChild(empty);
+    return;
+  }
 
   customerData.forEach(function(customer) {
     const card = document.createElement('article');
@@ -4933,6 +5190,7 @@ function showCustomerHubDetail(customerId) {
   selectedCustomerHubId = customerId;
   markCustomerHubCardSelected(customerId);
   detail.replaceChildren();
+  detail.classList.remove('hidden');
 
   detail.appendChild(createCustomerHubSalesMemoCard(customer));
 
@@ -4988,7 +5246,7 @@ function formatCustomerContactName(customer) {
 }
 
 function formatCustomerValue(value) {
-  const text = String(value || '').trim();
+  const text = value === 0 ? '0' : String(value || '').trim();
   return text || '未登録';
 }
 
@@ -5129,13 +5387,23 @@ function createCustomerHubActions(customer) {
     playCustomerHubLine(target);
   }, true));
 
+  actions.appendChild(createCustomerHubButton('編集', function(target) {
+    playCustomerHubLine(target);
+    showCustomerForm(customer.id);
+  }, false, 'secondary-button'));
+
+  actions.appendChild(createCustomerHubButton('削除', function(target) {
+    playCustomerHubLine(target);
+    deleteCustomerFromDetail(customer.id);
+  }, false, 'customer-hub-danger-button'));
+
   return actions;
 }
 
-function createCustomerHubButton(label, onClick, disabled) {
+function createCustomerHubButton(label, onClick, disabled, extraClassName) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'customer-hub-action';
+  button.className = ['customer-hub-action', extraClassName || ''].filter(Boolean).join(' ');
   button.textContent = label;
 
   if (disabled) {
@@ -5572,6 +5840,193 @@ function playCustomerCardLine(card) {
     card.classList.remove('is-customer-selected');
   }, 620);
 }
+
+function showCustomerForm(customerId) {
+  const id = String(customerId || '').trim();
+  const customer = id ? getCustomerById(id) : null;
+
+  renderCustomerForm(customer || { id: '' });
+}
+
+function renderCustomerForm(customer) {
+  const form = document.getElementById('customerForm');
+  const detail = document.getElementById('customerHubDetail');
+
+  if (!form) {
+    return;
+  }
+
+  if (detail) {
+    detail.classList.add('hidden');
+  }
+
+  document.getElementById('customerFormTitle').textContent =
+    customer.id ? '顧客編集' : '顧客追加';
+  document.getElementById('customerFormId').value = customer.id || '';
+
+  Object.keys(CUSTOMER_FORM_FIELDS).forEach(function(field) {
+    const input = document.getElementById(CUSTOMER_FORM_FIELDS[field]);
+
+    if (input) {
+      input.value = customer[field] || '';
+    }
+  });
+
+  form.classList.remove('hidden');
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function saveCustomerFromForm() {
+  const customer = getCustomerFormData();
+
+  if (!customer.companyName) {
+    showCustomerHubMessage('顧客名を入力してください。', true);
+    document.getElementById('customerFormCompanyName').focus();
+    return;
+  }
+
+  const button = document.getElementById('saveCustomerButton');
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = '保存中...';
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    restoreCustomerSaveButton();
+    showCustomerHubMessage('Apps Script上で実行してください。', true);
+    return;
+  }
+
+  const runner = google.script.run
+    .withSuccessHandler(function(result) {
+      restoreCustomerSaveButton();
+      refreshCustomerHubAfterSave(result);
+    })
+    .withFailureHandler(function(error) {
+      restoreCustomerSaveButton();
+      showCustomerHubMessage('保存に失敗しました：' + error.message, true);
+    });
+
+  if (customer.id) {
+    runner.updateCustomer(customer);
+  } else {
+    runner.addCustomer(customer);
+  }
+}
+
+function getCustomerFormData() {
+  const customer = {
+    id: document.getElementById('customerFormId').value.trim()
+  };
+
+  Object.keys(CUSTOMER_FORM_FIELDS).forEach(function(field) {
+    const input = document.getElementById(CUSTOMER_FORM_FIELDS[field]);
+    customer[field] = input ? input.value.trim() : '';
+  });
+
+  return customer;
+}
+
+function deleteCustomerFromDetail(customerId) {
+  const id = String(customerId || '').trim();
+  const customer = getCustomerById(id);
+  const name = customer ? customer.companyName : id;
+
+  if (!id) {
+    return;
+  }
+
+  if (!window.confirm('顧客「' + name + '」を削除します。\nこの操作は元に戻せません。削除してよろしいですか？')) {
+    return;
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    showCustomerHubMessage('Apps Script上で実行してください。', true);
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      selectedCustomerHubId = '';
+      resetCustomerForm();
+      refreshCustomerHubAfterSave(result);
+    })
+    .withFailureHandler(function(error) {
+      showCustomerHubMessage('削除に失敗しました：' + error.message, true);
+    })
+    .deleteCustomer(id);
+}
+
+function resetCustomerForm(options) {
+  const form = document.getElementById('customerForm');
+
+  if (!form) {
+    return;
+  }
+
+  form.classList.add('hidden');
+  document.getElementById('customerFormId').value = '';
+  Object.keys(CUSTOMER_FORM_FIELDS).forEach(function(field) {
+    const input = document.getElementById(CUSTOMER_FORM_FIELDS[field]);
+
+    if (input) {
+      input.value = '';
+    }
+  });
+  restoreCustomerSaveButton();
+
+  const detail = document.getElementById('customerHubDetail');
+
+  if (detail && options && options.keepDetail && selectedCustomerHubId) {
+    detail.classList.remove('hidden');
+  }
+}
+
+function refreshCustomerHubAfterSave(result) {
+  const nextSelectedId = result && result.id ? result.id : selectedCustomerHubId;
+  selectedCustomerHubId = nextSelectedId || '';
+
+  if (result && Array.isArray(result.customers)) {
+    setCustomerData(result.customers, {
+      message: result.message || '',
+      allowEmpty: true
+    });
+    showCustomerHubMessage(result.message || '');
+    return;
+  }
+
+  if (result && result.message) {
+    showCustomerHubMessage(result.message);
+  }
+
+  loadCustomersFromServer();
+}
+
+function restoreCustomerSaveButton() {
+  const button = document.getElementById('saveCustomerButton');
+
+  if (!button) {
+    return;
+  }
+
+  button.disabled = false;
+  button.textContent = '保存';
+}
+
+function showCustomerHubMessage(text, isError) {
+  customerDataMessage = text || '';
+  renderCustomerHubMessage();
+
+  const message = document.getElementById('customerHubMessage');
+
+  if (message) {
+    message.style.borderColor = isError ? '#f0c8c4' : '#bbf7d0';
+    message.style.color = isError ? '#b3261e' : '#116b4d';
+    message.style.background = isError ? '#fff7f6' : '#f0fdf4';
+  }
+}
+
 function saveDraft() {
 
 const data = {
