@@ -9,6 +9,7 @@ var PROJECT_SPREADSHEET_ID = '';
 var PROJECT_SHEET_NAME = '案件DB';
 var SALES_MEMO_SPREADSHEET_ID = '';
 var SALES_MEMO_SHEET_NAME = '営業メモDB';
+var BUSINESS_CARD_IMPORT_SHEET_NAME = '名刺インポート';
 
 
 /**
@@ -897,6 +898,476 @@ function setCustomerDbColumnWidth_(sheet, headerName, width) {
   if (index !== -1) {
     sheet.setColumnWidth(index + 1, width);
   }
+}
+
+function setupBusinessCardImportSheet() {
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName(BUSINESS_CARD_IMPORT_SHEET_NAME);
+  var wasCreated = false;
+  var headers = getBusinessCardImportHeaders_();
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(BUSINESS_CARD_IMPORT_SHEET_NAME);
+    wasCreated = true;
+  }
+
+  var lastRow = sheet.getLastRow();
+  var headerResult = ensureBusinessCardImportHeaders_(sheet, headers);
+
+  styleBusinessCardImportSheet_(sheet, headers);
+
+  return {
+    ok: true,
+    message: BUSINESS_CARD_IMPORT_SHEET_NAME + 'シートを準備しました。myBridge Excelの内容を2行目以降に貼り付けてください。',
+    spreadsheetId: spreadsheet.getId(),
+    sheetName: BUSINESS_CARD_IMPORT_SHEET_NAME,
+    wasCreated: wasCreated,
+    wroteHeaders: headerResult.wroteHeaders,
+    addedHeaders: headerResult.addedHeaders,
+    existingRows: Math.max(lastRow - 1, 0)
+  };
+}
+
+function getBusinessCardImportHeaders_() {
+  return [
+    '会社名',
+    '名前',
+    '部署',
+    '役職',
+    '電子メール',
+    '郵便番号',
+    '会社住所',
+    '会社電話',
+    '会社FAX',
+    '携帯電話',
+    '名刺登録日',
+    '名刺交換日',
+    '名刺帳名',
+    'グループ',
+    'メモ'
+  ];
+}
+
+function getBusinessCardImportHeaderValues_(sheet) {
+  var lastColumn = sheet.getLastColumn();
+
+  if (!lastColumn) {
+    return [];
+  }
+
+  return sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .map(function(header) {
+      return String(header || '').trim();
+    });
+}
+
+function ensureBusinessCardImportHeaders_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastColumn).getValues()[0].map(function(header) {
+    return String(header || '').trim();
+  });
+  var hasExistingHeaders = headerValues.some(function(value) {
+    return value !== '';
+  });
+  var result = {
+    wroteHeaders: false,
+    addedHeaders: []
+  };
+
+  if (!hasExistingHeaders) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    result.wroteHeaders = true;
+    return result;
+  }
+
+  desiredHeaders.forEach(function(header) {
+    if (headerValues.indexOf(header) === -1) {
+      headerValues.push(header);
+      result.addedHeaders.push(header);
+    }
+  });
+
+  sheet.getRange(1, 1, 1, headerValues.length).setValues([headerValues]);
+  result.wroteHeaders = result.addedHeaders.length > 0;
+  return result;
+}
+
+function styleBusinessCardImportSheet_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
+
+  if (!sheet.getFilter()) {
+    sheet
+      .getRange(1, 1, Math.max(sheet.getLastRow(), 1), lastColumn)
+      .createFilter();
+  }
+
+  sheet.setColumnWidths(1, lastColumn, 130);
+  setBusinessCardImportColumnWidth_(sheet, '会社名', 190);
+  setBusinessCardImportColumnWidth_(sheet, '名前', 140);
+  setBusinessCardImportColumnWidth_(sheet, '部署', 160);
+  setBusinessCardImportColumnWidth_(sheet, '役職', 140);
+  setBusinessCardImportColumnWidth_(sheet, '電子メール', 210);
+  setBusinessCardImportColumnWidth_(sheet, '会社住所', 260);
+  setBusinessCardImportColumnWidth_(sheet, '会社電話', 150);
+  setBusinessCardImportColumnWidth_(sheet, '携帯電話', 150);
+  setBusinessCardImportColumnWidth_(sheet, 'グループ', 170);
+  setBusinessCardImportColumnWidth_(sheet, 'メモ', 260);
+}
+
+function setBusinessCardImportColumnWidth_(sheet, headerName, width) {
+  var headers = getBusinessCardImportHeaderValues_(sheet);
+  var index = headers.indexOf(headerName);
+
+  if (index !== -1) {
+    sheet.setColumnWidth(index + 1, width);
+  }
+}
+
+function previewBusinessCardImport() {
+  var records = getBusinessCardImportRows_();
+  var existingCustomers = getCustomers();
+  var summary = {
+    ok: true,
+    totalRows: records.totalRows,
+    readableRows: 0,
+    newCount: 0,
+    duplicateCount: 0,
+    skipCount: 0
+  };
+
+  records.rows.forEach(function(card) {
+    if (isBusinessCardImportHeaderRow_(card)) {
+      summary.skipCount += 1;
+      return;
+    }
+
+    if (!hasBusinessCardImportData_(card)) {
+      summary.skipCount += 1;
+      return;
+    }
+
+    summary.readableRows += 1;
+    var customer = convertBusinessCardToCustomer_(card);
+
+    if (!customer.companyName) {
+      summary.skipCount += 1;
+      return;
+    }
+
+    if (findDuplicateCustomer_(customer, existingCustomers)) {
+      summary.duplicateCount += 1;
+      return;
+    }
+
+    summary.newCount += 1;
+  });
+
+  summary.message = '読み込み ' + summary.readableRows + '件 / 新規 ' + summary.newCount + '件 / 重複 ' + summary.duplicateCount + '件 / スキップ ' + summary.skipCount + '件';
+  return summary;
+}
+
+function importBusinessCards() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var records = getBusinessCardImportRows_();
+    var customerSheet = getCustomerSheet_();
+    ensureCustomerDbHeaders_(customerSheet, getCustomerDbHeaders_());
+    var customerHeaders = getCustomerDbHeaderValues_(customerSheet);
+    var existingCustomers = getCustomers();
+    var now = new Date();
+    var result = {
+      ok: true,
+      totalRows: records.totalRows,
+      readableRows: 0,
+      importedCount: 0,
+      newCount: 0,
+      duplicateCount: 0,
+      skipCount: 0
+    };
+
+    records.rows.forEach(function(card) {
+      if (isBusinessCardImportHeaderRow_(card)) {
+        result.skipCount += 1;
+        return;
+      }
+
+      if (!hasBusinessCardImportData_(card)) {
+        result.skipCount += 1;
+        return;
+      }
+
+      result.readableRows += 1;
+      var customer = convertBusinessCardToCustomer_(card);
+
+      if (!customer.companyName) {
+        result.skipCount += 1;
+        return;
+      }
+
+      if (findDuplicateCustomer_(customer, existingCustomers)) {
+        result.duplicateCount += 1;
+        return;
+      }
+
+      var id = generateCustomerId_();
+      var row = buildCustomerRowForHeaders_(Object.assign({}, customer, {
+        id: id,
+        createdAt: customer.createdAt || now,
+        updatedAt: now
+      }), customerHeaders);
+
+      customerSheet.appendRow(row);
+      existingCustomers.push(Object.assign({}, customer, {
+        id: id
+      }));
+      result.importedCount += 1;
+      result.newCount += 1;
+    });
+
+    result.message = '名刺データを取り込みました。新規 ' + result.importedCount + '件 / 重複スキップ ' + result.duplicateCount + '件 / スキップ ' + result.skipCount + '件';
+    result.customers = getCustomers();
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getBusinessCardImportRows_() {
+  var sheet = getBusinessCardImportSheet_();
+  var lastRow = sheet.getLastRow();
+  var lastColumn = sheet.getLastColumn();
+
+  if (lastRow < 2 || lastColumn < 1) {
+    return {
+      totalRows: 0,
+      rows: []
+    };
+  }
+
+  var headers = getBusinessCardImportHeaderValues_(sheet);
+  var rows = sheet
+    .getRange(2, 1, lastRow - 1, lastColumn)
+    .getValues()
+    .map(function(row) {
+      return normalizeBusinessCardRow_(row, headers);
+    });
+
+  return {
+    totalRows: rows.length,
+    rows: rows
+  };
+}
+
+function getBusinessCardImportSheet_() {
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName(BUSINESS_CARD_IMPORT_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(BUSINESS_CARD_IMPORT_SHEET_NAME);
+  }
+
+  ensureBusinessCardImportHeaders_(sheet, getBusinessCardImportHeaders_());
+  styleBusinessCardImportSheet_(sheet, getBusinessCardImportHeaders_());
+
+  return sheet;
+}
+
+function normalizeBusinessCardRow_(row, headers) {
+  function value(headerName) {
+    var index = headers.indexOf(headerName);
+    return index === -1 ? '' : row[index];
+  }
+
+  function text(headerName) {
+    var rawValue = value(headerName);
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return '';
+    }
+
+    return String(rawValue).trim();
+  }
+
+  return {
+    companyName: text('会社名'),
+    contactName: text('名前'),
+    department: text('部署'),
+    title: text('役職'),
+    email: text('電子メール'),
+    postalCode: text('郵便番号'),
+    address: text('会社住所'),
+    officePhone: text('会社電話'),
+    fax: text('会社FAX'),
+    mobilePhone: text('携帯電話'),
+    registeredDate: formatBusinessCardDate_(value('名刺登録日')),
+    exchangedDate: formatBusinessCardDate_(value('名刺交換日')),
+    cardBookName: text('名刺帳名'),
+    group: text('グループ'),
+    memo: text('メモ')
+  };
+}
+
+function convertBusinessCardToCustomer_(card) {
+  var data = card || {};
+  var departmentParts = [data.department, data.title].filter(function(value) {
+    return String(value || '').trim() !== '';
+  });
+  var notes = [data.group, data.cardBookName].filter(function(value) {
+    return String(value || '').trim() !== '';
+  }).join(' / ');
+
+  return {
+    companyName: data.companyName || '',
+    corporationName: '',
+    contactName: data.contactName || '',
+    department: departmentParts.join(' '),
+    industry: detectCustomerIndustry_(data),
+    prefecture: '',
+    city: '',
+    address: data.address || '',
+    officePhone: data.officePhone || '',
+    mobilePhone: data.mobilePhone || '',
+    email: data.email || '',
+    ccEmail: '',
+    googleMapUrl: '',
+    lastVisit: data.exchangedDate || '',
+    nextVisit: '',
+    memo: data.memo || '',
+    projectCount: 0,
+    hotLevel: 'WARM',
+    aiSummary: '',
+    createdAt: data.registeredDate || new Date(),
+    updatedAt: new Date(),
+    notes: notes
+  };
+}
+
+function detectCustomerIndustry_(card) {
+  var data = card || {};
+  var text = [
+    data.companyName,
+    data.group,
+    data.cardBookName
+  ].join(' ');
+
+  if (text.indexOf('病院') !== -1) {
+    return '病院';
+  }
+
+  if (
+    text.indexOf('社会福祉法人') !== -1 ||
+    text.indexOf('福祉') !== -1 ||
+    text.indexOf('施設') !== -1
+  ) {
+    return '施設';
+  }
+
+  if (
+    text.indexOf('工場') !== -1 ||
+    text.indexOf('製作所') !== -1 ||
+    text.indexOf('製造') !== -1
+  ) {
+    return '工場';
+  }
+
+  if (
+    text.indexOf('株式会社') !== -1 ||
+    text.indexOf('有限会社') !== -1 ||
+    text.indexOf('合同会社') !== -1
+  ) {
+    return '企業';
+  }
+
+  return 'その他';
+}
+
+function findDuplicateCustomer_(customer, existingCustomers) {
+  var data = customer || {};
+  var email = normalizeBusinessCardDuplicateText_(data.email);
+  var mobilePhone = normalizeBusinessCardPhone_(data.mobilePhone);
+  var officePhone = normalizeBusinessCardPhone_(data.officePhone);
+  var companyContact = normalizeBusinessCardDuplicateText_(data.companyName) + '|' + normalizeBusinessCardDuplicateText_(data.contactName);
+  var canCheckCompanyContact = normalizeBusinessCardDuplicateText_(data.companyName) && normalizeBusinessCardDuplicateText_(data.contactName);
+  var customers = Array.isArray(existingCustomers) ? existingCustomers : [];
+
+  for (var i = 0; i < customers.length; i++) {
+    var existing = customers[i] || {};
+
+    if (email && email === normalizeBusinessCardDuplicateText_(existing.email)) {
+      return existing;
+    }
+
+    if (mobilePhone && mobilePhone === normalizeBusinessCardPhone_(existing.mobilePhone)) {
+      return existing;
+    }
+
+    if (officePhone && officePhone === normalizeBusinessCardPhone_(existing.officePhone)) {
+      return existing;
+    }
+
+    if (
+      canCheckCompanyContact &&
+      companyContact === normalizeBusinessCardDuplicateText_(existing.companyName) + '|' + normalizeBusinessCardDuplicateText_(existing.contactName || existing.personName)
+    ) {
+      return existing;
+    }
+  }
+
+  return null;
+}
+
+function hasBusinessCardImportData_(card) {
+  var data = card || {};
+
+  return [
+    data.companyName,
+    data.contactName,
+    data.email,
+    data.officePhone,
+    data.mobilePhone,
+    data.address,
+    data.memo
+  ].some(function(value) {
+    return String(value || '').trim() !== '';
+  });
+}
+
+function isBusinessCardImportHeaderRow_(card) {
+  var data = card || {};
+
+  return String(data.companyName || '').trim() === '会社名' &&
+    String(data.contactName || '').trim() === '名前' &&
+    String(data.email || '').trim() === '電子メール';
+}
+
+function formatBusinessCardDate_(value) {
+  if (!value) {
+    return '';
+  }
+
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+
+  return String(value || '').trim();
+}
+
+function normalizeBusinessCardDuplicateText_(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, '')
+    .toLowerCase();
+}
+
+function normalizeBusinessCardPhone_(value) {
+  return String(value || '').replace(/[^\d]/g, '');
 }
 
 /**

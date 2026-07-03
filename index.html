@@ -3844,6 +3844,7 @@ body.ai-processing .assistant-briefing-icon {
 
 .customer-hub-topbar {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
   margin: 12px 0 0;
 }
@@ -3855,6 +3856,89 @@ body.ai-processing .assistant-briefing-icon {
   border-radius: 999px;
   font-size: 14px;
   white-space: nowrap;
+}
+
+.customer-hub-import-button {
+  border-color: rgba(23, 105, 170, 0.18);
+  color: #174d72;
+  background: #f6fbff;
+}
+
+.business-card-import-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(23, 105, 170, 0.2), rgba(23, 105, 170, 0)) 0 0 / 100% 2px no-repeat,
+    #ffffff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+}
+
+.business-card-import-head {
+  display: grid;
+  gap: 4px;
+}
+
+.business-card-import-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.business-card-import-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.business-card-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.business-card-import-actions button {
+  width: auto;
+  min-height: 40px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.business-card-import-result {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.business-card-import-metric {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.business-card-import-metric strong {
+  color: #0f172a;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.business-card-import-metric span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 850;
 }
 
 .customer-hub-search-wrap {
@@ -4556,10 +4640,27 @@ body.ai-processing .assistant-briefing-icon {
 
   .customer-hub-topbar {
     justify-content: stretch;
+    flex-direction: column;
   }
 
   .customer-hub-add-button {
     width: 100%;
+  }
+
+  .business-card-import-panel {
+    padding: 16px;
+  }
+
+  .business-card-import-actions {
+    flex-direction: column;
+  }
+
+  .business-card-import-actions button {
+    width: 100%;
+  }
+
+  .business-card-import-result {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .customer-hub-form {
@@ -5143,6 +5244,9 @@ body.ai-processing .assistant-briefing-icon {
     <button type="button" class="customer-hub-add-button" onclick="showCustomerForm()">
       ＋ 顧客追加
     </button>
+    <button type="button" class="customer-hub-add-button secondary-button customer-hub-import-button" onclick="toggleBusinessCardImportPanel()">
+      名刺インポート
+    </button>
   </div>
 
   <div class="customer-hub-search-wrap">
@@ -5158,6 +5262,18 @@ body.ai-processing .assistant-briefing-icon {
 
   <div id="customerHubShell" class="customer-hub-shell">
     <div id="customerHubMessage" class="customer-hub-message hidden" role="status" aria-live="polite"></div>
+    <section id="businessCardImportPanel" class="business-card-import-panel hidden" aria-label="名刺インポート">
+      <div class="business-card-import-head">
+        <h3 class="business-card-import-title">名刺インポート</h3>
+        <p class="business-card-import-text">myBridgeのExcelを開いて、営業AI秘書DBの「名刺インポート」シートに貼り付けてください。Ver1では重複候補は上書きせず、新規候補だけ顧客DBへ追加します。</p>
+      </div>
+      <div class="business-card-import-actions">
+        <button type="button" id="businessCardSetupButton" class="secondary-button" onclick="setupBusinessCardImportSheetFromUi()">インポートシートを作成</button>
+        <button type="button" id="businessCardPreviewButton" class="secondary-button" onclick="previewBusinessCardImportFromUi()">プレビュー</button>
+        <button type="button" id="businessCardImportButton" onclick="importBusinessCardsFromUi()">取り込み実行</button>
+      </div>
+      <div id="businessCardImportResult" class="business-card-import-result hidden" aria-live="polite"></div>
+    </section>
     <div id="customerHubList" class="customer-hub-list"></div>
     <div id="customerHubDetail" class="customer-hub-detail"></div>
 
@@ -7635,9 +7751,14 @@ function showCustomerForm(customerId) {
 function renderCustomerForm(customer) {
   const form = document.getElementById('customerForm');
   const detail = document.getElementById('customerHubDetail');
+  const importPanel = document.getElementById('businessCardImportPanel');
 
   if (!form) {
     return;
+  }
+
+  if (importPanel) {
+    importPanel.classList.add('hidden');
   }
 
   if (detail) {
@@ -7846,6 +7967,167 @@ function showCustomerHubMessage(text, isError) {
     message.style.color = isError ? '#b3261e' : '#116b4d';
     message.style.background = isError ? '#fff7f6' : '#f0fdf4';
   }
+}
+
+function toggleBusinessCardImportPanel(forceOpen) {
+  const panel = document.getElementById('businessCardImportPanel');
+
+  if (!panel) {
+    return;
+  }
+
+  const shouldOpen = typeof forceOpen === 'boolean'
+    ? forceOpen
+    : panel.classList.contains('hidden');
+
+  panel.classList.toggle('hidden', !shouldOpen);
+
+  if (shouldOpen) {
+    resetCustomerForm({ keepDetail: true });
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function setupBusinessCardImportSheetFromUi() {
+  if (!window.google || !google.script || !google.script.run) {
+    showCustomerHubMessage('名刺インポートシートを作成できませんでした：Apps Script上で実行してください。', true);
+    return;
+  }
+
+  setBusinessCardImportBusy('businessCardSetupButton', '作成中…');
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      restoreBusinessCardImportButtons();
+      showCustomerHubMessage((result && result.message) || '名刺インポートシートを準備しました');
+      clearBusinessCardImportResult();
+    })
+    .withFailureHandler(function(error) {
+      restoreBusinessCardImportButtons();
+      showCustomerHubMessage('名刺インポートシートを作成できませんでした：' + getHubErrorMessage(error), true);
+    })
+    .setupBusinessCardImportSheet();
+}
+
+function previewBusinessCardImportFromUi() {
+  if (!window.google || !google.script || !google.script.run) {
+    showCustomerHubMessage('プレビューできませんでした：Apps Script上で実行してください。', true);
+    return;
+  }
+
+  setBusinessCardImportBusy('businessCardPreviewButton', '確認中…');
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      restoreBusinessCardImportButtons();
+      renderBusinessCardImportResult(result);
+      showCustomerHubMessage((result && result.message) || '名刺インポートを確認しました');
+    })
+    .withFailureHandler(function(error) {
+      restoreBusinessCardImportButtons();
+      showCustomerHubMessage('プレビューできませんでした：' + getHubErrorMessage(error), true);
+    })
+    .previewBusinessCardImport();
+}
+
+function importBusinessCardsFromUi() {
+  if (!window.google || !google.script || !google.script.run) {
+    showCustomerHubMessage('取り込みできませんでした：Apps Script上で実行してください。', true);
+    return;
+  }
+
+  setBusinessCardImportBusy('businessCardImportButton', '取り込み中…');
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      restoreBusinessCardImportButtons();
+      renderBusinessCardImportResult(result);
+      showCustomerHubMessage((result && result.message) || '名刺データを取り込みました');
+
+      if (result && Array.isArray(result.customers)) {
+        setCustomerData(result.customers, {
+          message: result.message || '',
+          allowEmpty: true
+        });
+        toggleBusinessCardImportPanel(true);
+      } else {
+        loadCustomersFromServer();
+      }
+    })
+    .withFailureHandler(function(error) {
+      restoreBusinessCardImportButtons();
+      showCustomerHubMessage('取り込みできませんでした：' + getHubErrorMessage(error), true);
+    })
+    .importBusinessCards();
+}
+
+function renderBusinessCardImportResult(result) {
+  const mount = document.getElementById('businessCardImportResult');
+
+  if (!mount) {
+    return;
+  }
+
+  const summary = result || {};
+  const items = [
+    ['読み込み', summary.readableRows || 0],
+    ['新規候補', summary.newCount || summary.importedCount || 0],
+    ['重複候補', summary.duplicateCount || 0],
+    ['スキップ', summary.skipCount || 0]
+  ];
+
+  mount.replaceChildren();
+  items.forEach(function(item) {
+    const metric = document.createElement('div');
+    metric.className = 'business-card-import-metric';
+
+    const value = document.createElement('strong');
+    value.textContent = String(item[1]);
+
+    const label = document.createElement('span');
+    label.textContent = item[0];
+
+    metric.appendChild(value);
+    metric.appendChild(label);
+    mount.appendChild(metric);
+  });
+  mount.classList.remove('hidden');
+}
+
+function clearBusinessCardImportResult() {
+  const mount = document.getElementById('businessCardImportResult');
+
+  if (!mount) {
+    return;
+  }
+
+  mount.replaceChildren();
+  mount.classList.add('hidden');
+}
+
+function setBusinessCardImportBusy(activeButtonId, label) {
+  getBusinessCardImportButtons().forEach(function(button) {
+    if (button.id === activeButtonId) {
+      setHubActionButtonBusy(button, label);
+      return;
+    }
+
+    button.disabled = true;
+  });
+}
+
+function restoreBusinessCardImportButtons() {
+  getBusinessCardImportButtons().forEach(function(button) {
+    restoreHubActionButton(button, button.textContent);
+  });
+}
+
+function getBusinessCardImportButtons() {
+  return [
+    document.getElementById('businessCardSetupButton'),
+    document.getElementById('businessCardPreviewButton'),
+    document.getElementById('businessCardImportButton')
+  ].filter(Boolean);
 }
 
 function showProjectForm(customerId, projectId) {
