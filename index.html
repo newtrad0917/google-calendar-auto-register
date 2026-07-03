@@ -2538,6 +2538,144 @@ body {
   white-space: nowrap !important;
 }
 
+.schedule-sales-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+}
+
+.schedule-sales-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 48px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(23, 105, 170, 0.92), rgba(125, 211, 252, 0));
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.schedule-sales-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.schedule-sales-time {
+  color: #1769aa;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.schedule-sales-company {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+.schedule-sales-person {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.schedule-sales-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #1769aa;
+  background: #f4f9ff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.schedule-sales-note,
+.schedule-sales-brief {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(226, 232, 240, 0.86);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.schedule-sales-brief {
+  border-color: rgba(191, 219, 254, 0.9);
+  background: #f4f9ff;
+  color: #0f172a;
+  font-weight: 850;
+}
+
+.schedule-sales-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.schedule-sales-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.schedule-sales-action:hover {
+  color: #1769aa;
+  background: #f4f9ff;
+}
+
+.schedule-sales-action.primary {
+  border-color: #cfe1f5;
+  color: #1769aa;
+  background: #f4f9ff;
+}
+
+.schedule-sales-action:disabled,
+.schedule-sales-action[aria-disabled="true"] {
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
 .schedule-day-group {
   padding: 12px 0 !important;
   border-top: 1px solid rgba(226, 232, 240, 0.92) !important;
@@ -2619,6 +2757,16 @@ body {
   .schedule-day-group.compact .schedule-event-row {
     padding: 10px 11px 10px 14px !important;
     border-radius: 14px !important;
+  }
+
+  .schedule-sales-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .schedule-sales-head,
+  .schedule-sales-actions {
+    grid-template-columns: 1fr;
   }
 }
 /* AI insight card Ver1 */
@@ -3068,6 +3216,7 @@ body {
 
 .customer-hub-card,
 .customer-hub-profile,
+.customer-ai-brief,
 .customer-hub-action {
   position: relative;
   overflow: hidden;
@@ -3594,6 +3743,7 @@ body.ai-processing .assistant-briefing-icon {
 
 .customer-hub-card,
 .customer-hub-profile,
+.customer-ai-brief,
 .customer-hub-sales-memo,
 .customer-hub-form,
 .customer-hub-action {
@@ -3724,6 +3874,87 @@ body.ai-processing .assistant-briefing-icon {
 
 .customer-hub-detail-button::after {
   display: none !important;
+}
+
+.customer-ai-brief {
+  display: grid;
+  gap: 12px;
+  padding: 16px 16px 16px 18px;
+}
+
+.customer-ai-brief::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 46px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(23, 105, 170, 0.95), rgba(125, 211, 252, 0));
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.customer-ai-brief-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.customer-ai-brief-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.customer-ai-brief-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #1769aa;
+  background: #f4f9ff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.customer-ai-brief-list {
+  display: grid;
+  gap: 8px;
+}
+
+.customer-ai-brief-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(226, 232, 240, 0.82);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.customer-ai-brief-label {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.customer-ai-brief-value {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .customer-hub-sales-memo {
@@ -4113,15 +4344,21 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
+.customer-hub-detail.is-detail-entering .customer-ai-brief::before,
 .customer-hub-detail.is-detail-entering .customer-hub-profile::before {
   animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
 }
 
 .customer-hub-detail.is-detail-entering .customer-hub-profile,
+.customer-hub-detail.is-detail-entering .customer-ai-brief,
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo,
 .customer-hub-detail.is-detail-entering .customer-hub-back-row,
 .customer-hub-detail.is-detail-entering .customer-hub-actions {
   animation: ux-card-stream-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.customer-hub-detail.is-detail-entering .customer-ai-brief {
+  animation-delay: 0ms;
 }
 
 .customer-hub-detail.is-detail-entering .customer-hub-profile {
@@ -4183,6 +4420,16 @@ body.ai-processing .assistant-briefing-icon {
 
   .customer-hub-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .customer-ai-brief-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .customer-ai-brief-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 
   .project-hub-header {
@@ -5409,6 +5656,7 @@ function setCustomerData(customers, options) {
   customerDataMessage = options && options.message ? options.message : '';
   updateCustomerSelectOptions();
   renderCustomerHub();
+  refreshScheduleCustomerLink();
 }
 
 function normalizeCustomerForClient(customer) {
@@ -5451,6 +5699,19 @@ function normalizeCustomerForClient(customer) {
     createdAt: customer.createdAt || '',
     updatedAt: customer.updatedAt || ''
   };
+}
+
+function refreshScheduleCustomerLink() {
+  const homeSection = document.getElementById('homeSection');
+
+  if (
+    homeSection &&
+    !homeSection.classList.contains('hidden') &&
+    Array.isArray(lastScheduleEvents) &&
+    lastScheduleEvents.length
+  ) {
+    renderScheduleEvents(lastScheduleEvents, lastScheduleView || 'today', lastScheduleDateKey || '');
+  }
 }
 
 function setProjectData(projects) {
@@ -5953,6 +6214,7 @@ function showCustomerHubDetail(customerId) {
   detail.replaceChildren();
   detail.classList.remove('hidden');
 
+  detail.appendChild(createCustomerAiBriefCard(customer));
   detail.appendChild(createCustomerHubSalesMemoCard(customer));
 
   const profile = document.createElement('section');
@@ -6018,6 +6280,106 @@ function formatCustomerValue(value) {
 
 function getCustomerPrimaryPhone(customer) {
   return customer.mobilePhone || customer.officePhone || customer.phone || '';
+}
+
+function createCustomerAiBriefCard(customer) {
+  const card = document.createElement('section');
+  card.className = 'customer-ai-brief';
+  card.setAttribute('aria-label', 'AIブリーフ');
+
+  const head = document.createElement('div');
+  head.className = 'customer-ai-brief-head';
+
+  const title = document.createElement('h3');
+  title.className = 'customer-ai-brief-title';
+  title.textContent = 'AIブリーフ';
+  head.appendChild(title);
+
+  const badge = document.createElement('span');
+  badge.className = 'customer-ai-brief-badge';
+  badge.textContent = customer.aiSummary ? 'AI要約' : '自動生成';
+  head.appendChild(badge);
+  card.appendChild(head);
+
+  const list = document.createElement('div');
+  list.className = 'customer-ai-brief-list';
+
+  getCustomerAiBriefRows(customer).forEach(function(row) {
+    list.appendChild(createCustomerAiBriefRow(row[0], row[1]));
+  });
+
+  card.appendChild(list);
+  return card;
+}
+
+function getCustomerAiBriefRows(customer) {
+  const rows = [];
+  const projectNextAction = getCustomerProjectNextAction(customer.id);
+
+  if (customer.aiSummary) {
+    rows.push(['AI要約', customer.aiSummary]);
+  } else {
+    rows.push(['次回訪問', formatCustomerBriefDate(customer.nextVisit)]);
+    rows.push(['温度感', customer.hotLevel]);
+    rows.push(['前回訪問', formatCustomerBriefDate(customer.lastVisit)]);
+    rows.push(['営業メモ', customer.memo]);
+    rows.push(['案件数', customer.projectCount]);
+  }
+
+  if (projectNextAction !== null) {
+    rows.push(['次アクション', projectNextAction]);
+  }
+
+  return rows.filter(function(row) {
+    return formatCustomerValue(row[1]) !== '未登録';
+  }).length
+    ? rows
+    : [['ブリーフ', '顧客情報を登録すると、ここに営業ブリーフが表示されます。']];
+}
+
+function createCustomerAiBriefRow(label, value) {
+  const row = document.createElement('div');
+  row.className = 'customer-ai-brief-row';
+
+  const labelNode = document.createElement('span');
+  labelNode.className = 'customer-ai-brief-label';
+  labelNode.textContent = label;
+  row.appendChild(labelNode);
+
+  const valueNode = document.createElement('span');
+  valueNode.className = 'customer-ai-brief-value';
+  valueNode.textContent = formatCustomerValue(value);
+  row.appendChild(valueNode);
+
+  return row;
+}
+
+function getCustomerProjectNextAction(customerId) {
+  const projects = getProjectsByCustomerIdForClient(customerId);
+
+  if (!projects.length) {
+    return null;
+  }
+
+  for (let i = 0; i < projects.length; i++) {
+    const nextAction = String(projects[i].nextAction || '').trim();
+
+    if (nextAction) {
+      return nextAction;
+    }
+  }
+
+  return '';
+}
+
+function formatCustomerBriefDate(value) {
+  const date = parseCustomerDate(value);
+
+  if (!date) {
+    return value;
+  }
+
+  return (date.getMonth() + 1) + '/' + date.getDate();
 }
 
 function createCustomerHubSalesMemoCard(customer) {
@@ -9098,12 +9460,28 @@ function renderTodayEvents(events, view, dateKey) {
 
   const list = document.createElement('div');
   list.className = 'schedule-daily-list';
+  const shouldHighlightNextEvent = view === 'today' && !dateKey;
 
-  events.forEach(function(event) {
-    list.appendChild(createDailyScheduleEventItem(event));
+  events
+    .slice()
+    .sort(compareScheduleEventsByStart)
+    .forEach(function(event, index) {
+      list.appendChild(shouldHighlightNextEvent && index === 0
+        ? createNextScheduleEventItem(event)
+        : createDailyScheduleEventItem(event));
   });
 
   container.appendChild(list);
+}
+
+function createNextScheduleEventItem(event) {
+  const customer = findCustomerByScheduleEvent(event);
+
+  if (!customer) {
+    return createDailyScheduleEventItem(event);
+  }
+
+  return createScheduleSalesCard(event, customer);
 }
 
 function createDailyScheduleEventItem(event) {
@@ -9123,27 +9501,161 @@ function createDailyScheduleEventItem(event) {
   title.textContent = event.title || 'タイトルなし';
   body.appendChild(title);
 
-  if (event.location) {
-    item.style.cursor = 'pointer';
-    item.title = 'Googleマップで開く';
-
-    item.addEventListener('click', function() {
-      const mapUrl =
-        'https://www.google.com/maps/search/?api=1&query=' +
-        encodeURIComponent(event.location);
-
-      window.open(mapUrl, '_blank');
-    });
-
-    const location = document.createElement('div');
-    location.className = 'schedule-event-location';
-    location.textContent = '📍 ' + event.location;
-    body.appendChild(location);
-  }
-
   item.appendChild(time);
   item.appendChild(body);
   return item;
+}
+
+function createScheduleSalesCard(event, customer) {
+  const card = document.createElement('article');
+  card.className = 'schedule-sales-card';
+
+  const head = document.createElement('div');
+  head.className = 'schedule-sales-head';
+
+  const body = document.createElement('div');
+  const time = document.createElement('div');
+  time.className = 'schedule-sales-time';
+  time.textContent = getScheduleEventStartLabel(event);
+  body.appendChild(time);
+
+  const company = document.createElement('h4');
+  company.className = 'schedule-sales-company';
+  company.textContent = formatCustomerValue(customer.companyName);
+  body.appendChild(company);
+
+  const person = document.createElement('div');
+  person.className = 'schedule-sales-person';
+  person.textContent = '担当者：' + formatCustomerContactName(customer);
+  body.appendChild(person);
+  head.appendChild(body);
+
+  const badge = document.createElement('span');
+  badge.className = 'schedule-sales-badge';
+  badge.textContent = '次の訪問';
+  head.appendChild(badge);
+  card.appendChild(head);
+
+  const memo = document.createElement('p');
+  memo.className = 'schedule-sales-note';
+  memo.textContent = '営業メモ：' + formatCustomerValue(customer.memo);
+  card.appendChild(memo);
+
+  const brief = getScheduleCustomerBriefLine(customer);
+
+  if (brief) {
+    const briefNode = document.createElement('p');
+    briefNode.className = 'schedule-sales-brief';
+    briefNode.textContent = 'AIブリーフ：' + brief;
+    card.appendChild(briefNode);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'schedule-sales-actions';
+  actions.appendChild(createScheduleSalesAction('GoogleMap', function() {
+    window.open(getCustomerMapUrl(customer), '_blank', 'noopener');
+  }));
+  actions.appendChild(createScheduleSalesPhoneAction(customer));
+  actions.appendChild(createScheduleSalesAction('メール', function() {
+    startCustomerMail(customer.id);
+  }));
+  actions.appendChild(createScheduleSalesAction('訪問開始', function(button) {
+    button.blur();
+  }, 'primary'));
+  card.appendChild(actions);
+
+  return card;
+}
+
+function createScheduleSalesAction(label, onClick, extraClassName) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = ['schedule-sales-action', extraClassName || ''].filter(Boolean).join(' ');
+  button.textContent = label;
+  button.addEventListener('click', function(event) {
+    event.stopPropagation();
+    onClick(button);
+  });
+  return button;
+}
+
+function createScheduleSalesPhoneAction(customer) {
+  const phone = getCustomerPrimaryPhone(customer);
+
+  if (!phone) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'schedule-sales-action';
+    button.textContent = '電話';
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+    return button;
+  }
+
+  const link = document.createElement('a');
+  link.className = 'schedule-sales-action';
+  link.href = 'tel:' + phone;
+  link.textContent = '電話';
+  link.addEventListener('click', function(event) {
+    event.stopPropagation();
+  });
+  return link;
+}
+
+function findCustomerByScheduleEvent(event) {
+  const title = normalizeScheduleCustomerMatchText(event && event.title);
+
+  if (!title) {
+    return null;
+  }
+
+  const exactMatch = customerData.find(function(customer) {
+    return normalizeScheduleCustomerMatchText(customer.companyName) === title;
+  });
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return customerData
+    .slice()
+    .sort(function(a, b) {
+      return String(b.companyName || '').length - String(a.companyName || '').length;
+    })
+    .find(function(customer) {
+      const companyName = normalizeScheduleCustomerMatchText(customer.companyName);
+      return companyName && title.indexOf(companyName) !== -1;
+    }) || null;
+}
+
+function normalizeScheduleCustomerMatchText(value) {
+  return String(value || '').trim().toLocaleLowerCase();
+}
+
+function getScheduleCustomerBriefLine(customer) {
+  const summary = String(customer.aiSummary || '').trim();
+
+  if (!summary) {
+    return '';
+  }
+
+  return summary.split(/\r?\n/).map(function(line) {
+    return line.trim();
+  }).filter(Boolean)[0] || '';
+}
+
+function getScheduleEventStartLabel(event) {
+  if (event.allDay) {
+    return '終日';
+  }
+
+  if (event.startTime) {
+    return event.startTime;
+  }
+
+  const source = event.start || event.startIso || event.date;
+  const start = source ? new Date(source) : null;
+  return start && !isNaN(start.getTime()) ? formatScheduleTime(start) : getScheduleEventTimeText(event);
 }
 
 function renderGroupedScheduleEvents(events, view) {
