@@ -3865,9 +3865,30 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .project-hub-card {
+  position: relative;
+  overflow: hidden;
   display: grid;
+  gap: 12px;
+  padding: 15px;
+}
+
+.project-hub-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(23, 105, 170, 0.88), rgba(125, 211, 252, 0));
+  opacity: 0.72;
+}
+
+.project-hub-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  padding: 14px;
+  align-items: start;
 }
 
 .project-hub-card-title {
@@ -3898,6 +3919,116 @@ body.ai-processing .assistant-briefing-icon {
   line-height: 1;
 }
 
+.project-hub-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.project-hub-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.project-hub-status-badge.contract-plan,
+.project-hub-status-badge.estimate {
+  border-color: #bfdbfe;
+  color: #175f9e;
+  background: #eff6ff;
+}
+
+.project-hub-status-badge.proposing,
+.project-hub-status-badge.before-proposal {
+  border-color: #e2e8f0;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.project-hub-status-badge.contract,
+.project-hub-status-badge.done {
+  border-color: #bbf7d0;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.project-hub-status-badge.lost {
+  border-color: #fecaca;
+  color: #b42318;
+  background: #fff7f6;
+}
+
+.project-hub-priority-badge.high {
+  border-color: #fed7aa;
+  color: #9a3412;
+  background: #fff7ed;
+}
+
+.project-hub-priority-badge.medium {
+  border-color: #fde68a;
+  color: #854d0e;
+  background: #fffbeb;
+}
+
+.project-hub-priority-badge.low {
+  border-color: #d7dce3;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.project-hub-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.project-hub-amount {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(226, 232, 240, 0.84);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.project-hub-amount.profit {
+  border-color: rgba(191, 219, 254, 0.92);
+  background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.project-hub-amount-label {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.project-hub-amount-value {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.project-hub-focus-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
 .project-hub-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3909,6 +4040,17 @@ body.ai-processing .assistant-briefing-icon {
   padding: 9px 10px;
   border-radius: 14px;
   background: #f8fafc;
+}
+
+.project-hub-field.is-primary {
+  border: 1px solid rgba(191, 219, 254, 0.86);
+  background: #f4f9ff;
+}
+
+.project-hub-field.is-primary .project-hub-value {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .project-hub-label {
@@ -4053,9 +4195,16 @@ body.ai-processing .assistant-briefing-icon {
     width: 100%;
   }
 
+  .project-hub-card-head,
+  .project-hub-amount-grid,
+  .project-hub-focus-grid,
   .project-hub-grid,
   .project-hub-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .project-hub-status-row {
+    justify-content: flex-start;
   }
 }
 
@@ -5347,8 +5496,22 @@ function getProjectsByCustomerIdForClient(customerId) {
 }
 
 function compareProjectsForDisplay(a, b) {
-  const aDate = parseCustomerDate(a.expectedWorkDate || a.expectedOrderDate || a.expectedPaymentDate);
-  const bDate = parseCustomerDate(b.expectedWorkDate || b.expectedOrderDate || b.expectedPaymentDate);
+  const aPriorityRank = getProjectPriorityRank(a.priority);
+  const bPriorityRank = getProjectPriorityRank(b.priority);
+
+  if (aPriorityRank !== bPriorityRank) {
+    return aPriorityRank - bPriorityRank;
+  }
+
+  const aStatusRank = getProjectStatusRank(a.status);
+  const bStatusRank = getProjectStatusRank(b.status);
+
+  if (aStatusRank !== bStatusRank) {
+    return aStatusRank - bStatusRank;
+  }
+
+  const aDate = parseCustomerDate(a.expectedWorkDate);
+  const bDate = parseCustomerDate(b.expectedWorkDate);
 
   if (aDate && bDate && aDate.getTime() !== bDate.getTime()) {
     return aDate.getTime() - bDate.getTime();
@@ -5363,6 +5526,28 @@ function compareProjectsForDisplay(a, b) {
   }
 
   return String(a.projectName || '').localeCompare(String(b.projectName || ''), 'ja');
+}
+
+function getProjectPriorityRank(priority) {
+  const value = String(priority || '').trim();
+  const ranks = {
+    '高': 0,
+    '中': 1,
+    '低': 2
+  };
+
+  return Object.prototype.hasOwnProperty.call(ranks, value) ? ranks[value] : 3;
+}
+
+function getProjectStatusRank(status) {
+  const value = String(status || '').trim();
+  const ranks = {
+    '契約予定': 0,
+    '見積中': 1,
+    '提案中': 2
+  };
+
+  return Object.prototype.hasOwnProperty.call(ranks, value) ? ranks[value] : 3;
 }
 
 function getProjectByIdForClient(projectId) {
@@ -5387,6 +5572,34 @@ function formatProjectAmount(value) {
   }
 
   return number.toLocaleString('ja-JP') + '円';
+}
+
+function getProjectProfitAmount(project) {
+  const profitText = String(project.profitAmount === 0 ? 0 : (project.profitAmount || '')).trim();
+
+  if (profitText) {
+    return project.profitAmount;
+  }
+
+  const proposalAmount = parseProjectAmountNumber(project.proposalAmount);
+  const costAmount = parseProjectAmountNumber(project.costAmount);
+
+  if (proposalAmount === null || costAmount === null) {
+    return '';
+  }
+
+  return proposalAmount - costAmount;
+}
+
+function parseProjectAmountNumber(value) {
+  const text = String(value === 0 ? 0 : (value || '')).trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const number = Number(text.replace(/,/g, ''));
+  return Number.isNaN(number) ? null : number;
 }
 
 function formatProjectValue(value) {
@@ -5970,32 +6183,63 @@ function createProjectHubCard(project) {
   const card = document.createElement('article');
   card.className = 'project-hub-card';
 
+  const head = document.createElement('div');
+  head.className = 'project-hub-card-head';
+
   const title = document.createElement('p');
   title.className = 'project-hub-card-title';
-  title.textContent = project.projectName;
-  card.appendChild(title);
+  title.textContent = formatProjectValue(project.projectName);
+  head.appendChild(title);
+
+  const statusRow = document.createElement('div');
+  statusRow.className = 'project-hub-status-row';
+  statusRow.appendChild(createProjectHubBadge(project.status, 'status'));
+  statusRow.appendChild(createProjectHubBadge(project.priority, 'priority'));
+  head.appendChild(statusRow);
+  card.appendChild(head);
 
   const meta = document.createElement('div');
   meta.className = 'project-hub-meta';
   [
-    project.category,
-    project.status,
-    project.priority ? '優先度 ' + project.priority : ''
+    project.category
   ].filter(Boolean).forEach(function(text) {
     const chip = document.createElement('span');
     chip.className = 'project-hub-chip';
     chip.textContent = text;
     meta.appendChild(chip);
   });
-  card.appendChild(meta);
+
+  if (meta.childElementCount) {
+    card.appendChild(meta);
+  }
+
+  const amountGrid = document.createElement('div');
+  amountGrid.className = 'project-hub-amount-grid';
+  [
+    ['予定金額', project.proposalAmount, 'proposal'],
+    ['原価', project.costAmount, 'cost'],
+    ['粗利', getProjectProfitAmount(project), 'profit']
+  ].forEach(function(item) {
+    amountGrid.appendChild(createProjectHubAmount(item[0], item[1], item[2]));
+  });
+  card.appendChild(amountGrid);
+
+  const focusGrid = document.createElement('div');
+  focusGrid.className = 'project-hub-focus-grid';
+  [
+    ['次アクション', project.nextAction],
+    ['予定工事日', project.expectedWorkDate],
+    ['入金予定日', project.expectedPaymentDate]
+  ].forEach(function(item) {
+    focusGrid.appendChild(createProjectHubField(item[0], item[1], true));
+  });
+  card.appendChild(focusGrid);
 
   const grid = document.createElement('div');
   grid.className = 'project-hub-grid';
   [
-    ['次アクション', project.nextAction],
-    ['予定金額', formatProjectAmount(project.proposalAmount)],
-    ['予定工事日', project.expectedWorkDate],
-    ['入金予定日', project.expectedPaymentDate]
+    ['受注予定日', project.expectedOrderDate],
+    ['メモ', project.memo || project.notes]
   ].forEach(function(item) {
     grid.appendChild(createProjectHubField(item[0], item[1]));
   });
@@ -6014,9 +6258,64 @@ function createProjectHubCard(project) {
   return card;
 }
 
-function createProjectHubField(label, value) {
+function createProjectHubBadge(value, type) {
+  const badge = document.createElement('span');
+  const displayValue = formatProjectValue(value);
+  badge.className = [
+    'project-hub-badge',
+    type === 'status' ? 'project-hub-status-badge' : 'project-hub-priority-badge',
+    type === 'status' ? getProjectStatusClass(value) : getProjectPriorityClass(value)
+  ].filter(Boolean).join(' ');
+  badge.textContent = (type === 'status' ? '状態 ' : '優先度 ') + displayValue;
+  return badge;
+}
+
+function getProjectStatusClass(status) {
+  const value = String(status || '').trim();
+  const classes = {
+    '提案前': 'before-proposal',
+    '提案中': 'proposing',
+    '見積中': 'estimate',
+    '契約予定': 'contract-plan',
+    '契約済': 'contract',
+    '失注': 'lost',
+    '完了': 'done'
+  };
+
+  return classes[value] || '';
+}
+
+function getProjectPriorityClass(priority) {
+  const value = String(priority || '').trim();
+  const classes = {
+    '高': 'high',
+    '中': 'medium',
+    '低': 'low'
+  };
+
+  return classes[value] || '';
+}
+
+function createProjectHubAmount(label, value, type) {
   const item = document.createElement('div');
-  item.className = 'project-hub-field';
+  item.className = ['project-hub-amount', type || ''].filter(Boolean).join(' ');
+
+  const labelNode = document.createElement('span');
+  labelNode.className = 'project-hub-amount-label';
+  labelNode.textContent = label;
+  item.appendChild(labelNode);
+
+  const valueNode = document.createElement('span');
+  valueNode.className = 'project-hub-amount-value';
+  valueNode.textContent = formatProjectAmount(value);
+  item.appendChild(valueNode);
+
+  return item;
+}
+
+function createProjectHubField(label, value, isPrimary) {
+  const item = document.createElement('div');
+  item.className = ['project-hub-field', isPrimary ? 'is-primary' : ''].filter(Boolean).join(' ');
 
   const labelNode = document.createElement('span');
   labelNode.className = 'project-hub-label';
