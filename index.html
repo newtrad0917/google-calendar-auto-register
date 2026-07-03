@@ -3560,6 +3560,38 @@ body.ai-processing .assistant-briefing-icon {
   white-space: nowrap;
 }
 
+.customer-hub-search-wrap {
+  position: relative;
+  margin-top: 12px;
+}
+
+.customer-hub-search-wrap::before {
+  content: "⌕";
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  color: #94a3b8;
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.customer-hub-search {
+  min-height: 48px;
+  padding: 12px 15px 12px 42px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 16px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 24px rgba(15, 23, 42, 0.04);
+  font-size: 16px;
+}
+
+.customer-hub-search::placeholder {
+  color: #94a3b8;
+}
+
 .customer-hub-card,
 .customer-hub-profile,
 .customer-hub-sales-memo,
@@ -3615,6 +3647,46 @@ body.ai-processing .assistant-briefing-icon {
   font-weight: 850;
   line-height: 1;
   white-space: nowrap;
+}
+
+.customer-hot-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.customer-hot-badge.hot {
+  border-color: #fed7aa;
+  color: #9a3412;
+  background: #fff7ed;
+}
+
+.customer-hot-badge.warm {
+  border-color: #fde68a;
+  color: #854d0e;
+  background: #fffbeb;
+}
+
+.customer-hot-badge.cold {
+  border-color: #bfdbfe;
+  color: #1e5a8a;
+  background: #eff6ff;
+}
+
+.customer-hub-detail-badge {
+  margin: -2px 0 10px;
 }
 
 .customer-hub-next-schedule {
@@ -4365,6 +4437,17 @@ body.ai-processing .assistant-briefing-icon {
     </button>
   </div>
 
+  <div class="customer-hub-search-wrap">
+    <input
+      id="customerHubSearch"
+      class="customer-hub-search"
+      type="search"
+      placeholder="顧客名・担当者・エリアで検索"
+      autocomplete="off"
+      oninput="handleCustomerHubSearchInput(this.value)"
+    >
+  </div>
+
   <div id="customerHubShell" class="customer-hub-shell">
     <div id="customerHubMessage" class="customer-hub-message hidden" role="status" aria-live="polite"></div>
     <div id="customerHubList" class="customer-hub-list"></div>
@@ -4645,6 +4728,7 @@ body.ai-processing .assistant-briefing-icon {
     ];
     let customerData = DEMO_CUSTOMERS.slice();
     let customerDataMessage = '';
+    let customerHubSearchQuery = '';
     const CUSTOMER_FORM_FIELDS = {
       companyName: 'customerFormCompanyName',
       corporationName: 'customerFormCorporationName',
@@ -4958,8 +5042,8 @@ function setCustomerData(customers, options) {
     : [];
 
   customerData = normalizedCustomers.length || (options && options.allowEmpty)
-    ? normalizedCustomers
-    : DEMO_CUSTOMERS.slice();
+    ? sortCustomersByNextVisit(normalizedCustomers)
+    : sortCustomersByNextVisit(DEMO_CUSTOMERS.map(normalizeCustomerForClient));
   customerDataMessage = options && options.message ? options.message : '';
   updateCustomerSelectOptions();
   renderCustomerHub();
@@ -5007,13 +5091,120 @@ function normalizeCustomerForClient(customer) {
   };
 }
 
+function handleCustomerHubSearchInput(value) {
+  customerHubSearchQuery = String(value || '').trim();
+  renderCustomerHub();
+}
+
+function getVisibleCustomerHubCustomers() {
+  const query = normalizeCustomerSearchText(customerHubSearchQuery);
+
+  if (!query) {
+    return customerData;
+  }
+
+  return customerData.filter(function(customer) {
+    return customerMatchesSearchQuery(customer, query);
+  });
+}
+
+function customerMatchesSearchQuery(customer, query) {
+  return [
+    customer.companyName,
+    customer.corporationName,
+    customer.contactName,
+    customer.personName,
+    customer.department,
+    customer.industry,
+    customer.prefecture,
+    customer.city,
+    customer.email,
+    customer.officePhone,
+    customer.mobilePhone
+  ].some(function(value) {
+    return normalizeCustomerSearchText(value).indexOf(query) !== -1;
+  });
+}
+
+function normalizeCustomerSearchText(value) {
+  return String(value || '').trim().toLocaleLowerCase();
+}
+
+function sortCustomersByNextVisit(customers) {
+  return customers.slice().sort(compareCustomersByNextVisit);
+}
+
+function compareCustomersByNextVisit(a, b) {
+  const aRank = getCustomerNextVisitSortRank(a);
+  const bRank = getCustomerNextVisitSortRank(b);
+
+  if (aRank.bucket !== bRank.bucket) {
+    return aRank.bucket - bRank.bucket;
+  }
+
+  if (aRank.time !== bRank.time) {
+    return aRank.bucket === 1
+      ? bRank.time - aRank.time
+      : aRank.time - bRank.time;
+  }
+
+  return String(a.companyName || '').localeCompare(String(b.companyName || ''), 'ja');
+}
+
+function getCustomerNextVisitSortRank(customer) {
+  const date = parseCustomerDate(customer.nextVisit);
+
+  if (!date) {
+    return { bucket: 2, time: Number.MAX_SAFE_INTEGER };
+  }
+
+  const today = getCustomerTodayStart();
+  const time = date.getTime();
+
+  return {
+    bucket: time >= today.getTime() ? 0 : 1,
+    time: time
+  };
+}
+
+function parseCustomerDate(value) {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+
+  if (!match) {
+    return null;
+  }
+
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function getCustomerTodayStart() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
 function renderCustomerHub() {
   resetCustomerForm({ keepDetail: true });
   renderCustomerHubMessage();
   renderCustomerHubList();
 
-  const selectedCustomer = getCustomerById(selectedCustomerHubId);
-  const firstCustomer = customerData[0];
+  const visibleCustomers = getVisibleCustomerHubCustomers();
+  const selectedCustomer = visibleCustomers.find(function(customer) {
+    return customer.id === selectedCustomerHubId;
+  });
+  const firstCustomer = visibleCustomers[0];
   selectedCustomerHubId = selectedCustomer
     ? selectedCustomer.id
     : (firstCustomer ? firstCustomer.id : '');
@@ -5049,6 +5240,7 @@ function renderCustomerHubList() {
   }
 
   list.replaceChildren();
+  const visibleCustomers = getVisibleCustomerHubCustomers();
 
   if (!customerData.length) {
     const empty = document.createElement('p');
@@ -5058,7 +5250,15 @@ function renderCustomerHubList() {
     return;
   }
 
-  customerData.forEach(function(customer) {
+  if (!visibleCustomers.length) {
+    const empty = document.createElement('p');
+    empty.className = 'customer-hub-empty';
+    empty.textContent = '該当する顧客はありません';
+    list.appendChild(empty);
+    return;
+  }
+
+  visibleCustomers.forEach(function(customer) {
     const card = document.createElement('article');
     card.className = 'customer-hub-card';
     card.dataset.customerId = customer.id;
@@ -5091,7 +5291,6 @@ function renderCustomerHubList() {
 
     [
       ['市区', getCustomerAreaText(customer), 'customer-hub-card-tag'],
-      ['温度感', formatCustomerValue(customer.hotLevel), 'customer-hub-card-tag'],
       ['前回訪問', formatCustomerValue(customer.lastVisit), 'customer-hub-card-tag'],
       ['次回訪問', getCustomerNextScheduleText(customer), 'customer-hub-next-schedule']
     ].forEach(function(item) {
@@ -5100,6 +5299,7 @@ function renderCustomerHubList() {
       tag.textContent = item[0] + '：' + item[1];
       tags.appendChild(tag);
     });
+    tags.appendChild(createCustomerHotLevelBadge(customer.hotLevel));
 
     body.appendChild(title);
     if (title.dataset.corporationName) {
@@ -5124,7 +5324,52 @@ function getCustomerAreaText(customer) {
 }
 
 function getCustomerNextScheduleText(customer) {
-  return customer.nextVisit || customer.nextSchedule || '未登録';
+  const date = parseCustomerDate(customer.nextVisit);
+
+  if (!date) {
+    return '未登録';
+  }
+
+  const today = getCustomerTodayStart();
+  const tomorrow = new Date(today.getTime());
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.getTime() === today.getTime()) {
+    return '本日';
+  }
+
+  if (date.getTime() === tomorrow.getTime()) {
+    return '明日';
+  }
+
+  return formatCustomerDateYmd(date);
+}
+
+function formatCustomerDateYmd(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
+function createCustomerHotLevelBadge(hotLevel) {
+  const badge = document.createElement('span');
+  const normalized = getCustomerHotLevelValue(hotLevel);
+  badge.className = ['customer-hot-badge', normalized.toLowerCase()].filter(Boolean).join(' ');
+  badge.textContent = getCustomerHotLevelLabel(hotLevel);
+  return badge;
+}
+
+function getCustomerHotLevelValue(hotLevel) {
+  const normalized = String(hotLevel || '').trim().toUpperCase();
+
+  return ['HOT', 'WARM', 'COLD'].indexOf(normalized) === -1
+    ? ''
+    : normalized;
+}
+
+function getCustomerHotLevelLabel(hotLevel) {
+  return getCustomerHotLevelValue(hotLevel) || '未登録';
 }
 
 function createCustomerHubDetailButton(customer, card) {
@@ -5200,6 +5445,10 @@ function showCustomerHubDetail(customerId) {
   const heading = document.createElement('h3');
   heading.textContent = customer.companyName;
   profile.appendChild(heading);
+
+  const hotBadge = createCustomerHotLevelBadge(customer.hotLevel);
+  hotBadge.classList.add('customer-hub-detail-badge');
+  profile.appendChild(hotBadge);
 
   const grid = document.createElement('div');
   grid.className = 'customer-hub-detail-grid';
