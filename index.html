@@ -6006,6 +6006,7 @@ body.ai-processing .assistant-briefing-icon {
       popAreaCode: '400040',
       forecastUrl: 'https://www.jma.go.jp/bosai/forecast/data/forecast/400000.json'
     };
+    const WEATHER_FETCH_TIMEOUT_MS = 8000;
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
     const DEMO_CUSTOMERS = [
@@ -11210,15 +11211,31 @@ function filterScheduleEventsForView(events, view, dateKey) {
     return [];
   }
 
-  if (dateKey || (view !== 'week' && view !== 'month')) {
-    return events;
+  if (dateKey || view === 'week' || view === 'month') {
+    return events.filter(isScheduleFutureEventVisible);
   }
 
-  const todayKey = formatScheduleDateKey(startOfDay(new Date()));
+  return events;
+}
 
-  return events.filter(function(event) {
-    return getScheduleEventDateKey(event) >= todayKey;
-  });
+function isScheduleFutureEventVisible(event) {
+  const now = new Date();
+  const eventDateKey = getScheduleEventDateKey(event);
+  const todayKey = formatScheduleDateKey(startOfDay(now));
+
+  if (!eventDateKey) {
+    return true;
+  }
+
+  if (eventDateKey < todayKey) {
+    return false;
+  }
+
+  if (eventDateKey > todayKey) {
+    return true;
+  }
+
+  return getScheduleEventEndTime(event) > now.getTime();
 }
 
 function getScheduleEventDateKey(event) {
@@ -11229,6 +11246,18 @@ function getScheduleEventDateKey(event) {
   }
 
   return formatScheduleDateKey(startOfDay(new Date(source)));
+}
+
+function getScheduleEventEndTime(event) {
+  const source = event && (event.end || event.endIso);
+  const date = source ? new Date(source) : null;
+
+  if (date && !isNaN(date.getTime())) {
+    return date.getTime();
+  }
+
+  const startTime = getScheduleEventStartTime(event);
+  return startTime || 0;
 }
 
 function renderTodayEvents(events, view, dateKey) {
@@ -11781,14 +11810,10 @@ function loadWeatherForecast() {
     return;
   }
 
-  fetch(buildOpenMeteoForecastUrl())
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('天気APIの取得に失敗しました。');
-      }
-
-      return response.json();
-    })
+  fetchWeatherJsonWithTimeout(
+    buildOpenMeteoForecastUrl(),
+    '天気APIの取得に失敗しました。'
+  )
     .then(function(data) {
       return loadJmaForecast()
         .then(function(jmaForecast) {
@@ -11844,15 +11869,28 @@ function buildJmaForecastUrl() {
 }
 
 function loadJmaForecast() {
-  return fetch(buildJmaForecastUrl())
-    .then(function(response) {
+  return fetchWeatherJsonWithTimeout(
+    buildJmaForecastUrl(),
+    '気象庁データの取得に失敗しました。'
+  )
+    .then(normalizeJmaForecast);
+}
+
+function fetchWeatherJsonWithTimeout(url, errorMessage) {
+  return Promise.race([
+    fetch(url).then(function(response) {
       if (!response.ok) {
-        throw new Error('気象庁データの取得に失敗しました。');
+        throw new Error(errorMessage);
       }
 
       return response.json();
+    }),
+    new Promise(function(resolve, reject) {
+      window.setTimeout(function() {
+        reject(new Error(errorMessage + ' 時間をおいて再確認してください。'));
+      }, WEATHER_FETCH_TIMEOUT_MS);
     })
-    .then(normalizeJmaForecast);
+  ]);
 }
 
 function normalizeJmaForecast(data) {
@@ -12194,7 +12232,8 @@ function getWeatherPreviewStatus(view) {
     return {
       icon: '--',
       label: '天気（' + WEATHER_LOCATION.name + '）：取得できませんでした',
-      statusText: '',
+      statusText: '通信状況を確認してください',
+      advice: '訪問前に雨雲と道路状況を一度確認してください。',
       source: 'error'
     };
   }
