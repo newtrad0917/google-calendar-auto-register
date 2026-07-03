@@ -3704,6 +3704,54 @@ body::before {
   line-height: 1.45;
 }
 
+.schedule-weather-card.is-weather-error {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px !important;
+  border-color: rgba(148, 163, 184, 0.26) !important;
+  background: #ffffff !important;
+}
+
+.schedule-weather-card.is-weather-error .weather-main {
+  align-items: flex-start;
+  gap: 10px;
+  padding-left: 0;
+}
+
+.schedule-weather-card.is-weather-error .weather-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.schedule-weather-card.is-weather-error .weather-title,
+.schedule-weather-card.is-weather-error .weather-detail,
+.schedule-weather-card.is-weather-error .weather-advice {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.schedule-weather-card.is-weather-error .weather-title {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.schedule-weather-card.is-weather-error .weather-detail {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.schedule-weather-card.is-weather-error .weather-advice {
+  margin-top: 0;
+  padding-left: 40px;
+  color: #5f4b16;
+  line-height: 1.6;
+}
+
 /* UX Sprint Ver1: TODO */
 .todo-card,
 .task-item,
@@ -3777,6 +3825,18 @@ body::before {
   .weather-main {
     gap: 9px;
     padding-left: 10px;
+  }
+
+  .schedule-weather-card.is-weather-error {
+    padding: 13px 14px !important;
+  }
+
+  .schedule-weather-card.is-weather-error .weather-main {
+    padding-left: 0;
+  }
+
+  .schedule-weather-card.is-weather-error .weather-advice {
+    padding-left: 0;
   }
 
   .task-item {
@@ -12179,6 +12239,7 @@ function createWeatherPreviewCard(view) {
   const weather = getWeatherPreviewStatus(view);
   const card = document.createElement('div');
   card.className = 'schedule-weather-card';
+  card.classList.toggle('is-weather-error', weather.source === 'error');
   card.id = view === 'tomorrow' ? 'weatherTomorrowCard' : 'weatherTodayCard';
 
   const main = document.createElement('div');
@@ -12231,8 +12292,8 @@ function getWeatherPreviewStatus(view) {
   if (weatherForecastState === 'error') {
     return {
       icon: '--',
-      label: '天気（' + WEATHER_LOCATION.name + '）：取得できませんでした',
-      statusText: '通信状況を確認してください',
+      label: '天気（' + WEATHER_LOCATION.name + '）',
+      statusText: '取得できませんでした。通信状況を確認してください',
       advice: '訪問前に雨雲と道路状況を一度確認してください。',
       source: 'error'
     };
@@ -12242,7 +12303,7 @@ function getWeatherPreviewStatus(view) {
 
   if (weatherForecastState === 'ready' && forecast) {
     return {
-      icon: forecast.icon,
+      icon: getWeatherDisplayIcon(forecast),
       label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + getWeatherLocationLabel(forecast) + '）',
       statusText: forecast.temperatureText + ' ' + forecast.condition + ' / ' + forecast.precipitationLabel + forecast.precipitationText,
       advice: forecast.weatherAdvice,
@@ -12256,6 +12317,28 @@ function getWeatherPreviewStatus(view) {
     statusText: '取得中...',
     source: 'loading'
   };
+}
+
+function getWeatherDisplayIcon(forecast) {
+  const precipitationProbability = getWeatherDisplayPrecipitationProbability(forecast);
+
+  if (isFinite(precipitationProbability) && precipitationProbability >= 70) {
+    return '☔';
+  }
+
+  if (isFinite(precipitationProbability) && precipitationProbability >= 40) {
+    return '🌧️';
+  }
+
+  return forecast && forecast.icon ? forecast.icon : '--';
+}
+
+function getWeatherDisplayPrecipitationProbability(forecast) {
+  if (!forecast) {
+    return NaN;
+  }
+
+  return toWeatherProbabilityNumber(forecast.precipitationProbability);
 }
 
 function getWeatherLocationLabel(forecast) {
