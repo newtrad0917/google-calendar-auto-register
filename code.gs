@@ -693,6 +693,54 @@ function setupTaskSpreadsheet() {
   };
 }
 
+function getAppSettingsStatus() {
+  var updatedAt = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+  var result = {
+    appName: '営業AI秘書',
+    version: 'Ver1',
+    weatherRegion: '朝倉・筑後地方',
+    dataStoreName: '営業AI秘書DB',
+    updatedAt: updatedAt,
+    dbItems: [
+      buildAppSettingsDbItem_('tasks', 'Tasks', false),
+      buildAppSettingsDbItem_('customers', CUSTOMER_SHEET_NAME, false),
+      buildAppSettingsDbItem_('projects', PROJECT_SHEET_NAME, false),
+      buildAppSettingsDbItem_('salesMemos', SALES_MEMO_SHEET_NAME, false),
+      buildAppSettingsDbItem_('businessCardImport', BUSINESS_CARD_IMPORT_SHEET_NAME, false)
+    ]
+  };
+
+  try {
+    var spreadsheet = getTaskSpreadsheet_();
+
+    result.dbItems = [
+      buildAppSettingsDbItem_('tasks', 'Tasks', Boolean(spreadsheet.getSheetByName('Tasks'))),
+      buildAppSettingsDbItem_('customers', CUSTOMER_SHEET_NAME, Boolean(spreadsheet.getSheetByName(CUSTOMER_SHEET_NAME))),
+      buildAppSettingsDbItem_('projects', PROJECT_SHEET_NAME, Boolean(spreadsheet.getSheetByName(PROJECT_SHEET_NAME))),
+      buildAppSettingsDbItem_('salesMemos', SALES_MEMO_SHEET_NAME, Boolean(spreadsheet.getSheetByName(SALES_MEMO_SHEET_NAME))),
+      buildAppSettingsDbItem_('businessCardImport', BUSINESS_CARD_IMPORT_SHEET_NAME, Boolean(spreadsheet.getSheetByName(BUSINESS_CARD_IMPORT_SHEET_NAME)))
+    ];
+    result.spreadsheetName = spreadsheet.getName();
+    result.spreadsheetId = spreadsheet.getId();
+    result.ok = true;
+  } catch (error) {
+    result.ok = false;
+    result.message = error && error.message ? error.message : 'DB状態を確認できませんでした。';
+  }
+
+  return result;
+}
+
+function buildAppSettingsDbItem_(key, label, exists) {
+  return {
+    key: key,
+    label: label,
+    exists: exists,
+    status: exists ? 'connected' : 'missing',
+    text: exists ? '接続済み' : '未作成'
+  };
+}
+
 function setupCustomerDbSheet() {
   var spreadsheet = getTaskSpreadsheet_();
   var sheet = spreadsheet.getSheetByName(CUSTOMER_SHEET_NAME);
