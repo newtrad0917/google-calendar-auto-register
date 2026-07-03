@@ -2911,6 +2911,84 @@ body {
   line-height: 1.65;
 }
 
+.ai-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ai-dashboard-card {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 86px;
+  padding: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 7px 16px rgba(15, 23, 42, 0.04);
+  text-align: left;
+}
+
+.ai-dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  width: 26px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(23, 105, 170, 0.72);
+}
+
+.ai-dashboard-card:hover {
+  background: #f8fbff;
+}
+
+.ai-dashboard-card:disabled {
+  color: inherit;
+  cursor: default;
+}
+
+.ai-dashboard-label {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-dashboard-value {
+  color: #0f172a;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.ai-dashboard-unit {
+  margin-left: 2px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ai-dashboard-note {
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @keyframes ai-insight-line-flow {
   0% {
     width: 0;
@@ -2949,6 +3027,19 @@ body {
   .ai-insight-main,
   .ai-insight-detail {
     overflow-wrap: anywhere;
+  }
+
+  .ai-dashboard-grid {
+    gap: 9px;
+  }
+
+  .ai-dashboard-card {
+    min-height: 82px;
+    padding: 11px;
+  }
+
+  .ai-dashboard-value {
+    font-size: 28px;
   }
 }
 /* Customer select Ver1 */
@@ -4622,8 +4713,7 @@ body.ai-processing .assistant-briefing-icon {
       </h3>
       <span class="ai-insight-badge">Ver1</span>
     </div>
-    <p id="aiInsightMain" class="ai-insight-main">今日は営業効率が高そうです。</p>
-    <p id="aiInsightDetail" class="ai-insight-detail">午後は約2時間空いています。あと1件訪問できそうです。</p>
+    <div id="aiInsightGrid" class="ai-dashboard-grid" aria-label="営業ダッシュボード"></div>
   </section>
   <div class="todo-card">
     <div class="todo-card-header">
@@ -5351,6 +5441,7 @@ body.ai-processing .assistant-briefing-icon {
     let lastScheduleView = '';
     let lastScheduleDateKey = '';
     let isSavingSalesMemo = false;
+    let salesMemoDashboardStats = { todayCount: 0 };
     const WEATHER_LOCATION = {
       name: '朝倉',
       latitude: 33.42,
@@ -5490,6 +5581,7 @@ document.getElementById('stepList').classList.add('hidden');
     );
   });
   runInitialHomeTask('AI insight', renderAiInsightCard);
+  runInitialHomeTask('Sales memo dashboard', loadSalesMemoDashboardStats);
   runInitialHomeTask('TODO', function() {
     loadTasks(currentTaskFilter);
   });
@@ -5557,6 +5649,218 @@ function playAiInsightLineMotion() {
     card.classList.remove('is-insight-refresh');
   }, 620);
 }
+function renderAiInsightCard() {
+  const grid = document.getElementById('aiInsightGrid');
+  const title = document.getElementById('aiInsightTitle');
+  const badge = document.querySelector('#aiInsightCard .ai-insight-badge');
+
+  if (!grid) {
+    return;
+  }
+
+  if (title) {
+    title.textContent = '営業ダッシュボード';
+  }
+
+  if (badge) {
+    badge.textContent = 'Today';
+  }
+
+  grid.replaceChildren();
+  getAiDashboardCards().forEach(function(card) {
+    grid.appendChild(createAiDashboardCard(card));
+  });
+}
+
+function getAiDashboardCards() {
+  return [
+    {
+      label: '本日の訪問',
+      value: getTodayVisitCount(),
+      note: '今日の予定',
+      onClick: focusTodaySchedule
+    },
+    {
+      label: '本日期限',
+      value: getTodayTodoCount(),
+      note: 'TODO',
+      onClick: openTodayTodoDashboard
+    },
+    {
+      label: 'フォロー待ち',
+      value: getOverdueFollowCustomerCount(),
+      note: '次回訪問日超過',
+      onClick: showCustomerHubScreen
+    },
+    {
+      label: 'HOT顧客',
+      value: getHotDormantCustomerCount(),
+      note: '30日以上訪問なし',
+      onClick: showCustomerHubScreen
+    },
+    {
+      label: '進行案件',
+      value: getActiveProjectCount(),
+      note: '見積中・契約予定',
+      onClick: openProjectHubDashboard
+    },
+    {
+      label: '営業報告',
+      value: salesMemoDashboardStats.todayCount || 0,
+      note: '今日登録分',
+      onClick: openSalesMemoDashboard
+    }
+  ];
+}
+
+function createAiDashboardCard(card) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ai-dashboard-card';
+  button.addEventListener('click', function() {
+    if (typeof card.onClick === 'function') {
+      card.onClick();
+    }
+  });
+
+  const label = document.createElement('span');
+  label.className = 'ai-dashboard-label';
+  label.textContent = card.label;
+  button.appendChild(label);
+
+  const value = document.createElement('span');
+  value.className = 'ai-dashboard-value';
+  value.textContent = Number(card.value || 0).toLocaleString('ja-JP');
+
+  const unit = document.createElement('span');
+  unit.className = 'ai-dashboard-unit';
+  unit.textContent = '件';
+  value.appendChild(unit);
+  button.appendChild(value);
+
+  const note = document.createElement('span');
+  note.className = 'ai-dashboard-note';
+  note.textContent = card.note;
+  button.appendChild(note);
+
+  return button;
+}
+
+function getTodayVisitCount() {
+  const todayKey = formatScheduleDateKey(new Date());
+  return (Array.isArray(lastScheduleEvents) ? lastScheduleEvents : []).filter(function(event) {
+    return getScheduleEventDateKey(event) === todayKey;
+  }).length;
+}
+
+function getTodayTodoCount() {
+  return (Array.isArray(currentTasks) ? currentTasks : []).filter(isTaskDueToday).length;
+}
+
+function getOverdueFollowCustomerCount() {
+  const today = getCustomerTodayStart();
+  return customerData.filter(function(customer) {
+    const nextVisit = parseCustomerDate(customer.nextVisit);
+    return nextVisit && nextVisit.getTime() < today.getTime();
+  }).length;
+}
+
+function getHotDormantCustomerCount() {
+  const threshold = getCustomerTodayStart();
+  threshold.setDate(threshold.getDate() - 30);
+
+  return customerData.filter(function(customer) {
+    const hotLevel = String(customer.hotLevel || '').trim().toUpperCase();
+    const lastVisit = parseCustomerDate(customer.lastVisit);
+    return hotLevel === 'HOT' && (!lastVisit || lastVisit.getTime() <= threshold.getTime());
+  }).length;
+}
+
+function getActiveProjectCount() {
+  return projectData.filter(function(project) {
+    const status = String(project.status || '').trim();
+    return status === '見積中' || status === '契約予定';
+  }).length;
+}
+
+function focusTodaySchedule() {
+  const card = document.querySelector('.today-card');
+
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openTodayTodoDashboard() {
+  currentTaskDueFilter = 'today';
+  [
+    ['taskDueFilterOverdue', 'overdue'],
+    ['taskDueFilterToday', 'today'],
+    ['taskDueFilterTomorrow', 'tomorrow'],
+    ['taskDueFilterWeek', 'week'],
+    ['taskDueFilterLater', 'later']
+  ].forEach(function(filter) {
+    const button = document.getElementById(filter[0]);
+
+    if (button) {
+      button.classList.toggle('active', filter[1] === currentTaskDueFilter);
+    }
+  });
+  renderVisibleTasks();
+  const card = document.querySelector('.todo-card');
+
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openProjectHubDashboard() {
+  showCustomerHubScreen();
+  window.setTimeout(function() {
+    const projectSection = document.querySelector('.project-hub-section');
+
+    if (projectSection) {
+      projectSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 120);
+}
+
+function openSalesMemoDashboard() {
+  showSalesMemoReportForm({
+    title: '営業報告',
+    start: new Date().toISOString()
+  }, {
+    id: '',
+    companyName: '',
+    title: '',
+    personName: '',
+    contactName: '',
+    nextVisit: ''
+  });
+}
+
+function loadSalesMemoDashboardStats() {
+  if (!window.google || !google.script || !google.script.run) {
+    salesMemoDashboardStats = { todayCount: 0 };
+    renderAiInsightCard();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(stats) {
+      salesMemoDashboardStats = stats && typeof stats.todayCount === 'number'
+        ? stats
+        : { todayCount: 0 };
+      renderAiInsightCard();
+    })
+    .withFailureHandler(function(error) {
+      console.error('Sales memo dashboard stats load failed.', error);
+      salesMemoDashboardStats = { todayCount: 0 };
+      renderAiInsightCard();
+    })
+    .getSalesMemoDashboardStats();
+}
+
 function showCalendarScreen(options) {
   if (shouldUsePageTransition(options)) {
     playPageTransition(function() {
@@ -5792,6 +6096,7 @@ function setCustomerData(customers, options) {
   updateCustomerSelectOptions();
   renderCustomerHub();
   refreshScheduleCustomerLink();
+  renderAiInsightCard();
 }
 
 function normalizeCustomerForClient(customer) {
@@ -5857,6 +6162,7 @@ function setProjectData(projects) {
     : [];
   projectDataMessage = '';
   renderCustomerHub();
+  renderAiInsightCard();
 }
 
 function normalizeProjectForClient(project) {
@@ -8844,6 +9150,7 @@ function loadTasks(category) {
     settled = true;
     window.clearTimeout(timeoutId);
     currentTasks = [];
+    renderAiInsightCard();
     container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
     updateTodoStatusSummary([], 'TODO取得失敗');
     console.error('TODO load failed.', error);
@@ -8882,6 +9189,7 @@ function loadTasks(category) {
 
 function renderTasks(tasks) {
   currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
+  renderAiInsightCard();
   renderVisibleTasks();
 }
 
@@ -9542,6 +9850,7 @@ function renderScheduleEvents(events, view, dateKey) {
   lastScheduleEvents = Array.isArray(events) ? events.slice() : [];
   lastScheduleView = view || 'today';
   lastScheduleDateKey = dateKey || '';
+  renderAiInsightCard();
 
   const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
 
@@ -9831,7 +10140,9 @@ function populateSalesMemoReportForm(event, customer) {
   document.getElementById('salesMemoProjectId').value = getCustomerPrimaryProjectId(customer.id);
   document.getElementById('salesMemoEventTitle').value = event.title || customer.companyName || '';
   document.getElementById('salesMemoVisitDate').value = getScheduleEventDateInputValue(event) || formatScheduleDateKey(new Date());
-  document.getElementById('salesMemoCustomerName').value = customer.companyName || '';
+  const customerNameInput = document.getElementById('salesMemoCustomerName');
+  customerNameInput.value = customer.companyName || '';
+  customerNameInput.readOnly = Boolean(customer.id);
   document.getElementById('salesMemoContactName').value = [customer.title, customer.personName || customer.contactName]
     .filter(Boolean)
     .join(' ');

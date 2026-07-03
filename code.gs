@@ -1118,6 +1118,52 @@ function addSalesMemo(memo) {
   };
 }
 
+function getSalesMemoDashboardStats() {
+  var sheet = getSalesMemoSheet_();
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    return {
+      todayCount: 0
+    };
+  }
+
+  var headers = values[0].map(function(header) {
+    return String(header || '').trim();
+  });
+  var createdAtIndex = headers.indexOf('createdAt');
+  var visitDateIndex = headers.indexOf('visitDate');
+  var todayKey = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var todayCount = values.slice(1).filter(function(row) {
+    var dateValue = createdAtIndex !== -1 ? row[createdAtIndex] : '';
+    var dateKey = formatSalesMemoDashboardDate_(dateValue);
+
+    if (!dateKey && visitDateIndex !== -1) {
+      dateKey = formatSalesMemoDashboardDate_(row[visitDateIndex]);
+    }
+
+    return dateKey === todayKey;
+  }).length;
+
+  return {
+    todayCount: todayCount
+  };
+}
+
+function formatSalesMemoDashboardDate_(value) {
+  if (!value) {
+    return '';
+  }
+
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+
+  var text = String(value || '').trim();
+  var match = text.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : '';
+}
+
 function generateSalesMemoId_() {
   var sheet = getSalesMemoSheet_();
   var headers = getSalesMemoDbHeaderValues_(sheet);
