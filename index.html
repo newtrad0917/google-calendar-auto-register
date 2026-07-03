@@ -3820,6 +3820,156 @@ body.ai-processing .assistant-briefing-icon {
   text-align: center;
 }
 
+.project-hub-section,
+.project-hub-card,
+.project-hub-form {
+  border: 1px solid var(--ux-card-border);
+  border-radius: var(--ux-card-radius);
+  background: #ffffff;
+  box-shadow: var(--ux-card-shadow);
+}
+
+.project-hub-section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.project-hub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-hub-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.project-hub-add-button {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.project-hub-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-hub-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.project-hub-card-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.project-hub-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-hub-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #475569;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.project-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.project-hub-field {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.project-hub-label {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.project-hub-value {
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.project-hub-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.project-hub-card-actions button {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.project-hub-form {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.project-hub-form-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.project-hub-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.project-hub-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.project-hub-form-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
 .customer-hub-detail.is-detail-entering .customer-hub-profile::before {
   animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
@@ -3890,6 +4040,21 @@ body.ai-processing .assistant-briefing-icon {
   }
 
   .customer-hub-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-hub-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-hub-add-button,
+  .project-hub-card-actions {
+    width: 100%;
+  }
+
+  .project-hub-grid,
+  .project-hub-form-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -4729,6 +4894,8 @@ body.ai-processing .assistant-briefing-icon {
     let customerData = DEMO_CUSTOMERS.slice();
     let customerDataMessage = '';
     let customerHubSearchQuery = '';
+    let projectData = [];
+    let projectDataMessage = '';
     const CUSTOMER_FORM_FIELDS = {
       companyName: 'customerFormCompanyName',
       corporationName: 'customerFormCorporationName',
@@ -4750,6 +4917,21 @@ body.ai-processing .assistant-briefing-icon {
       hotLevel: 'customerFormHotLevel',
       aiSummary: 'customerFormAiSummary',
       notes: 'customerFormNotes'
+    };
+    const PROJECT_FORM_FIELDS = {
+      projectName: 'projectFormProjectName',
+      category: 'projectFormCategory',
+      status: 'projectFormStatus',
+      priority: 'projectFormPriority',
+      proposalAmount: 'projectFormProposalAmount',
+      costAmount: 'projectFormCostAmount',
+      profitAmount: 'projectFormProfitAmount',
+      expectedOrderDate: 'projectFormExpectedOrderDate',
+      expectedWorkDate: 'projectFormExpectedWorkDate',
+      expectedPaymentDate: 'projectFormExpectedPaymentDate',
+      nextAction: 'projectFormNextAction',
+      memo: 'projectFormMemo',
+      notes: 'projectFormNotes'
     };
     const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
 
@@ -5021,6 +5203,37 @@ function loadCustomersFromServer() {
   } catch (error) {
     handleCustomerLoadFailure(error);
   }
+
+  loadProjectsFromServer();
+}
+
+function loadProjectsFromServer() {
+  projectData = [];
+  projectDataMessage = '';
+
+  if (!window.google || !google.script || !google.script.run) {
+    renderCustomerHub();
+    return;
+  }
+
+  try {
+    google.script.run
+      .withSuccessHandler(function(projects) {
+        setProjectData(Array.isArray(projects) ? projects : []);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Project Hub load failed.', error);
+        projectData = [];
+        projectDataMessage = '案件データを取得できませんでした。';
+        renderCustomerHub();
+      })
+      .getProjects();
+  } catch (error) {
+    console.error('Project Hub load failed.', error);
+    projectData = [];
+    projectDataMessage = '案件データを取得できませんでした。';
+    renderCustomerHub();
+  }
 }
 
 function handleCustomerLoadFailure(error) {
@@ -5089,6 +5302,96 @@ function normalizeCustomerForClient(customer) {
     createdAt: customer.createdAt || '',
     updatedAt: customer.updatedAt || ''
   };
+}
+
+function setProjectData(projects) {
+  projectData = Array.isArray(projects)
+    ? projects.map(normalizeProjectForClient).filter(function(project) {
+        return project.id && project.customerId && project.projectName;
+      })
+    : [];
+  projectDataMessage = '';
+  renderCustomerHub();
+}
+
+function normalizeProjectForClient(project) {
+  return {
+    id: String(project.id || '').trim(),
+    customerId: String(project.customerId || '').trim(),
+    projectName: project.projectName || '',
+    category: project.category || '',
+    status: project.status || '',
+    priority: project.priority || '',
+    proposalAmount: project.proposalAmount === 0 ? 0 : (project.proposalAmount || ''),
+    costAmount: project.costAmount === 0 ? 0 : (project.costAmount || ''),
+    profitAmount: project.profitAmount === 0 ? 0 : (project.profitAmount || ''),
+    expectedOrderDate: project.expectedOrderDate || '',
+    expectedWorkDate: project.expectedWorkDate || '',
+    expectedPaymentDate: project.expectedPaymentDate || '',
+    nextAction: project.nextAction || '',
+    memo: project.memo || '',
+    createdAt: project.createdAt || '',
+    updatedAt: project.updatedAt || '',
+    notes: project.notes || ''
+  };
+}
+
+function getProjectsByCustomerIdForClient(customerId) {
+  const id = String(customerId || '').trim();
+
+  return projectData
+    .filter(function(project) {
+      return project.customerId === id;
+    })
+    .sort(compareProjectsForDisplay);
+}
+
+function compareProjectsForDisplay(a, b) {
+  const aDate = parseCustomerDate(a.expectedWorkDate || a.expectedOrderDate || a.expectedPaymentDate);
+  const bDate = parseCustomerDate(b.expectedWorkDate || b.expectedOrderDate || b.expectedPaymentDate);
+
+  if (aDate && bDate && aDate.getTime() !== bDate.getTime()) {
+    return aDate.getTime() - bDate.getTime();
+  }
+
+  if (aDate && !bDate) {
+    return -1;
+  }
+
+  if (!aDate && bDate) {
+    return 1;
+  }
+
+  return String(a.projectName || '').localeCompare(String(b.projectName || ''), 'ja');
+}
+
+function getProjectByIdForClient(projectId) {
+  const id = String(projectId || '').trim();
+
+  return projectData.find(function(project) {
+    return project.id === id;
+  }) || null;
+}
+
+function formatProjectAmount(value) {
+  const text = String(value === 0 ? 0 : (value || '')).trim();
+
+  if (!text) {
+    return '未登録';
+  }
+
+  const number = Number(text.replace(/,/g, ''));
+
+  if (Number.isNaN(number)) {
+    return text;
+  }
+
+  return number.toLocaleString('ja-JP') + '円';
+}
+
+function formatProjectValue(value) {
+  const text = String(value === 0 ? 0 : (value || '')).trim();
+  return text || '未登録';
 }
 
 function handleCustomerHubSearchInput(value) {
@@ -5479,6 +5782,7 @@ function showCustomerHubDetail(customerId) {
 
   profile.appendChild(grid);
   detail.appendChild(profile);
+  detail.appendChild(createCustomerProjectSection(customer));
   detail.appendChild(createCustomerHubActions(customer));
   detail.appendChild(createCustomerHubBackRow());
   playCustomerHubDetailMotion(detail);
@@ -5609,6 +5913,139 @@ function createCustomerHubDetailRow(label, value, href) {
   return row;
 }
 
+function createCustomerProjectSection(customer) {
+  const section = document.createElement('section');
+  section.className = 'project-hub-section';
+
+  const header = document.createElement('div');
+  header.className = 'project-hub-header';
+
+  const title = document.createElement('h3');
+  title.className = 'project-hub-title';
+  title.textContent = '案件';
+  header.appendChild(title);
+
+  const addButton = document.createElement('button');
+  addButton.type = 'button';
+  addButton.className = 'project-hub-add-button';
+  addButton.textContent = '＋ 案件追加';
+  addButton.addEventListener('click', function() {
+    showProjectForm(customer.id);
+  });
+  header.appendChild(addButton);
+  section.appendChild(header);
+
+  if (projectDataMessage) {
+    const message = document.createElement('p');
+    message.className = 'customer-hub-empty';
+    message.textContent = projectDataMessage;
+    section.appendChild(message);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'project-hub-list';
+  const projects = getProjectsByCustomerIdForClient(customer.id);
+
+  if (!projects.length) {
+    const empty = document.createElement('p');
+    empty.className = 'customer-hub-empty';
+    empty.textContent = '案件はまだ登録されていません';
+    list.appendChild(empty);
+  } else {
+    projects.forEach(function(project) {
+      list.appendChild(createProjectHubCard(project));
+    });
+  }
+
+  section.appendChild(list);
+
+  const formMount = document.createElement('div');
+  formMount.id = 'projectFormMount';
+  section.appendChild(formMount);
+
+  return section;
+}
+
+function createProjectHubCard(project) {
+  const card = document.createElement('article');
+  card.className = 'project-hub-card';
+
+  const title = document.createElement('p');
+  title.className = 'project-hub-card-title';
+  title.textContent = project.projectName;
+  card.appendChild(title);
+
+  const meta = document.createElement('div');
+  meta.className = 'project-hub-meta';
+  [
+    project.category,
+    project.status,
+    project.priority ? '優先度 ' + project.priority : ''
+  ].filter(Boolean).forEach(function(text) {
+    const chip = document.createElement('span');
+    chip.className = 'project-hub-chip';
+    chip.textContent = text;
+    meta.appendChild(chip);
+  });
+  card.appendChild(meta);
+
+  const grid = document.createElement('div');
+  grid.className = 'project-hub-grid';
+  [
+    ['次アクション', project.nextAction],
+    ['予定金額', formatProjectAmount(project.proposalAmount)],
+    ['予定工事日', project.expectedWorkDate],
+    ['入金予定日', project.expectedPaymentDate]
+  ].forEach(function(item) {
+    grid.appendChild(createProjectHubField(item[0], item[1]));
+  });
+  card.appendChild(grid);
+
+  const actions = document.createElement('div');
+  actions.className = 'project-hub-card-actions';
+  actions.appendChild(createProjectHubButton('編集', function() {
+    showProjectForm(project.customerId, project.id);
+  }, 'secondary-button'));
+  actions.appendChild(createProjectHubButton('削除', function(target) {
+    deleteProjectFromDetail(project.id, target);
+  }, 'customer-hub-danger-button'));
+  card.appendChild(actions);
+
+  return card;
+}
+
+function createProjectHubField(label, value) {
+  const item = document.createElement('div');
+  item.className = 'project-hub-field';
+
+  const labelNode = document.createElement('span');
+  labelNode.className = 'project-hub-label';
+  labelNode.textContent = label;
+  item.appendChild(labelNode);
+
+  const valueNode = document.createElement('span');
+  valueNode.className = 'project-hub-value';
+  valueNode.textContent = formatProjectValue(value);
+  item.appendChild(valueNode);
+
+  return item;
+}
+
+function createProjectHubButton(label, onClick, extraClassName) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = extraClassName || '';
+  button.textContent = label;
+  button.addEventListener('click', function() {
+    if (button.disabled) {
+      return;
+    }
+
+    onClick(button);
+  });
+  return button;
+}
+
 function createCustomerHubActions(customer) {
   const actions = document.createElement('div');
   actions.className = 'customer-hub-actions';
@@ -5632,10 +6069,6 @@ function createCustomerHubActions(customer) {
     actions.appendChild(createCustomerHubButton('☎ 電話番号未登録', function() {}, true));
   }
 
-  actions.appendChild(createCustomerHubButton('📄 案件（準備中）', function(target) {
-    playCustomerHubLine(target);
-  }, true));
-
   actions.appendChild(createCustomerHubButton('編集', function(target) {
     playCustomerHubLine(target);
     showCustomerForm(customer.id);
@@ -5643,7 +6076,7 @@ function createCustomerHubActions(customer) {
 
   actions.appendChild(createCustomerHubButton('削除', function(target) {
     playCustomerHubLine(target);
-    deleteCustomerFromDetail(customer.id);
+    deleteCustomerFromDetail(customer.id, target);
   }, false, 'customer-hub-danger-button'));
 
   return actions;
@@ -6125,6 +6558,43 @@ function renderCustomerForm(customer) {
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function setHubActionButtonBusy(button, label) {
+  if (!button) {
+    return;
+  }
+
+  if (!button.dataset.originalText) {
+    button.dataset.originalText = button.textContent;
+  }
+
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
+  button.textContent = label;
+}
+
+function restoreHubActionButton(button, fallbackLabel) {
+  if (!button) {
+    return;
+  }
+
+  button.disabled = false;
+  button.removeAttribute('aria-busy');
+  button.textContent = button.dataset.originalText || fallbackLabel || button.textContent;
+  delete button.dataset.originalText;
+}
+
+function getHubSaveBusyText(isUpdate) {
+  return isUpdate ? '更新中…' : '保存中…';
+}
+
+function getHubSaveSuccessText(isUpdate) {
+  return isUpdate ? '更新しました' : '保存しました';
+}
+
+function getHubErrorMessage(error) {
+  return error && error.message ? error.message : '時間をおいてもう一度お試しください。';
+}
+
 function saveCustomerFromForm() {
   const customer = getCustomerFormData();
 
@@ -6135,26 +6605,23 @@ function saveCustomerFromForm() {
   }
 
   const button = document.getElementById('saveCustomerButton');
-
-  if (button) {
-    button.disabled = true;
-    button.textContent = '保存中...';
-  }
+  const isUpdate = Boolean(customer.id);
+  setHubActionButtonBusy(button, getHubSaveBusyText(isUpdate));
 
   if (!window.google || !google.script || !google.script.run) {
     restoreCustomerSaveButton();
-    showCustomerHubMessage('Apps Script上で実行してください。', true);
+    showCustomerHubMessage('保存できませんでした：Apps Script上で実行してください。', true);
     return;
   }
 
   const runner = google.script.run
     .withSuccessHandler(function(result) {
       restoreCustomerSaveButton();
-      refreshCustomerHubAfterSave(result);
+      refreshCustomerHubAfterSave(result, getHubSaveSuccessText(isUpdate));
     })
     .withFailureHandler(function(error) {
       restoreCustomerSaveButton();
-      showCustomerHubMessage('保存に失敗しました：' + error.message, true);
+      showCustomerHubMessage('保存できませんでした：' + getHubErrorMessage(error), true);
     });
 
   if (customer.id) {
@@ -6177,7 +6644,7 @@ function getCustomerFormData() {
   return customer;
 }
 
-function deleteCustomerFromDetail(customerId) {
+function deleteCustomerFromDetail(customerId, button) {
   const id = String(customerId || '').trim();
   const customer = getCustomerById(id);
   const name = customer ? customer.companyName : id;
@@ -6191,18 +6658,21 @@ function deleteCustomerFromDetail(customerId) {
   }
 
   if (!window.google || !google.script || !google.script.run) {
-    showCustomerHubMessage('Apps Script上で実行してください。', true);
+    showCustomerHubMessage('削除できませんでした：Apps Script上で実行してください。', true);
     return;
   }
+
+  setHubActionButtonBusy(button, '削除中…');
 
   google.script.run
     .withSuccessHandler(function(result) {
       selectedCustomerHubId = '';
       resetCustomerForm();
-      refreshCustomerHubAfterSave(result);
+      refreshCustomerHubAfterSave(result, '削除しました');
     })
     .withFailureHandler(function(error) {
-      showCustomerHubMessage('削除に失敗しました：' + error.message, true);
+      restoreHubActionButton(button, '削除');
+      showCustomerHubMessage('削除できませんでした：' + getHubErrorMessage(error), true);
     })
     .deleteCustomer(id);
 }
@@ -6232,21 +6702,22 @@ function resetCustomerForm(options) {
   }
 }
 
-function refreshCustomerHubAfterSave(result) {
+function refreshCustomerHubAfterSave(result, messageText) {
   const nextSelectedId = result && result.id ? result.id : selectedCustomerHubId;
   selectedCustomerHubId = nextSelectedId || '';
+  const nextMessage = messageText || (result && result.message) || '';
 
   if (result && Array.isArray(result.customers)) {
     setCustomerData(result.customers, {
-      message: result.message || '',
+      message: nextMessage,
       allowEmpty: true
     });
-    showCustomerHubMessage(result.message || '');
+    showCustomerHubMessage(nextMessage);
     return;
   }
 
-  if (result && result.message) {
-    showCustomerHubMessage(result.message);
+  if (nextMessage) {
+    showCustomerHubMessage(nextMessage);
   }
 
   loadCustomersFromServer();
@@ -6259,8 +6730,7 @@ function restoreCustomerSaveButton() {
     return;
   }
 
-  button.disabled = false;
-  button.textContent = '保存';
+  restoreHubActionButton(button, '保存');
 }
 
 function showCustomerHubMessage(text, isError) {
@@ -6274,6 +6744,290 @@ function showCustomerHubMessage(text, isError) {
     message.style.color = isError ? '#b3261e' : '#116b4d';
     message.style.background = isError ? '#fff7f6' : '#f0fdf4';
   }
+}
+
+function showProjectForm(customerId, projectId) {
+  const project = projectId ? getProjectByIdForClient(projectId) : null;
+  renderProjectForm(String(customerId || selectedCustomerHubId || '').trim(), project || { id: '' });
+}
+
+function renderProjectForm(customerId, project) {
+  const mount = document.getElementById('projectFormMount');
+
+  if (!mount || !customerId) {
+    return;
+  }
+
+  mount.replaceChildren();
+
+  const form = document.createElement('form');
+  form.className = 'project-hub-form';
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    saveProjectFromForm();
+  });
+
+  const idInput = document.createElement('input');
+  idInput.type = 'hidden';
+  idInput.id = 'projectFormId';
+  idInput.value = project.id || '';
+  form.appendChild(idInput);
+
+  const customerInput = document.createElement('input');
+  customerInput.type = 'hidden';
+  customerInput.id = 'projectFormCustomerId';
+  customerInput.value = customerId;
+  form.appendChild(customerInput);
+
+  const title = document.createElement('h3');
+  title.className = 'project-hub-form-title';
+  title.textContent = project.id ? '案件編集' : '案件追加';
+  form.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'project-hub-form-grid';
+
+  grid.appendChild(createProjectTextField('projectFormProjectName', '案件名', project.projectName, true, 'full'));
+  grid.appendChild(createProjectSelectField('projectFormCategory', 'カテゴリ', project.category, [
+    'LED',
+    '空調',
+    '新電力',
+    'エレベーター',
+    '給食',
+    '工事',
+    'その他'
+  ]));
+  grid.appendChild(createProjectSelectField('projectFormStatus', 'ステータス', project.status, [
+    '提案前',
+    '提案中',
+    '見積中',
+    '契約予定',
+    '契約済',
+    '失注',
+    '完了'
+  ]));
+  grid.appendChild(createProjectSelectField('projectFormPriority', '優先度', project.priority, [
+    '高',
+    '中',
+    '低'
+  ]));
+  grid.appendChild(createProjectTextField('projectFormProposalAmount', '予定金額', project.proposalAmount, false, '', 'number'));
+  grid.appendChild(createProjectTextField('projectFormCostAmount', '原価', project.costAmount, false, '', 'number'));
+  grid.appendChild(createProjectTextField('projectFormProfitAmount', '粗利', project.profitAmount, false, '', 'number'));
+  grid.appendChild(createProjectTextField('projectFormExpectedOrderDate', '受注予定日', project.expectedOrderDate, false, '', 'date'));
+  grid.appendChild(createProjectTextField('projectFormExpectedWorkDate', '予定工事日', project.expectedWorkDate, false, '', 'date'));
+  grid.appendChild(createProjectTextField('projectFormExpectedPaymentDate', '入金予定日', project.expectedPaymentDate, false, '', 'date'));
+  grid.appendChild(createProjectTextField('projectFormNextAction', '次アクション', project.nextAction, false, 'full'));
+  grid.appendChild(createProjectTextareaField('projectFormMemo', 'メモ', project.memo, 'full'));
+  grid.appendChild(createProjectTextareaField('projectFormNotes', '備考', project.notes, 'full'));
+
+  form.appendChild(grid);
+
+  const actions = document.createElement('div');
+  actions.className = 'project-hub-form-actions';
+
+  const saveButton = document.createElement('button');
+  saveButton.type = 'submit';
+  saveButton.id = 'saveProjectButton';
+  saveButton.textContent = '保存';
+  actions.appendChild(saveButton);
+
+  const cancelButton = document.createElement('button');
+  cancelButton.type = 'button';
+  cancelButton.className = 'secondary-button';
+  cancelButton.textContent = 'キャンセル';
+  cancelButton.addEventListener('click', resetProjectForm);
+  actions.appendChild(cancelButton);
+
+  form.appendChild(actions);
+  mount.appendChild(form);
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function createProjectTextField(id, label, value, required, extraClassName, type) {
+  const field = document.createElement('div');
+  field.className = ['field', extraClassName || ''].filter(Boolean).join(' ');
+
+  const labelNode = document.createElement('label');
+  labelNode.setAttribute('for', id);
+  labelNode.textContent = label;
+  field.appendChild(labelNode);
+
+  const input = document.createElement('input');
+  input.id = id;
+  input.type = type || 'text';
+  input.value = value === 0 ? 0 : (value || '');
+
+  if (required) {
+    input.required = true;
+  }
+
+  if (type === 'number') {
+    input.inputMode = 'numeric';
+  }
+
+  field.appendChild(input);
+  return field;
+}
+
+function createProjectSelectField(id, label, value, options) {
+  const field = document.createElement('div');
+  field.className = 'field';
+
+  const labelNode = document.createElement('label');
+  labelNode.setAttribute('for', id);
+  labelNode.textContent = label;
+  field.appendChild(labelNode);
+
+  const select = document.createElement('select');
+  select.id = id;
+
+  const empty = document.createElement('option');
+  empty.value = '';
+  empty.textContent = '';
+  select.appendChild(empty);
+
+  options.forEach(function(optionValue) {
+    const option = document.createElement('option');
+    option.value = optionValue;
+    option.textContent = optionValue;
+    select.appendChild(option);
+  });
+
+  select.value = value || '';
+  field.appendChild(select);
+  return field;
+}
+
+function createProjectTextareaField(id, label, value, extraClassName) {
+  const field = document.createElement('div');
+  field.className = ['field', extraClassName || ''].filter(Boolean).join(' ');
+
+  const labelNode = document.createElement('label');
+  labelNode.setAttribute('for', id);
+  labelNode.textContent = label;
+  field.appendChild(labelNode);
+
+  const textarea = document.createElement('textarea');
+  textarea.id = id;
+  textarea.rows = 4;
+  textarea.value = value || '';
+  field.appendChild(textarea);
+  return field;
+}
+
+function saveProjectFromForm() {
+  const project = getProjectFormData();
+
+  if (!project.projectName) {
+    showCustomerHubMessage('案件名を入力してください。', true);
+    document.getElementById('projectFormProjectName').focus();
+    return;
+  }
+
+  const button = document.getElementById('saveProjectButton');
+  const isUpdate = Boolean(project.id);
+  setHubActionButtonBusy(button, getHubSaveBusyText(isUpdate));
+
+  if (!window.google || !google.script || !google.script.run) {
+    restoreProjectSaveButton();
+    showCustomerHubMessage('保存できませんでした：Apps Script上で実行してください。', true);
+    return;
+  }
+
+  const runner = google.script.run
+    .withSuccessHandler(function(result) {
+      restoreProjectSaveButton();
+      refreshProjectHubAfterSave(result, getHubSaveSuccessText(isUpdate));
+    })
+    .withFailureHandler(function(error) {
+      restoreProjectSaveButton();
+      showCustomerHubMessage('保存できませんでした：' + getHubErrorMessage(error), true);
+    });
+
+  if (project.id) {
+    runner.updateProject(project);
+  } else {
+    runner.addProject(project);
+  }
+}
+
+function getProjectFormData() {
+  const project = {
+    id: document.getElementById('projectFormId').value.trim(),
+    customerId: document.getElementById('projectFormCustomerId').value.trim()
+  };
+
+  Object.keys(PROJECT_FORM_FIELDS).forEach(function(field) {
+    const input = document.getElementById(PROJECT_FORM_FIELDS[field]);
+    project[field] = input ? input.value.trim() : '';
+  });
+
+  return project;
+}
+
+function deleteProjectFromDetail(projectId, button) {
+  const project = getProjectByIdForClient(projectId);
+  const name = project ? project.projectName : projectId;
+
+  if (!projectId) {
+    return;
+  }
+
+  if (!window.confirm('案件「' + name + '」を削除します。\nこの操作は元に戻せません。削除してよろしいですか？')) {
+    return;
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    showCustomerHubMessage('削除できませんでした：Apps Script上で実行してください。', true);
+    return;
+  }
+
+  setHubActionButtonBusy(button, '削除中…');
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      refreshProjectHubAfterSave(result, '削除しました');
+    })
+    .withFailureHandler(function(error) {
+      restoreHubActionButton(button, '削除');
+      showCustomerHubMessage('削除できませんでした：' + getHubErrorMessage(error), true);
+    })
+    .deleteProject(projectId);
+}
+
+function resetProjectForm() {
+  const mount = document.getElementById('projectFormMount');
+
+  if (mount) {
+    mount.replaceChildren();
+  }
+}
+
+function refreshProjectHubAfterSave(result, messageText) {
+  if (result && Array.isArray(result.projects)) {
+    setProjectData(result.projects);
+  }
+
+  const nextMessage = messageText || (result && result.message) || '';
+
+  if (nextMessage) {
+    showCustomerHubMessage(nextMessage);
+  }
+
+  if (selectedCustomerHubId) {
+    showCustomerHubDetail(selectedCustomerHubId);
+  }
+}
+
+function restoreProjectSaveButton() {
+  const button = document.getElementById('saveProjectButton');
+
+  if (!button) {
+    return;
+  }
+
+  restoreHubActionButton(button, '保存');
 }
 
 function saveDraft() {

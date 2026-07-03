@@ -5,6 +5,8 @@
 
 var CUSTOMER_SPREADSHEET_ID = '';
 var CUSTOMER_SHEET_NAME = '顧客DB';
+var PROJECT_SPREADSHEET_ID = '';
+var PROJECT_SHEET_NAME = '案件DB';
 
 
 /**
@@ -902,6 +904,144 @@ function setCustomerDbColumnWidth_(sheet, headerName, width) {
  * ACTIVITY_LOG_SPREADSHEET_ID, AI_PROPOSAL_SPREADSHEET_ID
  * DriveAppでファイル名検索しないことで、権限エラーや同名ファイル問題を避けます。
  */
+function setupProjectDbSheet() {
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName(PROJECT_SHEET_NAME);
+  var wasCreated = false;
+  var headers = getProjectDbHeaders_();
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(PROJECT_SHEET_NAME);
+    wasCreated = true;
+  }
+
+  var lastRow = sheet.getLastRow();
+  var headerResult = ensureProjectDbHeaders_(sheet, headers);
+
+  styleProjectDbSheet_(sheet, headers);
+
+  PropertiesService
+    .getScriptProperties()
+    .setProperty('PROJECT_SPREADSHEET_ID', spreadsheet.getId());
+
+  var result = {
+    message: PROJECT_SHEET_NAME + 'シートの初期化が完了しました。',
+    spreadsheetId: spreadsheet.getId(),
+    sheetName: PROJECT_SHEET_NAME,
+    wasCreated: wasCreated,
+    wroteHeaders: headerResult.wroteHeaders,
+    addedHeaders: headerResult.addedHeaders,
+    existingRows: lastRow
+  };
+
+  Logger.log(JSON.stringify(result, null, 2));
+
+  return result;
+}
+
+function getProjectDbHeaders_() {
+  return [
+    'id',
+    'customerId',
+    'projectName',
+    'category',
+    'status',
+    'priority',
+    'proposalAmount',
+    'costAmount',
+    'profitAmount',
+    'expectedOrderDate',
+    'expectedWorkDate',
+    'expectedPaymentDate',
+    'nextAction',
+    'memo',
+    'createdAt',
+    'updatedAt',
+    'notes'
+  ];
+}
+
+function getProjectDbHeaderValues_(sheet) {
+  var lastColumn = sheet.getLastColumn();
+
+  if (!lastColumn) {
+    return [];
+  }
+
+  return sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .map(function(header) {
+      return String(header || '').trim();
+    });
+}
+
+function ensureProjectDbHeaders_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  var hasExistingHeaders = headerValues.some(function(value) {
+    return String(value || '').trim() !== '';
+  });
+  var result = {
+    wroteHeaders: false,
+    addedHeaders: []
+  };
+
+  if (!hasExistingHeaders) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    result.wroteHeaders = true;
+    return result;
+  }
+
+  desiredHeaders.forEach(function(header) {
+    if (headerValues.indexOf(header) === -1) {
+      headerValues.push(header);
+      result.addedHeaders.push(header);
+    }
+  });
+
+  sheet.getRange(1, 1, 1, headerValues.length).setValues([headerValues]);
+  result.wroteHeaders = result.addedHeaders.length > 0;
+  return result;
+}
+
+function styleProjectDbSheet_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
+
+  if (!sheet.getFilter()) {
+    sheet
+      .getRange(1, 1, Math.max(sheet.getLastRow(), 1), lastColumn)
+      .createFilter();
+  }
+
+  sheet.setColumnWidths(1, lastColumn, 130);
+  setProjectDbColumnWidth_(sheet, 'customerId', 140);
+  setProjectDbColumnWidth_(sheet, 'projectName', 220);
+  setProjectDbColumnWidth_(sheet, 'category', 130);
+  setProjectDbColumnWidth_(sheet, 'status', 130);
+  setProjectDbColumnWidth_(sheet, 'proposalAmount', 150);
+  setProjectDbColumnWidth_(sheet, 'costAmount', 140);
+  setProjectDbColumnWidth_(sheet, 'profitAmount', 140);
+  setProjectDbColumnWidth_(sheet, 'expectedOrderDate', 160);
+  setProjectDbColumnWidth_(sheet, 'expectedWorkDate', 160);
+  setProjectDbColumnWidth_(sheet, 'expectedPaymentDate', 170);
+  setProjectDbColumnWidth_(sheet, 'nextAction', 220);
+  setProjectDbColumnWidth_(sheet, 'memo', 220);
+  setProjectDbColumnWidth_(sheet, 'notes', 220);
+}
+
+function setProjectDbColumnWidth_(sheet, headerName, width) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var index = headers.indexOf(headerName);
+
+  if (index !== -1) {
+    sheet.setColumnWidth(index + 1, width);
+  }
+}
+
 function getTaskSpreadsheet_() {
   var spreadsheetId = PropertiesService
     .getScriptProperties()
@@ -1144,6 +1284,326 @@ function buildCustomerRowForHeaders_(customer, headers, existingRow) {
 
 function deleteCustomerRow_(sheet, rowNumber) {
   sheet.deleteRow(rowNumber);
+}
+
+function getProjects() {
+  var sheet = getProjectSheet_();
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    return [];
+  }
+
+  var headers = values[0].map(function(header) {
+    return String(header || '').trim();
+  });
+
+  return values
+    .slice(1)
+    .map(function(row) {
+      return normalizeProjectRow_(row, headers);
+    })
+    .filter(function(project) {
+      return project.id && project.customerId && project.projectName;
+    });
+}
+
+function getProjectsByCustomerId(customerId) {
+  var id = String(customerId || '').trim();
+
+  if (!id) {
+    return [];
+  }
+
+  return getProjects().filter(function(project) {
+    return project.customerId === id;
+  });
+}
+
+function addProject(project) {
+  var data = project || {};
+  var customerId = String(data.customerId || '').trim();
+  var projectName = String(data.projectName || '').trim();
+
+  if (!customerId) {
+    throw new Error('顧客IDがありません。');
+  }
+
+  if (!projectName) {
+    throw new Error('案件名を入力してください。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getProjectSheet_();
+    ensureProjectDbHeaders_(sheet, getProjectDbHeaders_());
+    var headers = getProjectDbHeaderValues_(sheet);
+    var now = new Date();
+    var id = String(data.id || '').trim() || generateProjectId_();
+    var row = buildProjectRowForHeaders_(Object.assign({}, data, {
+      id: id,
+      customerId: customerId,
+      projectName: projectName,
+      createdAt: now,
+      updatedAt: now
+    }), headers);
+
+    sheet.appendRow(row);
+
+    return {
+      id: id,
+      message: '案件を追加しました。',
+      project: getProjectById_(id),
+      projects: getProjects()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function updateProject(project) {
+  var data = project || {};
+  var id = String(data.id || '').trim();
+  var customerId = String(data.customerId || '').trim();
+  var projectName = String(data.projectName || '').trim();
+
+  if (!id) {
+    throw new Error('案件IDがありません。');
+  }
+
+  if (!customerId) {
+    throw new Error('顧客IDがありません。');
+  }
+
+  if (!projectName) {
+    throw new Error('案件名を入力してください。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getProjectSheet_();
+    ensureProjectDbHeaders_(sheet, getProjectDbHeaders_());
+    var headers = getProjectDbHeaderValues_(sheet);
+    var rowNumber = findProjectRowById_(sheet, id);
+
+    if (!rowNumber) {
+      throw new Error('更新対象の案件が見つかりません。');
+    }
+
+    var existingRow = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var createdAtIndex = headers.indexOf('createdAt');
+    var row = buildProjectRowForHeaders_(Object.assign({}, data, {
+      id: id,
+      customerId: customerId,
+      projectName: projectName,
+      createdAt: createdAtIndex === -1 ? '' : existingRow[createdAtIndex],
+      updatedAt: new Date()
+    }), headers, existingRow);
+
+    sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+
+    return {
+      id: id,
+      message: '案件情報を更新しました。',
+      project: getProjectById_(id),
+      projects: getProjects()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function deleteProject(projectId) {
+  var id = String(projectId || '').trim();
+
+  if (!id) {
+    throw new Error('案件IDがありません。');
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var sheet = getProjectSheet_();
+    var rowNumber = findProjectRowById_(sheet, id);
+
+    if (!rowNumber) {
+      throw new Error('削除対象の案件が見つかりません。');
+    }
+
+    sheet.deleteRow(rowNumber);
+
+    return {
+      id: id,
+      message: '案件を削除しました。',
+      projects: getProjects()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function generateProjectId_() {
+  var sheet = getProjectSheet_();
+  var headers = getProjectDbHeaderValues_(sheet);
+  var idColumn = headers.indexOf('id');
+  var lastRow = sheet.getLastRow();
+  var maxNumber = 0;
+
+  if (idColumn === -1 || lastRow < 2) {
+    return 'P000001';
+  }
+
+  sheet
+    .getRange(2, idColumn + 1, lastRow - 1, 1)
+    .getValues()
+    .forEach(function(row) {
+      var id = String(row[0] || '').trim();
+      var match = id.match(/(\d+)$/);
+
+      if (match) {
+        maxNumber = Math.max(maxNumber, Number(match[1]));
+      }
+    });
+
+  return 'P' + ('000000' + (maxNumber + 1)).slice(-6);
+}
+
+function findProjectRowById_(sheet, projectId) {
+  var id = String(projectId || '').trim();
+  var headers = getProjectDbHeaderValues_(sheet);
+  var idColumn = headers.indexOf('id');
+  var lastRow = sheet.getLastRow();
+
+  if (!id || idColumn === -1 || lastRow < 2) {
+    return 0;
+  }
+
+  var values = sheet.getRange(2, idColumn + 1, lastRow - 1, 1).getValues();
+
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0] || '').trim() === id) {
+      return i + 2;
+    }
+  }
+
+  return 0;
+}
+
+function buildProjectRowForHeaders_(project, headers, existingRow) {
+  var data = project || {};
+  var existing = existingRow || [];
+  var knownFields = getProjectDbHeaders_().reduce(function(result, header) {
+    result[header] = true;
+    return result;
+  }, {});
+
+  return headers.map(function(header, index) {
+    if (Object.prototype.hasOwnProperty.call(data, header)) {
+      return data[header];
+    }
+
+    if (!knownFields[header]) {
+      return existing[index] === undefined || existing[index] === null
+        ? ''
+        : existing[index];
+    }
+
+    return '';
+  });
+}
+
+function getProjectById_(projectId) {
+  var id = String(projectId || '').trim();
+
+  return getProjects().filter(function(project) {
+    return project.id === id;
+  })[0] || null;
+}
+
+function normalizeProjectRow_(row, headers) {
+  function value(name) {
+    var index = headers.indexOf(name);
+    return index === -1 ? '' : row[index];
+  }
+
+  function text(name) {
+    var rawValue = value(name);
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return '';
+    }
+
+    return String(rawValue).trim();
+  }
+
+  function dateText(name) {
+    var rawValue = value(name);
+
+    if (Object.prototype.toString.call(rawValue) === '[object Date]' && !isNaN(rawValue.getTime())) {
+      return Utilities.formatDate(rawValue, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      return '';
+    }
+
+    return String(rawValue).trim();
+  }
+
+  return {
+    id: text('id'),
+    customerId: text('customerId'),
+    projectName: text('projectName'),
+    category: text('category'),
+    status: text('status'),
+    priority: text('priority'),
+    proposalAmount: text('proposalAmount'),
+    costAmount: text('costAmount'),
+    profitAmount: text('profitAmount'),
+    expectedOrderDate: dateText('expectedOrderDate'),
+    expectedWorkDate: dateText('expectedWorkDate'),
+    expectedPaymentDate: dateText('expectedPaymentDate'),
+    nextAction: text('nextAction'),
+    memo: text('memo'),
+    createdAt: dateText('createdAt'),
+    updatedAt: dateText('updatedAt'),
+    notes: text('notes')
+  };
+}
+
+function getProjectSheet_() {
+  var properties = PropertiesService.getScriptProperties();
+  var spreadsheetId = PROJECT_SPREADSHEET_ID ||
+    properties.getProperty('PROJECT_SPREADSHEET_ID') ||
+    properties.getProperty('TASK_SPREADSHEET_ID');
+
+  if (!spreadsheetId) {
+    throw new Error('TASK_SPREADSHEET_IDが未設定です。setupTaskSpreadsheet()を実行してからsetupProjectDbSheet()を実行してください。');
+  }
+
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName(PROJECT_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(PROJECT_SHEET_NAME);
+    PropertiesService
+      .getScriptProperties()
+      .setProperty('PROJECT_SPREADSHEET_ID', spreadsheet.getId());
+  }
+
+  if (!sheet) {
+    throw new Error(PROJECT_SHEET_NAME + 'シートが見つかりません。');
+  }
+
+  ensureProjectDbHeaders_(sheet, getProjectDbHeaders_());
+  styleProjectDbSheet_(sheet, getProjectDbHeaders_());
+
+  return sheet;
 }
 
 function normalizeCustomerRow_(row, headers) {
