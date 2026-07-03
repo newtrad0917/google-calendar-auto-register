@@ -7,6 +7,8 @@ var CUSTOMER_SPREADSHEET_ID = '';
 var CUSTOMER_SHEET_NAME = '顧客DB';
 var PROJECT_SPREADSHEET_ID = '';
 var PROJECT_SHEET_NAME = '案件DB';
+var SALES_MEMO_SPREADSHEET_ID = '';
+var SALES_MEMO_SHEET_NAME = '営業メモDB';
 
 
 /**
@@ -1034,6 +1036,247 @@ function styleProjectDbSheet_(sheet, desiredHeaders) {
 }
 
 function setProjectDbColumnWidth_(sheet, headerName, width) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var index = headers.indexOf(headerName);
+
+  if (index !== -1) {
+    sheet.setColumnWidth(index + 1, width);
+  }
+}
+
+function setupSalesMemoDbSheet() {
+  var spreadsheet = getTaskSpreadsheet_();
+  var sheet = spreadsheet.getSheetByName(SALES_MEMO_SHEET_NAME);
+  var wasCreated = false;
+  var headers = getSalesMemoDbHeaders_();
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(SALES_MEMO_SHEET_NAME);
+    wasCreated = true;
+  }
+
+  var lastRow = sheet.getLastRow();
+  var headerResult = ensureSalesMemoDbHeaders_(sheet, headers);
+
+  styleSalesMemoDbSheet_(sheet, headers);
+
+  PropertiesService
+    .getScriptProperties()
+    .setProperty('SALES_MEMO_SPREADSHEET_ID', spreadsheet.getId());
+
+  var result = {
+    message: SALES_MEMO_SHEET_NAME + 'シートの初期化が完了しました。',
+    spreadsheetId: spreadsheet.getId(),
+    sheetName: SALES_MEMO_SHEET_NAME,
+    wasCreated: wasCreated,
+    wroteHeaders: headerResult.wroteHeaders,
+    addedHeaders: headerResult.addedHeaders,
+    existingRows: lastRow
+  };
+
+  Logger.log(JSON.stringify(result, null, 2));
+
+  return result;
+}
+
+function addSalesMemo(memo) {
+  var data = memo || {};
+  var sheet = getSalesMemoSheet_();
+  var headers = getSalesMemoDbHeaderValues_(sheet);
+  var now = new Date();
+  var id = String(data.id || '').trim() || generateSalesMemoId_();
+  var row = buildSalesMemoRowForHeaders_(Object.assign({}, data, {
+    id: id,
+    createdAt: now,
+    updatedAt: now
+  }), headers);
+  var todoResult = null;
+  var todoError = '';
+  var todoText = String(data.todoText || '').trim();
+
+  sheet.appendRow(row);
+
+  if (todoText) {
+    try {
+      todoResult = addTask({
+        title: todoText,
+        category: '営業',
+        dueDate: String(data.nextVisitDate || '').trim(),
+        priority: '中',
+        memo: String(data.memo || data.nextAction || '').trim()
+      });
+    } catch (error) {
+      todoError = error && error.message ? error.message : String(error || '');
+    }
+  }
+
+  return {
+    id: id,
+    message: '営業メモを保存しました。',
+    todoAdded: Boolean(todoResult),
+    todoError: todoError
+  };
+}
+
+function generateSalesMemoId_() {
+  var sheet = getSalesMemoSheet_();
+  var headers = getSalesMemoDbHeaderValues_(sheet);
+  var idColumn = headers.indexOf('id');
+  var lastRow = sheet.getLastRow();
+  var maxNumber = 0;
+
+  if (idColumn === -1 || lastRow < 2) {
+    return 'M000001';
+  }
+
+  sheet
+    .getRange(2, idColumn + 1, lastRow - 1, 1)
+    .getValues()
+    .forEach(function(row) {
+      var id = String(row[0] || '').trim();
+      var match = id.match(/(\d+)$/);
+
+      if (match) {
+        maxNumber = Math.max(maxNumber, Number(match[1]));
+      }
+    });
+
+  return 'M' + ('000000' + (maxNumber + 1)).slice(-6);
+}
+
+function getSalesMemoSheet_() {
+  var properties = PropertiesService.getScriptProperties();
+  var spreadsheetId = SALES_MEMO_SPREADSHEET_ID ||
+    properties.getProperty('SALES_MEMO_SPREADSHEET_ID') ||
+    properties.getProperty('TASK_SPREADSHEET_ID');
+
+  if (!spreadsheetId) {
+    throw new Error('TASK_SPREADSHEET_IDが未設定です。setupTaskSpreadsheet()を実行してからsetupSalesMemoDbSheet()を実行してください。');
+  }
+
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName(SALES_MEMO_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(SALES_MEMO_SHEET_NAME);
+    PropertiesService
+      .getScriptProperties()
+      .setProperty('SALES_MEMO_SPREADSHEET_ID', spreadsheet.getId());
+  }
+
+  ensureSalesMemoDbHeaders_(sheet, getSalesMemoDbHeaders_());
+  styleSalesMemoDbSheet_(sheet, getSalesMemoDbHeaders_());
+
+  return sheet;
+}
+
+function buildSalesMemoRowForHeaders_(memo, headers, existingRow) {
+  var data = memo || {};
+  var existing = existingRow || [];
+  var knownFields = getSalesMemoDbHeaders_().reduce(function(result, header) {
+    result[header] = true;
+    return result;
+  }, {});
+
+  return headers.map(function(header, index) {
+    if (Object.prototype.hasOwnProperty.call(data, header)) {
+      return data[header];
+    }
+
+    if (!knownFields[header]) {
+      return existing[index] === undefined || existing[index] === null
+        ? ''
+        : existing[index];
+    }
+
+    return '';
+  });
+}
+
+function getSalesMemoDbHeaders_() {
+  return [
+    'id',
+    'customerId',
+    'projectId',
+    'eventTitle',
+    'visitDate',
+    'contactName',
+    'memo',
+    'nextAction',
+    'nextVisitDate',
+    'todoText',
+    'createdAt',
+    'updatedAt',
+    'notes'
+  ];
+}
+
+function getSalesMemoDbHeaderValues_(sheet) {
+  var lastColumn = sheet.getLastColumn();
+
+  if (!lastColumn) {
+    return [];
+  }
+
+  return sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .map(function(header) {
+      return String(header || '').trim();
+    });
+}
+
+function ensureSalesMemoDbHeaders_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  var hasExistingHeaders = headerValues.some(function(value) {
+    return String(value || '').trim() !== '';
+  });
+  var result = {
+    wroteHeaders: false,
+    addedHeaders: []
+  };
+
+  if (!hasExistingHeaders) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    result.wroteHeaders = true;
+    return result;
+  }
+
+  desiredHeaders.forEach(function(header) {
+    if (headerValues.indexOf(header) === -1) {
+      headerValues.push(header);
+      result.addedHeaders.push(header);
+    }
+  });
+
+  sheet.getRange(1, 1, 1, headerValues.length).setValues([headerValues]);
+  result.wroteHeaders = result.addedHeaders.length > 0;
+  return result;
+}
+
+function styleSalesMemoDbSheet_(sheet, desiredHeaders) {
+  var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
+
+  if (!sheet.getFilter()) {
+    sheet
+      .getRange(1, 1, Math.max(sheet.getLastRow(), 1), lastColumn)
+      .createFilter();
+  }
+
+  sheet.setColumnWidths(1, lastColumn, 130);
+  setSalesMemoDbColumnWidth_(sheet, 'eventTitle', 220);
+  setSalesMemoDbColumnWidth_(sheet, 'contactName', 150);
+  setSalesMemoDbColumnWidth_(sheet, 'memo', 260);
+  setSalesMemoDbColumnWidth_(sheet, 'nextAction', 220);
+  setSalesMemoDbColumnWidth_(sheet, 'todoText', 220);
+  setSalesMemoDbColumnWidth_(sheet, 'notes', 220);
+}
+
+function setSalesMemoDbColumnWidth_(sheet, headerName, width) {
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var index = headers.indexOf(headerName);
 

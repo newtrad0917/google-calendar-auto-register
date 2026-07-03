@@ -2676,6 +2676,54 @@ body {
   background: #f8fafc;
 }
 
+.sales-memo-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+}
+
+.sales-memo-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 52px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(23, 105, 170, 0.92), rgba(125, 211, 252, 0));
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.sales-memo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.sales-memo-grid .full {
+  grid-column: 1 / -1;
+}
+
+.sales-memo-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.sales-memo-actions button {
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
 .schedule-day-group {
   padding: 12px 0 !important;
   border-top: 1px solid rgba(226, 232, 240, 0.92) !important;
@@ -2766,6 +2814,15 @@ body {
 
   .schedule-sales-head,
   .schedule-sales-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-memo-card {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .sales-memo-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -5198,6 +5255,73 @@ body.ai-processing .assistant-briefing-icon {
 </section>
 
 <hr class="divider">
+<section id="salesMemoSection" class="hidden">
+  <div class="sales-memo-card">
+    <h2 class="section-title">訪問完了・報告</h2>
+    <p class="section-description">
+      訪問後のメモと次アクションを営業メモDBへ保存します。
+    </p>
+
+    <input id="salesMemoCustomerId" type="hidden">
+    <input id="salesMemoProjectId" type="hidden">
+    <input id="salesMemoEventTitle" type="hidden">
+
+    <div class="sales-memo-grid">
+      <div class="field">
+        <label for="salesMemoVisitDate">訪問日</label>
+        <input id="salesMemoVisitDate" type="date">
+      </div>
+
+      <div class="field">
+        <label for="salesMemoCustomerName">顧客名</label>
+        <input id="salesMemoCustomerName" type="text" readonly>
+      </div>
+
+      <div class="field">
+        <label for="salesMemoContactName">担当者</label>
+        <input id="salesMemoContactName" type="text">
+      </div>
+
+      <div class="field full">
+        <label for="salesMemoMemo">商談メモ</label>
+        <textarea id="salesMemoMemo" rows="5" placeholder="話した内容、反応、温度感など"></textarea>
+      </div>
+
+      <div class="field full">
+        <label for="salesMemoNextAction">次アクション</label>
+        <input id="salesMemoNextAction" type="text" placeholder="例：見積内容を確認して送付">
+      </div>
+
+      <div class="field">
+        <label for="salesMemoNextVisitDate">次回訪問予定日</label>
+        <input id="salesMemoNextVisitDate" type="date">
+      </div>
+
+      <div class="field full">
+        <label for="salesMemoTodoText">TODO化する内容</label>
+        <input id="salesMemoTodoText" type="text" placeholder="例：見積書を作成する">
+      </div>
+
+      <div class="field full">
+        <label for="salesMemoNotes">備考</label>
+        <textarea id="salesMemoNotes" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="sales-memo-actions">
+      <button type="button" id="saveSalesMemoButton" onclick="saveSalesMemoReport()">
+        報告を保存
+      </button>
+      <button type="button" class="secondary-button" onclick="cancelSalesMemoReport()">
+        ホームに戻る
+      </button>
+    </div>
+
+    <div id="salesMemoMessage" class="message hidden" role="status" aria-live="polite"></div>
+  </div>
+</section>
+
+<hr class="divider">
       <div id="message" class="message hidden" role="status" aria-live="polite"></div>
     </div>
   </main>
@@ -5226,6 +5350,7 @@ body.ai-processing .assistant-briefing-icon {
     let lastScheduleEvents = null;
     let lastScheduleView = '';
     let lastScheduleDateKey = '';
+    let isSavingSalesMemo = false;
     const WEATHER_LOCATION = {
       name: '朝倉',
       latitude: 33.42,
@@ -5344,9 +5469,10 @@ body.ai-processing .assistant-briefing-icon {
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
   const gmailDraftSection = document.getElementById('gmailDraftSection');
-const contactSection = document.getElementById('contactSection');
+  const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
   homeSection.classList.remove('hidden');
   inputSection.classList.add('hidden');
   confirmSection.classList.add('hidden');
@@ -5354,6 +5480,7 @@ const contactSection = document.getElementById('contactSection');
   contactSection.classList.add('hidden');
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
 document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
   runInitialHomeTask('Assistant briefing', function() {
@@ -5444,9 +5571,10 @@ function showCalendarScreen(options) {
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
   const gmailDraftSection = document.getElementById('gmailDraftSection');
-const contactSection = document.getElementById('contactSection');
+  const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
   homeSection.classList.add('hidden');
   inputSection.classList.remove('hidden');
   confirmSection.classList.add('hidden');
@@ -5454,6 +5582,7 @@ const contactSection = document.getElementById('contactSection');
   contactSection.classList.add('hidden');
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.remove('hidden');
   applyCalendarDatePrefill(options && options.prefillDate);
@@ -5481,9 +5610,10 @@ function showMailScreen(options) {
   const inputSection = document.getElementById('inputSection');
   const confirmSection = document.getElementById('confirmSection');
   const gmailDraftSection = document.getElementById('gmailDraftSection');
-const contactSection = document.getElementById('contactSection');
+  const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
   homeSection.classList.add('hidden');
   inputSection.classList.add('hidden');
   confirmSection.classList.add('hidden');
@@ -5491,6 +5621,7 @@ const contactSection = document.getElementById('contactSection');
   contactSection.classList.add('hidden');
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.add('hidden');
 
@@ -5512,12 +5643,14 @@ function showContactScreen(options) {
   const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
 
   homeSection.classList.add('hidden');
   inputSection.classList.add('hidden');
   confirmSection.classList.add('hidden');
   gmailDraftSection.classList.add('hidden');
   todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
 
   contactSection.classList.remove('hidden');
   customerHubSection.classList.add('hidden');
@@ -5550,6 +5683,7 @@ function showCustomerHubScreen(options) {
   const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
 
   homeSection.classList.add('hidden');
   inputSection.classList.add('hidden');
@@ -5557,6 +5691,7 @@ function showCustomerHubScreen(options) {
   gmailDraftSection.classList.add('hidden');
   contactSection.classList.add('hidden');
   todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
   customerHubSection.classList.remove('hidden');
 
   document.getElementById('appHeader').classList.remove('hidden');
@@ -8157,7 +8292,8 @@ function clearScreenMessages() {
     'message',
     'draftMessage',
     'contactSearchMessage',
-    'taskMessage'
+    'taskMessage',
+    'salesMemoMessage'
   ].forEach(function(id) {
     const element = document.getElementById(id);
 
@@ -8452,6 +8588,7 @@ function showTaskForm(options) {
   const contactSection = document.getElementById('contactSection');
   const customerHubSection = document.getElementById('customerHubSection');
   const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
 
   homeSection.classList.add('hidden');
   inputSection.classList.add('hidden');
@@ -8460,6 +8597,7 @@ function showTaskForm(options) {
   contactSection.classList.add('hidden');
   customerHubSection.classList.add('hidden');
   todoSection.classList.remove('hidden');
+  salesMemoSection.classList.add('hidden');
 
   document.getElementById('appHeader').classList.remove('hidden');
   document.getElementById('stepList').classList.add('hidden');
@@ -9559,8 +9697,9 @@ function createScheduleSalesCard(event, customer) {
   actions.appendChild(createScheduleSalesAction('メール', function() {
     startCustomerMail(customer.id);
   }));
-  actions.appendChild(createScheduleSalesAction('訪問開始', function(button) {
+  actions.appendChild(createScheduleSalesAction('訪問完了・報告', function(button) {
     button.blur();
+    showSalesMemoReportForm(event, customer);
   }, 'primary'));
   card.appendChild(actions);
 
@@ -9656,6 +9795,175 @@ function getScheduleEventStartLabel(event) {
   const source = event.start || event.startIso || event.date;
   const start = source ? new Date(source) : null;
   return start && !isNaN(start.getTime()) ? formatScheduleTime(start) : getScheduleEventTimeText(event);
+}
+
+function showSalesMemoReportForm(event, customer) {
+  clearScreenMessages();
+  resetSalesMemoReportForm();
+
+  const homeSection = document.getElementById('homeSection');
+  const inputSection = document.getElementById('inputSection');
+  const confirmSection = document.getElementById('confirmSection');
+  const gmailDraftSection = document.getElementById('gmailDraftSection');
+  const contactSection = document.getElementById('contactSection');
+  const customerHubSection = document.getElementById('customerHubSection');
+  const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
+
+  homeSection.classList.add('hidden');
+  inputSection.classList.add('hidden');
+  confirmSection.classList.add('hidden');
+  gmailDraftSection.classList.add('hidden');
+  contactSection.classList.add('hidden');
+  customerHubSection.classList.add('hidden');
+  todoSection.classList.add('hidden');
+  salesMemoSection.classList.remove('hidden');
+
+  document.getElementById('appHeader').classList.remove('hidden');
+  document.getElementById('stepList').classList.add('hidden');
+
+  populateSalesMemoReportForm(event, customer);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function populateSalesMemoReportForm(event, customer) {
+  document.getElementById('salesMemoCustomerId').value = customer.id || '';
+  document.getElementById('salesMemoProjectId').value = getCustomerPrimaryProjectId(customer.id);
+  document.getElementById('salesMemoEventTitle').value = event.title || customer.companyName || '';
+  document.getElementById('salesMemoVisitDate').value = getScheduleEventDateInputValue(event) || formatScheduleDateKey(new Date());
+  document.getElementById('salesMemoCustomerName').value = customer.companyName || '';
+  document.getElementById('salesMemoContactName').value = [customer.title, customer.personName || customer.contactName]
+    .filter(Boolean)
+    .join(' ');
+  document.getElementById('salesMemoMemo').value = '';
+  document.getElementById('salesMemoNextAction').value = getCustomerProjectNextAction(customer.id) || '';
+  document.getElementById('salesMemoNextVisitDate').value = customer.nextVisit || '';
+  document.getElementById('salesMemoTodoText').value = '';
+  document.getElementById('salesMemoNotes').value = '';
+}
+
+function getCustomerPrimaryProjectId(customerId) {
+  const projects = getProjectsByCustomerIdForClient(customerId);
+  return projects.length ? projects[0].id : '';
+}
+
+function getScheduleEventDateInputValue(event) {
+  const source = event && (event.start || event.startIso || event.date);
+  const date = source ? new Date(source) : null;
+  return date && !isNaN(date.getTime()) ? formatScheduleDateKey(date) : '';
+}
+
+function saveSalesMemoReport() {
+  if (isSavingSalesMemo) {
+    return;
+  }
+
+  const data = getSalesMemoReportFormData();
+
+  if (!data.memo) {
+    showSalesMemoMessage('商談メモを入力してください。', true);
+    document.getElementById('salesMemoMemo').focus();
+    return;
+  }
+
+  setSalesMemoSavingState(true);
+
+  if (!window.google || !google.script || !google.script.run) {
+    showSalesMemoMessage('営業メモ保存はApps Script版で利用できます。', true);
+    setSalesMemoSavingState(false);
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      const message = result && result.todoAdded
+        ? '営業メモを保存し、TODOも追加しました。'
+        : '営業メモを保存しました。';
+      showSalesMemoMessage(message);
+      setSalesMemoSavingState(false);
+
+      window.setTimeout(function() {
+        resetSalesMemoReportForm();
+        showHomeScreen();
+      }, 550);
+    })
+    .withFailureHandler(function(error) {
+      showSalesMemoMessage('エラー：' + (error && error.message ? error.message : error), true);
+      setSalesMemoSavingState(false);
+    })
+    .addSalesMemo(data);
+}
+
+function getSalesMemoReportFormData() {
+  return {
+    customerId: document.getElementById('salesMemoCustomerId').value.trim(),
+    projectId: document.getElementById('salesMemoProjectId').value.trim(),
+    eventTitle: document.getElementById('salesMemoEventTitle').value.trim() ||
+      document.getElementById('salesMemoCustomerName').value.trim(),
+    visitDate: document.getElementById('salesMemoVisitDate').value,
+    contactName: document.getElementById('salesMemoContactName').value.trim(),
+    memo: document.getElementById('salesMemoMemo').value.trim(),
+    nextAction: document.getElementById('salesMemoNextAction').value.trim(),
+    nextVisitDate: document.getElementById('salesMemoNextVisitDate').value,
+    todoText: document.getElementById('salesMemoTodoText').value.trim(),
+    notes: document.getElementById('salesMemoNotes').value.trim()
+  };
+}
+
+function setSalesMemoSavingState(isSaving) {
+  isSavingSalesMemo = isSaving;
+
+  const button = document.getElementById('saveSalesMemoButton');
+
+  if (button) {
+    button.disabled = isSaving;
+    button.textContent = isSaving ? '保存中...' : '報告を保存';
+  }
+}
+
+function showSalesMemoMessage(text, isError) {
+  const message = document.getElementById('salesMemoMessage');
+  message.textContent = text;
+  message.classList.remove('hidden', 'error', 'success');
+  message.classList.add(isError ? 'error' : 'success');
+}
+
+function hideSalesMemoMessage() {
+  const message = document.getElementById('salesMemoMessage');
+
+  if (message) {
+    message.classList.add('hidden');
+  }
+}
+
+function resetSalesMemoReportForm() {
+  [
+    'salesMemoCustomerId',
+    'salesMemoProjectId',
+    'salesMemoEventTitle',
+    'salesMemoVisitDate',
+    'salesMemoCustomerName',
+    'salesMemoContactName',
+    'salesMemoMemo',
+    'salesMemoNextAction',
+    'salesMemoNextVisitDate',
+    'salesMemoTodoText',
+    'salesMemoNotes'
+  ].forEach(function(id) {
+    const input = document.getElementById(id);
+
+    if (input) {
+      input.value = '';
+    }
+  });
+
+  hideSalesMemoMessage();
+  setSalesMemoSavingState(false);
+}
+
+function cancelSalesMemoReport() {
+  resetSalesMemoReportForm();
+  showHomeScreen();
 }
 
 function renderGroupedScheduleEvents(events, view) {
