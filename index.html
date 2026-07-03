@@ -3843,10 +3843,19 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .customer-hub-topbar {
+  position: sticky;
+  top: 8px;
+  z-index: 12;
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   margin: 12px 0 0;
+  padding: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
 }
 
 .customer-hub-add-button {
@@ -4077,6 +4086,142 @@ body.ai-processing .assistant-briefing-icon {
   font-size: 12px;
   font-weight: 750;
   line-height: 1.6;
+}
+
+.setup-wizard-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.setup-wizard-card {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 22px;
+  background:
+    linear-gradient(90deg, rgba(23, 105, 170, 0.22), rgba(23, 105, 170, 0)) 0 0 / 100% 2px no-repeat,
+    #ffffff;
+  box-shadow: 0 20px 46px rgba(15, 23, 42, 0.08);
+}
+
+.setup-wizard-kicker {
+  margin: 0;
+  color: #1769aa;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.setup-wizard-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.setup-wizard-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.8;
+}
+
+.setup-wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.setup-wizard-step {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.setup-wizard-step.is-active {
+  border-color: #bfdbfe;
+  color: #174d72;
+  background: #f6fbff;
+}
+
+.setup-wizard-targets,
+.setup-wizard-results {
+  display: grid;
+  gap: 8px;
+}
+
+.setup-wizard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.setup-wizard-row-name {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.setup-wizard-row-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #64748b;
+  background: #e2e8f0;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.setup-wizard-row-status.is-ok {
+  color: #116b4d;
+  background: #dcfce7;
+}
+
+.setup-wizard-row-status.is-error {
+  color: #9a3412;
+  background: #ffedd5;
+}
+
+.setup-wizard-message {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+.setup-wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.setup-wizard-actions button {
+  width: auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 850;
 }
 
 .customer-hub-search-wrap {
@@ -4437,10 +4582,19 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .project-hub-header {
+  position: sticky;
+  top: 8px;
+  z-index: 8;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.82);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(14px);
 }
 
 .project-hub-title {
@@ -4829,6 +4983,28 @@ body.ai-processing .assistant-briefing-icon {
   }
 
   .settings-actions button {
+    width: 100%;
+  }
+
+  .setup-wizard-card {
+    padding: 18px;
+  }
+
+  .setup-wizard-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-wizard-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .setup-wizard-actions {
+    flex-direction: column;
+  }
+
+  .setup-wizard-actions button {
     width: 100%;
   }
 
@@ -5706,6 +5882,33 @@ body.ai-processing .assistant-briefing-icon {
 </section>
 
 <hr class="divider">
+<section id="setupWizardSection" class="setup-wizard-screen hidden" aria-label="初回セットアップ">
+  <div class="setup-wizard-card">
+    <div>
+      <p class="setup-wizard-kicker">INITIAL SETUP</p>
+      <h2 id="setupWizardTitle" class="setup-wizard-title">営業AI秘書へようこそ</h2>
+      <p id="setupWizardText" class="setup-wizard-text">このアプリを利用するための初期設定を行います。</p>
+    </div>
+
+    <div class="setup-wizard-steps" aria-label="セットアップ手順">
+      <span id="setupStepIndicator1" class="setup-wizard-step is-active">STEP1</span>
+      <span id="setupStepIndicator2" class="setup-wizard-step">STEP2</span>
+      <span id="setupStepIndicator3" class="setup-wizard-step">STEP3</span>
+      <span id="setupStepIndicator4" class="setup-wizard-step">STEP4</span>
+    </div>
+
+    <div id="setupWizardTargets" class="setup-wizard-targets hidden" aria-label="作成対象"></div>
+    <div id="setupWizardResults" class="setup-wizard-results hidden" aria-label="セットアップ結果"></div>
+    <p id="setupWizardMessage" class="setup-wizard-message" aria-live="polite"></p>
+
+    <div id="setupWizardActions" class="setup-wizard-actions">
+      <button type="button" id="setupWizardPrimaryButton" onclick="handleSetupWizardPrimaryAction()">開始</button>
+      <button type="button" id="setupWizardHomeButton" class="secondary-button hidden" onclick="finishSetupWizard()">ホームへ戻る</button>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
 <section id="settingsSection" class="settings-screen hidden">
   <div class="settings-card">
     <div class="settings-head">
@@ -5753,6 +5956,7 @@ body.ai-processing .assistant-briefing-icon {
 
     <div class="settings-actions">
       <button type="button" class="secondary-button" onclick="clearAppCacheFromSettings()">キャッシュ削除</button>
+      <button type="button" onclick="showSetupWizardScreen({ reRun: true })">セットアップを再実行</button>
       <button type="button" onclick="loadAppSettingsStatus()">再確認</button>
       <button type="button" class="secondary-button" onclick="showHomeScreen()">ホームへ戻る</button>
     </div>
@@ -5894,6 +6098,21 @@ body.ai-processing .assistant-briefing-icon {
       notes: 'projectFormNotes'
     };
     const calendarEventsBaseUrl = 'https://script.google.com/macros/s/AKfycbxnvQmtIoluutb7wZi1BT6sNRDRRcngXZ2Gt7677QHclb--p3weUD08SeLGquOvwXQERw/exec';
+    const SETUP_WIZARD_STORAGE_KEY = 'SALES_AI_SECRETARY_SETUP_COMPLETE';
+    const LEGACY_SETUP_WIZARD_STORAGE_KEYS = [
+      'salesAiAssistantSetupCompleted'
+    ];
+    const SETUP_WIZARD_TARGETS = [
+      { key: 'tasks', label: 'Tasks' },
+      { key: 'customers', label: '顧客DB' },
+      { key: 'projects', label: '案件DB' },
+      { key: 'salesMemos', label: '営業メモDB' },
+      { key: 'businessCardImport', label: '名刺インポート' }
+    ];
+    let setupWizardStep = 1;
+    let setupWizardMode = 'initial';
+    let setupWizardResults = [];
+    let aiInsightRenderFrame = 0;
 
     function showHomeScreen(options) {
   if (shouldUsePageTransition(options)) {
@@ -5920,6 +6139,7 @@ body.ai-processing .assistant-briefing-icon {
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
 document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
@@ -5929,8 +6149,7 @@ document.getElementById('stepList').classList.add('hidden');
       '必要な時にすぐ対応します。'
     );
   });
-  runInitialHomeTask('AI insight', renderAiInsightCard);
-  runInitialHomeTask('Sales memo dashboard', loadSalesMemoDashboardStats);
+  runInitialHomeTask('AI insight', scheduleRenderAiInsightCard);
   runInitialHomeTask('TODO', function() {
     loadTasks(currentTaskFilter);
   });
@@ -5998,6 +6217,22 @@ function playAiInsightLineMotion() {
     card.classList.remove('is-insight-refresh');
   }, 620);
 }
+
+function scheduleRenderAiInsightCard() {
+  if (aiInsightRenderFrame) {
+    return;
+  }
+
+  const scheduleFrame = window.requestAnimationFrame || function(callback) {
+    return window.setTimeout(callback, 16);
+  };
+
+  aiInsightRenderFrame = scheduleFrame(function() {
+    aiInsightRenderFrame = 0;
+    renderAiInsightCard();
+  });
+}
+
 function renderAiInsightCard() {
   const grid = document.getElementById('aiInsightGrid');
   const title = document.getElementById('aiInsightTitle');
@@ -6191,7 +6426,7 @@ function openSalesMemoDashboard() {
 function loadSalesMemoDashboardStats() {
   if (!window.google || !google.script || !google.script.run) {
     salesMemoDashboardStats = { todayCount: 0 };
-    renderAiInsightCard();
+    scheduleRenderAiInsightCard();
     return;
   }
 
@@ -6200,12 +6435,12 @@ function loadSalesMemoDashboardStats() {
       salesMemoDashboardStats = stats && typeof stats.todayCount === 'number'
         ? stats
         : { todayCount: 0 };
-      renderAiInsightCard();
+      scheduleRenderAiInsightCard();
     })
     .withFailureHandler(function(error) {
       console.error('Sales memo dashboard stats load failed.', error);
       salesMemoDashboardStats = { todayCount: 0 };
-      renderAiInsightCard();
+      scheduleRenderAiInsightCard();
     })
     .getSalesMemoDashboardStats();
 }
@@ -6236,6 +6471,7 @@ function showCalendarScreen(options) {
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.remove('hidden');
@@ -6276,6 +6512,7 @@ function showMailScreen(options) {
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.add('hidden');
@@ -6306,6 +6543,7 @@ function showContactScreen(options) {
   gmailDraftSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
 
   contactSection.classList.remove('hidden');
@@ -6349,6 +6587,7 @@ function showCustomerHubScreen(options) {
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
   customerHubSection.classList.remove('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
 
   document.getElementById('appHeader').classList.remove('hidden');
@@ -6356,6 +6595,378 @@ function showCustomerHubScreen(options) {
 
   renderCustomerHub();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function isSetupWizardCompleted() {
+  try {
+    if (!window.localStorage) {
+      return false;
+    }
+
+    if (window.localStorage.getItem(SETUP_WIZARD_STORAGE_KEY) === 'true') {
+      return true;
+    }
+
+    const hasLegacyFlag = LEGACY_SETUP_WIZARD_STORAGE_KEYS.some(function(key) {
+      return window.localStorage.getItem(key) === 'true';
+    });
+
+    if (hasLegacyFlag) {
+      setSetupWizardCompleted({ skipServer: true });
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+function showInitialSetupOrHome() {
+  if (isSetupWizardCompleted()) {
+    startHomeAfterSetupCheck();
+    return;
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    showSetupWizardScreen({ initial: true, skipTransition: true });
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(status) {
+      if (status && status.completed === true) {
+        setSetupWizardCompleted({ skipServer: true });
+        startHomeAfterSetupCheck();
+        return;
+      }
+
+      showSetupWizardScreen({ initial: true, skipTransition: true });
+    })
+    .withFailureHandler(function(error) {
+      console.warn('Setup completion status could not be loaded.', error);
+      showSetupWizardScreen({ initial: true, skipTransition: true });
+    })
+    .getSetupWizardCompletionStatus();
+}
+
+function startHomeAfterSetupCheck() {
+  showHomeScreen();
+  scheduleHomePostRenderLoads();
+}
+
+function scheduleHomePostRenderLoads() {
+  const runAfterPaint = window.requestAnimationFrame || function(callback) {
+    return window.setTimeout(callback, 16);
+  };
+
+  runAfterPaint(function() {
+    runInitialHomeTask('Schedule', loadTodayEvents);
+    runInitialHomeTask('Customer Hub', loadCustomersFromServer);
+    runInitialHomeTask('AI status', loadAiSystemStatus);
+    runInitialHomeTask('Sales memo dashboard', loadSalesMemoDashboardStats);
+  });
+}
+
+function setSetupWizardCompleted(options) {
+  const config = options || {};
+
+  try {
+    if (window.localStorage) {
+      window.localStorage.setItem(SETUP_WIZARD_STORAGE_KEY, 'true');
+      LEGACY_SETUP_WIZARD_STORAGE_KEYS.forEach(function(key) {
+        window.localStorage.setItem(key, 'true');
+      });
+    }
+  } catch (error) {
+    console.warn('Setup completion flag could not be saved locally.', error);
+  }
+
+  if (config.skipServer || !window.google || !google.script || !google.script.run) {
+    return;
+  }
+
+  google.script.run
+    .withFailureHandler(function(error) {
+      console.warn('Setup completion flag could not be saved on server.', error);
+    })
+    .setSetupWizardCompleted();
+}
+
+function hideSetupWizardSection() {
+  const setupWizardSection = document.getElementById('setupWizardSection');
+
+  if (setupWizardSection) {
+    setupWizardSection.classList.add('hidden');
+  }
+}
+
+function showSetupWizardScreen(options) {
+  const config = options || {};
+
+  if (shouldUsePageTransition(config)) {
+    playPageTransition(function() {
+      showSetupWizardScreen(Object.assign({}, config, { skipTransition: true }));
+    }, 'setupWizardSection');
+    return;
+  }
+
+  clearScreenMessages();
+  setupWizardMode = config.reRun ? 'rerun' : 'initial';
+  setupWizardStep = 1;
+  setupWizardResults = [];
+
+  const homeSection = document.getElementById('homeSection');
+  const inputSection = document.getElementById('inputSection');
+  const confirmSection = document.getElementById('confirmSection');
+  const gmailDraftSection = document.getElementById('gmailDraftSection');
+  const contactSection = document.getElementById('contactSection');
+  const customerHubSection = document.getElementById('customerHubSection');
+  const todoSection = document.getElementById('todoSection');
+  const salesMemoSection = document.getElementById('salesMemoSection');
+  const setupWizardSection = document.getElementById('setupWizardSection');
+  const settingsSection = document.getElementById('settingsSection');
+
+  homeSection.classList.add('hidden');
+  inputSection.classList.add('hidden');
+  confirmSection.classList.add('hidden');
+  gmailDraftSection.classList.add('hidden');
+  contactSection.classList.add('hidden');
+  customerHubSection.classList.add('hidden');
+  todoSection.classList.add('hidden');
+  salesMemoSection.classList.add('hidden');
+
+  if (settingsSection) {
+    settingsSection.classList.add('hidden');
+  }
+
+  if (setupWizardSection) {
+    setupWizardSection.classList.remove('hidden');
+  }
+
+  document.getElementById('appHeader').classList.remove('hidden');
+  document.getElementById('stepList').classList.add('hidden');
+  renderSetupWizard();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderSetupWizard() {
+  updateSetupWizardStepIndicators();
+
+  const title = document.getElementById('setupWizardTitle');
+  const text = document.getElementById('setupWizardText');
+  const targets = document.getElementById('setupWizardTargets');
+  const results = document.getElementById('setupWizardResults');
+  const message = document.getElementById('setupWizardMessage');
+  const primaryButton = document.getElementById('setupWizardPrimaryButton');
+  const homeButton = document.getElementById('setupWizardHomeButton');
+
+  if (targets) {
+    targets.classList.toggle('hidden', setupWizardStep !== 2);
+    renderSetupWizardTargets(targets);
+  }
+
+  if (results) {
+    results.classList.toggle('hidden', setupWizardStep < 3);
+    renderSetupWizardResults(results);
+  }
+
+  if (homeButton) {
+    homeButton.classList.toggle('hidden', setupWizardStep !== 4);
+  }
+
+  if (setupWizardStep === 1) {
+    title.textContent = '営業AI秘書へようこそ';
+    text.textContent = 'このアプリを利用するための初期設定を行います。';
+    primaryButton.textContent = '開始';
+    primaryButton.disabled = false;
+    message.textContent = setupWizardMode === 'rerun'
+      ? '設定画面からセットアップを再実行します。既存データは削除しません。'
+      : '';
+    return;
+  }
+
+  if (setupWizardStep === 2) {
+    title.textContent = '必要なデータベースを作成します。';
+    text.textContent = '既に存在するシートは再利用し、不足しているシートだけを準備します。';
+    primaryButton.textContent = '作成開始';
+    primaryButton.disabled = false;
+    message.textContent = '';
+    return;
+  }
+
+  if (setupWizardStep === 3) {
+    title.textContent = '結果表示';
+    text.textContent = getSetupWizardResultText();
+    primaryButton.textContent = '次へ';
+    primaryButton.disabled = false;
+    message.textContent = '';
+    return;
+  }
+
+  title.textContent = '利用開始';
+  text.textContent = '営業AI秘書を使い始められます。';
+  primaryButton.textContent = '営業AI秘書を始める';
+  primaryButton.disabled = false;
+  message.textContent = setupWizardResults.every(function(item) { return item.ok; })
+    ? 'すべて正常に作成されました。'
+    : '一部確認が必要な項目があります。結果一覧を確認してください。';
+}
+
+function updateSetupWizardStepIndicators() {
+  [1, 2, 3, 4].forEach(function(step) {
+    const indicator = document.getElementById('setupStepIndicator' + step);
+
+    if (indicator) {
+      indicator.classList.toggle('is-active', step === setupWizardStep);
+    }
+  });
+}
+
+function renderSetupWizardTargets(targets) {
+  if (!targets || setupWizardStep !== 2) {
+    return;
+  }
+
+  targets.replaceChildren();
+  SETUP_WIZARD_TARGETS.forEach(function(item) {
+    targets.appendChild(createSetupWizardRow(item.label, '作成対象', ''));
+  });
+}
+
+function renderSetupWizardResults(results) {
+  if (!results || setupWizardStep < 3) {
+    return;
+  }
+
+  results.replaceChildren();
+
+  if (!setupWizardResults.length) {
+    results.appendChild(createSetupWizardRow('セットアップ結果', '未実行', ''));
+    return;
+  }
+
+  setupWizardResults.forEach(function(item) {
+    const nameText = item.ok ? '✓ ' + item.label : '！ ' + item.label;
+    const statusText = item.ok ? '作成済み' : '確認が必要';
+    results.appendChild(createSetupWizardRow(nameText, statusText, item.ok ? 'is-ok' : 'is-error'));
+  });
+}
+
+function createSetupWizardRow(nameText, statusText, statusClassName) {
+  const row = document.createElement('div');
+  row.className = 'setup-wizard-row';
+
+  const name = document.createElement('span');
+  name.className = 'setup-wizard-row-name';
+  name.textContent = nameText;
+
+  const status = document.createElement('span');
+  status.className = 'setup-wizard-row-status ' + (statusClassName || '');
+  status.textContent = statusText;
+
+  row.appendChild(name);
+  row.appendChild(status);
+  return row;
+}
+
+function handleSetupWizardPrimaryAction() {
+  if (setupWizardStep === 1) {
+    setupWizardStep = 2;
+    renderSetupWizard();
+    return;
+  }
+
+  if (setupWizardStep === 2) {
+    runSetupWizardCreation();
+    return;
+  }
+
+  if (setupWizardStep === 3) {
+    setupWizardStep = 4;
+    renderSetupWizard();
+    return;
+  }
+
+  finishSetupWizard();
+}
+
+function runSetupWizardCreation() {
+  const primaryButton = document.getElementById('setupWizardPrimaryButton');
+  const message = document.getElementById('setupWizardMessage');
+
+  if (primaryButton) {
+    primaryButton.disabled = true;
+    primaryButton.textContent = '作成中…';
+  }
+
+  if (message) {
+    message.textContent = '必要なデータベースを順番に作成しています。';
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    setupWizardResults = SETUP_WIZARD_TARGETS.map(function(item) {
+      return Object.assign({}, item, {
+        ok: false,
+        message: 'Apps Script上で実行してください。'
+      });
+    });
+    setupWizardStep = 3;
+    renderSetupWizard();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      setupWizardResults = result && Array.isArray(result.results)
+        ? result.results
+        : [];
+      setupWizardStep = 3;
+      renderSetupWizard();
+      loadAppSettingsStatus();
+    })
+    .withFailureHandler(function(error) {
+      setupWizardResults = SETUP_WIZARD_TARGETS.map(function(item) {
+        return Object.assign({}, item, {
+          ok: false,
+          message: getHubErrorMessage(error)
+        });
+      });
+      setupWizardStep = 3;
+      renderSetupWizard();
+    })
+    .runInitialSetupWizard();
+}
+
+function getSetupWizardResultText() {
+  if (!setupWizardResults.length) {
+    return 'セットアップ結果を確認しています。';
+  }
+
+  return setupWizardResults.every(function(item) {
+    return item.ok;
+  })
+    ? 'すべて正常に作成されました。'
+    : '一部確認が必要な項目があります。必要に応じて設定画面から再実行できます。';
+}
+
+function finishSetupWizard() {
+  setSetupWizardCompleted({ skipServer: true });
+
+  if (!window.google || !google.script || !google.script.run) {
+    startHomeAfterSetupCheck();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function() {
+      startHomeAfterSetupCheck();
+    })
+    .withFailureHandler(function(error) {
+      console.warn('Setup completion flag could not be saved on server.', error);
+      startHomeAfterSetupCheck();
+    })
+    .setSetupWizardCompleted();
 }
 
 function hideSettingsSection() {
@@ -6394,6 +7005,7 @@ function showSettingsScreen(options) {
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
 
   if (settingsSection) {
     settingsSection.classList.remove('hidden');
@@ -6540,15 +7152,21 @@ function formatSettingsDateTime(date) {
 
 function clearAppCacheFromSettings() {
   try {
+    const keepSetupCompleted = isSetupWizardCompleted();
+
     if (window.localStorage) {
       window.localStorage.clear();
+
+      if (keepSetupCompleted) {
+        window.localStorage.setItem(SETUP_WIZARD_STORAGE_KEY, 'true');
+      }
     }
 
     if (window.sessionStorage) {
       window.sessionStorage.clear();
     }
 
-    setSettingsMessage('キャッシュを削除しました。');
+    setSettingsMessage('キャッシュを削除しました。セットアップ完了状態は保持しています。');
   } catch (error) {
     setSettingsMessage('キャッシュ削除で確認が必要です：' + getHubErrorMessage(error));
   }
@@ -6653,7 +7271,7 @@ function setCustomerData(customers, options) {
   updateCustomerSelectOptions();
   renderCustomerHub();
   refreshScheduleCustomerLink();
-  renderAiInsightCard();
+  scheduleRenderAiInsightCard();
 }
 
 function normalizeCustomerForClient(customer) {
@@ -6719,7 +7337,7 @@ function setProjectData(projects) {
     : [];
   projectDataMessage = '';
   renderCustomerHub();
-  renderAiInsightCard();
+  scheduleRenderAiInsightCard();
 }
 
 function normalizeProjectForClient(project) {
@@ -9627,6 +10245,7 @@ function showTaskForm(options) {
   customerHubSection.classList.add('hidden');
   todoSection.classList.remove('hidden');
   salesMemoSection.classList.add('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
 
   document.getElementById('appHeader').classList.remove('hidden');
@@ -9874,7 +10493,7 @@ function loadTasks(category) {
     settled = true;
     window.clearTimeout(timeoutId);
     currentTasks = [];
-    renderAiInsightCard();
+    scheduleRenderAiInsightCard();
     container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
     updateTodoStatusSummary([], 'TODO取得失敗');
     console.error('TODO load failed.', error);
@@ -9913,7 +10532,7 @@ function loadTasks(category) {
 
 function renderTasks(tasks) {
   currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
-  renderAiInsightCard();
+  scheduleRenderAiInsightCard();
   renderVisibleTasks();
 }
 
@@ -10574,7 +11193,7 @@ function renderScheduleEvents(events, view, dateKey) {
   lastScheduleEvents = Array.isArray(events) ? events.slice() : [];
   lastScheduleView = view || 'today';
   lastScheduleDateKey = dateKey || '';
-  renderAiInsightCard();
+  scheduleRenderAiInsightCard();
 
   const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
 
@@ -10851,6 +11470,7 @@ function showSalesMemoReportForm(event, customer) {
   customerHubSection.classList.add('hidden');
   todoSection.classList.add('hidden');
   salesMemoSection.classList.remove('hidden');
+  hideSetupWizardSection();
   hideSettingsSection();
 
   document.getElementById('appHeader').classList.remove('hidden');
@@ -12036,11 +12656,8 @@ function runInitialHomeTask(label, task) {
     document.addEventListener('DOMContentLoaded', function() {
        runInitialHomeTask('Motion', initMotionInteractions);
        runInitialHomeTask('Calendar color', initCalendarColorOptions);
-       runInitialHomeTask('Customer Hub', loadCustomersFromServer);
        runInitialHomeTask('Weather', loadWeatherForecast);
-       runInitialHomeTask('Home screen', showHomeScreen);
-       runInitialHomeTask('Schedule', loadTodayEvents);
-       runInitialHomeTask('AI status', loadAiSystemStatus);
+       runInitialHomeTask('Initial route', showInitialSetupOrHome);
        window.setInterval(function() {
          runInitialHomeTask('Schedule interval', loadTodayEvents);
        }, 60 * 1000);

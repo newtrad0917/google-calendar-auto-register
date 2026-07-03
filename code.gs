@@ -10,6 +10,7 @@ var PROJECT_SHEET_NAME = '案件DB';
 var SALES_MEMO_SPREADSHEET_ID = '';
 var SALES_MEMO_SHEET_NAME = '営業メモDB';
 var BUSINESS_CARD_IMPORT_SHEET_NAME = '名刺インポート';
+var SETUP_WIZARD_COMPLETE_PROPERTY_KEY = 'SALES_AI_SECRETARY_SETUP_COMPLETE';
 
 
 /**
@@ -678,9 +679,16 @@ function setupTaskSpreadsheet() {
     throw new Error('営業AI秘書DBを開けませんでした。スプレッドシートIDまたは権限を確認してください。詳細: ' + error.message);
   }
 
-  if (!spreadsheet.getSheetByName('Tasks')) {
-    throw new Error('営業AI秘書DBにTasksシートが見つかりません。');
+  var sheet = spreadsheet.getSheetByName('Tasks');
+  var wasCreated = false;
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet('Tasks');
+    wasCreated = true;
   }
+
+  var headerResult = ensureTaskSheetHeaders_(sheet);
+  styleTaskSheet_(sheet);
 
   PropertiesService
     .getScriptProperties()
@@ -689,8 +697,146 @@ function setupTaskSpreadsheet() {
   Logger.log('TASK_SPREADSHEET_IDを保存しました。');
 
   return {
-    message: 'TASK_SPREADSHEET_IDを保存しました。'
+    message: 'TASK_SPREADSHEET_IDを保存しました。',
+    sheetName: 'Tasks',
+    wasCreated: wasCreated,
+    wroteHeaders: headerResult.wroteHeaders,
+    addedHeaders: headerResult.addedHeaders
   };
+}
+
+function getTaskSheetHeaders_() {
+  return [
+    'ID',
+    'Title',
+    'Category',
+    'DueDate',
+    'Priority',
+    'Status',
+    'Memo',
+    'CreatedAt',
+    'CompletedAt',
+    'Source'
+  ];
+}
+
+function ensureTaskSheetHeaders_(sheet) {
+  var desiredHeaders = getTaskSheetHeaders_();
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastColumn).getValues()[0].map(function(header) {
+    return String(header || '').trim();
+  });
+  var hasExistingHeaders = headerValues.some(function(value) {
+    return value !== '';
+  });
+  var result = {
+    wroteHeaders: false,
+    addedHeaders: []
+  };
+
+  if (!hasExistingHeaders) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    result.wroteHeaders = true;
+    return result;
+  }
+
+  desiredHeaders.forEach(function(header) {
+    if (headerValues.indexOf(header) === -1) {
+      headerValues.push(header);
+      result.addedHeaders.push(header);
+    }
+  });
+
+  sheet.getRange(1, 1, 1, headerValues.length).setValues([headerValues]);
+  result.wroteHeaders = result.addedHeaders.length > 0;
+  return result;
+}
+
+function styleTaskSheet_(sheet) {
+  var lastColumn = Math.max(sheet.getLastColumn(), getTaskSheetHeaders_().length);
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
+
+  if (!sheet.getFilter()) {
+    sheet
+      .getRange(1, 1, Math.max(sheet.getLastRow(), 1), lastColumn)
+      .createFilter();
+  }
+
+  sheet.setColumnWidths(1, lastColumn, 130);
+}
+
+function runInitialSetupWizard() {
+  var steps = [
+    { key: 'tasks', label: 'Tasks', action: setupTaskSpreadsheet },
+    { key: 'customers', label: CUSTOMER_SHEET_NAME, action: setupCustomerDbSheet },
+    { key: 'projects', label: PROJECT_SHEET_NAME, action: setupProjectDbSheet },
+    { key: 'salesMemos', label: SALES_MEMO_SHEET_NAME, action: setupSalesMemoDbSheet },
+    { key: 'businessCardImport', label: BUSINESS_CARD_IMPORT_SHEET_NAME, action: setupBusinessCardImportSheet }
+  ];
+  var results = [];
+
+  steps.forEach(function(step) {
+    try {
+      var detail = step.action();
+      results.push({
+        key: step.key,
+        label: step.label,
+        ok: true,
+        text: '作成済み',
+        detail: detail || {}
+      });
+    } catch (error) {
+      results.push({
+        key: step.key,
+        label: step.label,
+        ok: false,
+        text: '確認が必要',
+        message: error && error.message ? error.message : 'セットアップに失敗しました。'
+      });
+    }
+  });
+
+  return {
+    ok: results.every(function(item) {
+      return item.ok;
+    }),
+    updatedAt: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss'),
+    results: results
+  };
+}
+
+function getSetupWizardCompletionStatus() {
+  return {
+    key: SETUP_WIZARD_COMPLETE_PROPERTY_KEY,
+    completed: isSetupWizardCompleted_()
+  };
+}
+
+function setSetupWizardCompleted() {
+  PropertiesService
+    .getUserProperties()
+    .setProperty(SETUP_WIZARD_COMPLETE_PROPERTY_KEY, 'true');
+  PropertiesService
+    .getScriptProperties()
+    .setProperty(SETUP_WIZARD_COMPLETE_PROPERTY_KEY, 'true');
+
+  return {
+    key: SETUP_WIZARD_COMPLETE_PROPERTY_KEY,
+    completed: true
+  };
+}
+
+function isSetupWizardCompleted_() {
+  var userValue = PropertiesService
+    .getUserProperties()
+    .getProperty(SETUP_WIZARD_COMPLETE_PROPERTY_KEY);
+  var scriptValue = PropertiesService
+    .getScriptProperties()
+    .getProperty(SETUP_WIZARD_COMPLETE_PROPERTY_KEY);
+
+  return userValue === 'true' || scriptValue === 'true';
 }
 
 function getAppSettingsStatus() {
