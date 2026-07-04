@@ -54,14 +54,34 @@ content="#0f172a">
       --brand-radius-card: 20px;
       --brand-radius-control: 14px;
       --brand-radius-pill: 999px;
-      --brand-space-1: 6px;
-      --brand-space-2: 10px;
-      --brand-space-3: 14px;
-      --brand-space-4: 18px;
-      --brand-space-5: 24px;
+      --brand-space-1: 8px;
+      --brand-space-2: 16px;
+      --brand-space-3: 24px;
+      --brand-space-4: 32px;
+      --brand-space-5: 40px;
       --brand-shadow-card: 0 14px 34px rgba(15, 23, 42, 0.07);
       --brand-shadow-control: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 8px 18px rgba(15, 23, 42, 0.05);
       --brand-transition: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      --ds-midnight: #0f172a;
+      --ds-royal: #1769aa;
+      --ds-royal-deep: #12558b;
+      --ds-aurora: #67e8f9;
+      --ds-white: #ffffff;
+      --ds-gray-50: #f8fafc;
+      --ds-gray-100: #eef2f7;
+      --ds-gray-200: #dbe3ee;
+      --ds-gray-500: #64748b;
+      --ds-space-1: 8px;
+      --ds-space-2: 16px;
+      --ds-space-3: 24px;
+      --ds-space-4: 32px;
+      --ds-space-5: 40px;
+      --ds-radius-card: 20px;
+      --ds-radius-control: 14px;
+      --ds-radius-pill: 999px;
+      --ds-shadow-card: 0 16px 36px rgba(15, 23, 42, 0.07);
+      --ds-shadow-control: inset 0 1px 0 rgba(255, 255, 255, 0.94), 0 8px 18px rgba(15, 23, 42, 0.05);
+      --ds-transition: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     * {
@@ -968,8 +988,62 @@ body.ai-processing #gmailDraftSection::before {
   background: #f5f9ff;
 }
 
+.app-nav-bar {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) minmax(0, 1fr) minmax(80px, auto);
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 8px;
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.app-nav-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--brand-navy);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-nav-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #334155;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.app-nav-button:hover {
+  color: var(--brand-blue);
+  border-color: rgba(23, 105, 170, 0.18);
+  background: #f4f9ff;
+}
+
 .project-hub-header .subscreen-home-link {
   margin: 0;
+}
+
+.project-hub-header .app-nav-button {
+  margin: 0;
+}
+
+.divider {
+  display: none;
 }
 
 .today-card-header {
@@ -5406,6 +5480,605 @@ input[type="datetime-local"] {
   border-color: rgba(148, 163, 184, 0.34);
 }
 
+/* Design System Ver2: Sales AI Secretary brand layer */
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option),
+.primary-button,
+.secondary-button,
+.danger-button,
+.ghost-button,
+.customer-hub-action,
+.customer-hub-add-button,
+.customer-hub-detail-button,
+.customer-hub-list-back-button,
+.project-hub-add-button,
+.project-hub-card-actions button,
+.schedule-sales-action,
+.todo-add-button,
+.task-edit-item-button,
+.settings-actions button,
+.setup-wizard-actions button,
+.sales-memo-actions button,
+.app-nav-button {
+  min-height: 48px;
+  padding: 8px 16px;
+  border-radius: var(--ds-radius-pill) !important;
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: 0;
+  box-shadow: var(--ds-shadow-control);
+  transition:
+    color var(--ds-transition),
+    background-color var(--ds-transition),
+    border-color var(--ds-transition),
+    box-shadow var(--ds-transition),
+    transform var(--ds-transition);
+}
+
+button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option),
+.primary-button {
+  border: 1px solid transparent;
+  color: var(--ds-white);
+  background: linear-gradient(180deg, var(--ds-royal) 0%, var(--ds-royal-deep) 100%);
+}
+
+.secondary-button,
+.project-hub-card-actions .secondary-button,
+.customer-hub-import-button {
+  border: 1px solid var(--ds-gray-200) !important;
+  color: var(--ds-midnight) !important;
+  background: linear-gradient(180deg, var(--ds-white) 0%, var(--ds-gray-50) 100%) !important;
+}
+
+.customer-hub-danger-button,
+.danger-button {
+  border: 1px solid rgba(15, 23, 42, 0.24) !important;
+  color: var(--ds-midnight) !important;
+  background: linear-gradient(180deg, var(--ds-white) 0%, var(--ds-gray-100) 100%) !important;
+}
+
+.ghost-button,
+.subscreen-home-link,
+.app-nav-button,
+.customer-hub-list-back-button {
+  border: 1px solid transparent !important;
+  color: var(--ds-gray-500) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option):hover,
+.primary-button:hover {
+  transform: translateY(-1px);
+}
+
+.secondary-button:hover,
+.ghost-button:hover,
+.subscreen-home-link:hover,
+.app-nav-button:hover,
+.customer-hub-list-back-button:hover {
+  color: var(--ds-royal) !important;
+  border-color: rgba(23, 105, 170, 0.22) !important;
+  background: var(--ds-gray-50) !important;
+}
+
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option):active {
+  transform: translateY(1px) scale(0.99);
+}
+
+button:focus-visible,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(23, 105, 170, 0.44) !important;
+  box-shadow:
+    0 0 0 4px rgba(23, 105, 170, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+input,
+textarea,
+select,
+input[type="date"],
+input[type="datetime-local"] {
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 1px solid var(--ds-gray-200) !important;
+  border-radius: var(--ds-radius-control) !important;
+  color: var(--ds-midnight);
+  background: var(--ds-white);
+}
+
+textarea {
+  min-height: 128px;
+}
+
+.panel,
+.today-card,
+.todo-card,
+.ai-insight-card,
+.customer-hub-card,
+.customer-hub-profile,
+.customer-ai-brief,
+.customer-hub-sales-memo,
+.project-hub-section,
+.project-hub-card,
+.project-hub-form,
+.sales-memo-card,
+.settings-card,
+.setup-wizard-card,
+.business-card-import-panel,
+.schedule-weather-card,
+.schedule-event-card {
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: var(--ds-radius-card) !important;
+  background: var(--ds-white) !important;
+  box-shadow: var(--ds-shadow-card) !important;
+}
+
+.home-section,
+.customer-hub-shell,
+.customer-hub-list,
+.customer-hub-detail,
+.project-hub-list,
+.settings-screen,
+.setup-wizard-screen,
+.sales-memo-grid,
+.actions {
+  gap: var(--ds-space-2);
+}
+
+.section-title,
+.project-hub-title,
+.settings-title,
+.project-hub-form-title,
+.customer-hub-form-title {
+  color: var(--ds-midnight);
+}
+
+.section-description,
+.settings-description,
+.project-hub-card-customer,
+.customer-hub-card-meta {
+  color: var(--ds-gray-500);
+}
+
+.action-icon,
+.schedule-tab-icon,
+.weather-icon,
+.assistant-briefing-icon,
+.status-dot {
+  --icon-size: 32px;
+  display: inline-grid;
+  place-items: center;
+  width: var(--icon-size);
+  min-width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+body.ai-processing .assistant-briefing-icon,
+body.ai-processing .status-ready,
+.schedule-weather-card.is-weather-updated::before,
+.customer-hub-card.is-hub-pressed::before,
+.customer-hub-action.is-hub-pressed::before {
+  color: var(--ds-aurora);
+  border-color: rgba(103, 232, 249, 0.42);
+}
+
+/* Home UI Ver2: morning sales dashboard */
+.home-section {
+  gap: var(--ds-space-2);
+}
+
+.home-section .brand-card {
+  border: 1px solid rgba(148, 163, 184, 0.20);
+  border-radius: var(--ds-radius-card);
+  background:
+    linear-gradient(140deg, rgba(15, 23, 42, 0.96) 0%, rgba(20, 43, 72, 0.96) 58%, rgba(23, 105, 170, 0.82) 100%);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+}
+
+.home-section .assistant-briefing {
+  border-color: rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.morning-briefing-card {
+  position: relative;
+  display: grid;
+  gap: var(--ds-space-2);
+  overflow: hidden;
+  padding: var(--ds-space-3);
+  border: 1px solid #E8EDF5;
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.morning-briefing-card::before {
+  content: "";
+  position: absolute;
+  top: var(--ds-space-3);
+  bottom: var(--ds-space-3);
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: var(--ds-royal);
+}
+
+.morning-briefing-head {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.morning-briefing-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  border: 1px solid rgba(23, 105, 170, 0.12);
+  border-radius: 14px;
+  color: var(--ds-royal);
+  background: rgba(23, 105, 170, 0.07);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.morning-briefing-heading {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.morning-briefing-title {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.morning-briefing-subtitle {
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.morning-briefing-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.morning-briefing-metric {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(232, 237, 245, 0.9);
+  border-radius: 16px;
+  background: var(--ds-gray-50);
+}
+
+.morning-briefing-label {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.morning-briefing-value {
+  color: var(--ds-midnight);
+  font-size: 24px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.morning-briefing-comment {
+  display: grid;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.morning-briefing-comment-label {
+  color: var(--ds-royal);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.morning-briefing-comment p {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.65;
+}
+
+.ai-priority-card {
+  position: relative;
+  overflow: hidden;
+  padding: var(--ds-space-2);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-white);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.ai-priority-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--ds-space-2);
+  width: 48px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ds-royal);
+}
+
+.ai-priority-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.ai-priority-kicker {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ai-priority-title {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.ai-priority-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-priority-list li {
+  position: relative;
+  min-width: 0;
+  padding-left: 18px;
+  color: var(--ds-midnight);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.ai-priority-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.72em;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ds-royal);
+  box-shadow: 0 0 0 4px rgba(23, 105, 170, 0.08);
+}
+
+.home-section .ai-insight-card {
+  padding: var(--ds-space-2);
+  border-color: rgba(148, 163, 184, 0.20) !important;
+  background: var(--ds-white) !important;
+  box-shadow: var(--ds-shadow-card) !important;
+}
+
+.home-section .ai-insight-card::before {
+  left: var(--ds-space-2);
+  background: linear-gradient(90deg, rgba(23, 105, 170, 0), var(--ds-royal), rgba(103, 232, 249, 0));
+}
+
+.home-section .ai-insight-header {
+  margin-bottom: 14px;
+}
+
+.home-section .ai-insight-title {
+  color: var(--ds-midnight);
+  font-size: 15px;
+}
+
+.home-section .ai-insight-icon {
+  --icon-size: 28px;
+  color: var(--ds-royal);
+  background: rgba(23, 105, 170, 0.08);
+}
+
+.home-section .ai-insight-badge {
+  padding: 4px 9px;
+  border: 1px solid rgba(148, 163, 184, 0.20);
+  border-radius: 999px;
+  color: var(--ds-gray-500);
+  background: var(--ds-gray-50);
+}
+
+.home-section .ai-dashboard-grid {
+  gap: 12px;
+}
+
+.home-section .ai-dashboard-card {
+  position: relative;
+  min-height: 104px;
+  padding: 16px 16px 16px 20px;
+  border: 1px solid #E8EDF5;
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  color: var(--ds-midnight);
+  box-shadow: var(--ds-shadow-card);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-transition),
+    box-shadow var(--ds-transition),
+    transform var(--ds-transition),
+    background-color var(--ds-transition);
+}
+
+.home-section .ai-dashboard-card::before {
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  width: 4px;
+  height: auto;
+  background: var(--ds-royal);
+  border-radius: 0 999px 999px 0;
+}
+
+.home-section .ai-dashboard-card:hover {
+  border-color: #D8E2F0;
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+  transform: translateY(-1px);
+}
+
+.home-section .ai-dashboard-card:active {
+  transform: translateY(0);
+}
+
+.home-section .ai-dashboard-label {
+  color: var(--ds-midnight);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.home-section .ai-dashboard-value {
+  margin-top: 6px;
+  color: var(--ds-midnight);
+  font-size: 44px;
+  font-weight: 950;
+  line-height: 0.98;
+}
+
+.home-section .ai-dashboard-unit {
+  color: var(--ds-gray-500);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.home-section .ai-dashboard-note {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.home-section .action-title {
+  margin: 8px 0 0;
+  color: var(--ds-midnight);
+  font-size: 15px;
+}
+
+.home-section .action-grid {
+  gap: 12px;
+}
+
+.home-section .action-card {
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  gap: 14px;
+  min-height: 84px;
+  padding: 16px;
+  border-radius: 18px;
+  border-color: rgba(148, 163, 184, 0.20);
+  background: var(--ds-white);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.home-section .action-icon {
+  --icon-size: 38px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  background: var(--ds-gray-50);
+  font-size: 19px;
+}
+
+.home-section .action-main {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.home-section .action-main strong {
+  color: var(--ds-midnight);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.home-section .action-main span {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.home-section .action-arrow {
+  color: var(--ds-gray-500);
+}
+
+@media (max-width: 520px) {
+  .morning-briefing-card {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .morning-briefing-card::before {
+    top: 20px;
+    bottom: 20px;
+  }
+
+  .morning-briefing-metrics {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .morning-briefing-metric {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .ai-priority-card,
+  .home-section .ai-insight-card {
+    padding: 16px;
+  }
+
+  .home-section .ai-dashboard-grid {
+    gap: 10px;
+  }
+
+  .home-section .ai-dashboard-card {
+    min-height: 98px;
+    padding: 14px;
+  }
+
+  .home-section .ai-dashboard-value {
+    font-size: 34px;
+  }
+
+  .home-section .action-card {
+    min-height: 82px;
+    padding: 14px;
+  }
+}
+
 @media (max-width: 520px) {
   .customer-hub-card {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -5622,14 +6295,54 @@ input[type="datetime-local"] {
       <span class="assistant-briefing-icon" aria-hidden="true"></span>
       <span class="assistant-briefing-copy">
         <span id="assistantBriefingTitle" class="assistant-briefing-title">
-          本日の優先タスクを確認しました。
+          今日の営業準備ができています。
         </span>
         <span id="assistantBriefingText" class="assistant-briefing-text">
-          必要な時にすぐ対応します。
+          優先事項を確認しましょう。
         </span>
       </span>
     </div>
   </div>
+
+  <section id="morningBriefingCard" class="morning-briefing-card" aria-labelledby="morningBriefingTitle">
+    <div class="morning-briefing-head">
+      <span class="morning-briefing-icon icon-morning-briefing" aria-hidden="true">🔥</span>
+      <span class="morning-briefing-heading">
+        <h3 id="morningBriefingTitle" class="morning-briefing-title">Morning Briefing</h3>
+        <span class="morning-briefing-subtitle">今日の営業予定をAIが整理しました</span>
+      </span>
+    </div>
+    <div class="morning-briefing-metrics" aria-label="朝の営業指標">
+      <div class="morning-briefing-metric">
+        <span class="morning-briefing-label">本日の訪問</span>
+        <strong class="morning-briefing-value">0件</strong>
+      </div>
+      <div class="morning-briefing-metric">
+        <span class="morning-briefing-label">本日期限</span>
+        <strong class="morning-briefing-value">0件</strong>
+      </div>
+      <div class="morning-briefing-metric">
+        <span class="morning-briefing-label">HOT顧客</span>
+        <strong class="morning-briefing-value">0件</strong>
+      </div>
+    </div>
+    <div class="morning-briefing-comment">
+      <span class="morning-briefing-comment-label">AIコメント</span>
+      <p>本日は優先対応案件はありません。新規営業・顧客フォローに時間を使えます。</p>
+    </div>
+  </section>
+
+  <section id="aiPriorityCard" class="ai-priority-card" aria-labelledby="aiPriorityTitle">
+    <div class="ai-priority-head">
+      <p class="ai-priority-kicker">AI Priority</p>
+      <h3 id="aiPriorityTitle" class="ai-priority-title">今日の優先事項</h3>
+    </div>
+    <ul class="ai-priority-list">
+      <li>今日の訪問予定を確認してください</li>
+      <li>見積送付予定を確認してください</li>
+      <li>HOT顧客をフォローしてください</li>
+    </ul>
+  </section>
 
   <div class="today-card">
     <div class="today-card-header">
@@ -6097,7 +6810,6 @@ input[type="datetime-local"] {
 
 <hr class="divider">
 <section id="customerHubSection" class="hidden">
-  <button type="button" class="subscreen-home-link" onclick="showHomeScreen()">← ホーム</button>
   <h2 class="section-title">顧客</h2>
   <p class="section-description">
     顧客カルテから、メール・予定登録・地図・電話へすばやく移動します。
@@ -6272,7 +6984,6 @@ input[type="datetime-local"] {
 </section>
 <hr class="divider">
 <section id="todoSection" class="hidden">
-<button type="button" class="subscreen-home-link" onclick="showHomeScreen()">← ホーム</button>
 <h2 id="taskFormTitle" class="section-title">TODO追加</h2>
 <p id="taskFormDescription" class="section-description">
   新しいタスクを営業AI秘書DBへ保存します。
@@ -6637,6 +7348,193 @@ input[type="datetime-local"] {
     let setupWizardMode = 'initial';
     let setupWizardResults = [];
     let aiInsightRenderFrame = 0;
+    let currentAppScreen = 'home';
+    let navigationStack = [];
+
+function ensureAppNavigationBars() {
+  [
+    'inputSection',
+    'confirmSection',
+    'gmailDraftSection',
+    'contactSection',
+    'customerHubSection',
+    'todoSection',
+    'salesMemoSection',
+    'settingsSection'
+  ].forEach(function(sectionId) {
+    const section = document.getElementById(sectionId);
+
+    if (!section || section.querySelector('.app-nav-bar')) {
+      return;
+    }
+
+    const nav = document.createElement('div');
+    nav.className = 'app-nav-bar';
+
+    const backButton = document.createElement('button');
+    backButton.type = 'button';
+    backButton.className = 'app-nav-button app-back-button';
+    backButton.textContent = '← 戻る';
+    backButton.addEventListener('click', goBackInApp);
+
+    const title = document.createElement('div');
+    title.className = 'app-nav-title';
+    title.textContent = getAppNavigationTitle(sectionId);
+
+    const homeButton = document.createElement('button');
+    homeButton.type = 'button';
+    homeButton.className = 'app-nav-button app-home-button';
+    homeButton.textContent = 'ホーム';
+    homeButton.addEventListener('click', function() {
+      showHomeScreen();
+    });
+
+    nav.appendChild(backButton);
+    nav.appendChild(title);
+    nav.appendChild(homeButton);
+    section.insertBefore(nav, section.firstChild);
+  });
+}
+
+function getAppNavigationTitle(sectionId) {
+  const titles = {
+    inputSection: '予定登録',
+    confirmSection: '登録確認',
+    gmailDraftSection: 'AIメール',
+    contactSection: '連絡先検索',
+    customerHubSection: '顧客',
+    todoSection: 'TODO',
+    salesMemoSection: '営業報告',
+    settingsSection: '設定'
+  };
+
+  return titles[sectionId] || '営業AI秘書';
+}
+
+function enterAppScreen(screenKey, options) {
+  const opts = options || {};
+
+  if (screenKey === 'home') {
+    if (!opts.fromNavigation) {
+      navigationStack = [];
+    }
+    currentAppScreen = 'home';
+    updateAppNavigationButtons();
+    return;
+  }
+
+  if (!opts.fromNavigation && currentAppScreen && currentAppScreen !== screenKey) {
+    pushNavigationState(createNavigationState(currentAppScreen));
+  }
+
+  currentAppScreen = screenKey;
+  updateAppNavigationButtons();
+}
+
+function pushNavigationState(state) {
+  if (!state || !state.screen) {
+    return;
+  }
+
+  navigationStack.push(state);
+
+  if (navigationStack.length > 20) {
+    navigationStack.shift();
+  }
+}
+
+function createNavigationState(screenKey) {
+  return {
+    screen: screenKey || currentAppScreen || 'home',
+    selectedCustomerHubId: selectedCustomerHubId || '',
+    selectedProjectHubId: selectedProjectHubId || '',
+    customerHubSearchQuery: customerHubSearchQuery || '',
+    projectHubSearchQuery: projectHubSearchQuery || '',
+    currentTaskFilter: currentTaskFilter || '仕事',
+    currentTaskDueFilter: currentTaskDueFilter || 'today',
+    currentScheduleView: currentScheduleView || 'today',
+    selectedScheduleDate: selectedScheduleDate || ''
+  };
+}
+
+function goBackInApp() {
+  const previousState = navigationStack.pop();
+
+  if (!previousState) {
+    showHomeScreen({ fromNavigation: true, skipTransition: true });
+    return;
+  }
+
+  restoreNavigationState(previousState);
+}
+
+function restoreNavigationState(state) {
+  selectedCustomerHubId = state.selectedCustomerHubId || '';
+  selectedProjectHubId = state.selectedProjectHubId || '';
+  customerHubSearchQuery = state.customerHubSearchQuery || '';
+  projectHubSearchQuery = state.projectHubSearchQuery || '';
+  currentTaskFilter = state.currentTaskFilter || currentTaskFilter;
+  currentTaskDueFilter = state.currentTaskDueFilter || currentTaskDueFilter;
+  currentScheduleView = state.currentScheduleView || currentScheduleView;
+  selectedScheduleDate = state.selectedScheduleDate || '';
+
+  const options = { fromNavigation: true, skipTransition: true };
+
+  if (state.screen === 'calendar') {
+    showCalendarScreen(options);
+    return;
+  }
+
+  if (state.screen === 'mail') {
+    showMailScreen(options);
+    return;
+  }
+
+  if (state.screen === 'contact') {
+    showContactScreen(options);
+    return;
+  }
+
+  if (
+    state.screen === 'customerHub' ||
+    state.screen === 'customerHubDetail' ||
+    state.screen === 'projectHubDetail' ||
+    state.screen === 'projectForm'
+  ) {
+    showCustomerHubScreen(options);
+    return;
+  }
+
+  if (state.screen === 'todo') {
+    showTaskForm(options);
+    return;
+  }
+
+  if (state.screen === 'salesMemo') {
+    showSalesMemoReportForm({
+      title: '営業報告',
+      start: new Date().toISOString()
+    }, {
+      id: '',
+      companyName: ''
+    }, options);
+    return;
+  }
+
+  if (state.screen === 'settings') {
+    showSettingsScreen(options);
+    return;
+  }
+
+  showHomeScreen(options);
+}
+
+function updateAppNavigationButtons() {
+  document.querySelectorAll('.app-back-button').forEach(function(button) {
+    button.disabled = false;
+    button.title = navigationStack.length ? 'ひとつ前の画面へ戻る' : 'ホームへ戻る';
+  });
+}
 
     function showHomeScreen(options) {
   if (shouldUsePageTransition(options)) {
@@ -6646,6 +7544,7 @@ input[type="datetime-local"] {
     return;
   }
 
+  enterAppScreen('home', options);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -6669,8 +7568,8 @@ document.getElementById('appHeader').classList.add('hidden');
 document.getElementById('stepList').classList.add('hidden');
   runInitialHomeTask('Assistant briefing', function() {
     showAssistantBriefing(
-      '本日の優先タスクを確認しました。',
-      '必要な時にすぐ対応します。'
+      '今日の営業準備ができています。',
+      '優先事項を確認しましょう。'
     );
   });
   runInitialHomeTask('AI insight', scheduleRenderAiInsightCard);
@@ -6978,6 +7877,7 @@ function showCalendarScreen(options) {
     return;
   }
 
+  enterAppScreen('calendar', options);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -7019,6 +7919,7 @@ function showMailScreen(options) {
     pendingMeetMailData = null;
   }
 
+  enterAppScreen('mail', mailOptions);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -7051,6 +7952,7 @@ function showContactScreen(options) {
     return;
   }
 
+  enterAppScreen('contact', options);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -7093,6 +7995,7 @@ function showCustomerHubScreen(options) {
     return;
   }
 
+  enterAppScreen('customerHub', options);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -7509,6 +8412,7 @@ function showSettingsScreen(options) {
     return;
   }
 
+  enterAppScreen('settings', options);
   clearScreenMessages();
 
   const homeSection = document.getElementById('homeSection');
@@ -8370,6 +9274,9 @@ function toggleCustomerHubDetail(customerId) {
     return;
   }
 
+  pushNavigationState(createNavigationState('customerHub'));
+  currentAppScreen = 'customerHubDetail';
+  updateAppNavigationButtons();
   showCustomerHubDetail(id);
 }
 
@@ -8708,13 +9615,6 @@ function createCustomerProjectSection(customer) {
   const header = document.createElement('div');
   header.className = 'project-hub-header';
 
-  const homeButton = document.createElement('button');
-  homeButton.type = 'button';
-  homeButton.className = 'subscreen-home-link';
-  homeButton.textContent = '← ホーム';
-  homeButton.addEventListener('click', showHomeScreen);
-  header.appendChild(homeButton);
-
   const title = document.createElement('h3');
   title.className = 'project-hub-title';
   title.textContent = '案件';
@@ -8762,6 +9662,7 @@ function createCustomerProjectSection(customer) {
   formMount.id = 'projectFormMount';
   section.appendChild(formMount);
 
+  window.setTimeout(updateAppNavigationButtons, 0);
   return section;
 }
 
@@ -8902,6 +9803,12 @@ function toggleProjectHubDetail(projectId) {
 
   if (!id) {
     return;
+  }
+
+  if (selectedProjectHubId !== id) {
+    pushNavigationState(createNavigationState('customerHub'));
+    currentAppScreen = 'projectHubDetail';
+    updateAppNavigationButtons();
   }
 
   selectedProjectHubId = selectedProjectHubId === id ? '' : id;
@@ -9288,6 +10195,9 @@ function playCustomerHubLine(element) {
       document.getElementById('title').value = originalTitle;
       document.getElementById('memo').value = originalMemo;
 
+      pushNavigationState(createNavigationState('calendar'));
+      currentAppScreen = 'calendarConfirm';
+      updateAppNavigationButtons();
       document.getElementById('inputSection').classList.add('hidden');
       document.getElementById('confirmSection').classList.remove('hidden');
       document.getElementById('inputStep').classList.remove('active');
@@ -9300,6 +10210,8 @@ function playCustomerHubLine(element) {
      * 確認画面から最初の画面へ戻ります。
      */
     function goBack() {
+      currentAppScreen = 'calendar';
+      updateAppNavigationButtons();
       document.getElementById('confirmSection').classList.add('hidden');
       document.getElementById('inputSection').classList.remove('hidden');
       document.getElementById('confirmStep').classList.remove('active');
@@ -10015,7 +10927,15 @@ function getBusinessCardImportButtons() {
   ].filter(Boolean);
 }
 
-function showProjectForm(customerId, projectId) {
+function showProjectForm(customerId, projectId, options) {
+  const opts = options || {};
+
+  if (!opts.fromNavigation) {
+    pushNavigationState(createNavigationState(currentAppScreen || 'customerHub'));
+  }
+
+  currentAppScreen = 'projectForm';
+  updateAppNavigationButtons();
   const project = projectId ? getProjectByIdForClient(projectId) : null;
   renderProjectForm(String(customerId || selectedCustomerHubId || '').trim(), project || { id: '' });
 }
@@ -10308,6 +11228,9 @@ function resetProjectForm() {
   if (mount) {
     mount.replaceChildren();
   }
+
+  currentAppScreen = 'customerHub';
+  updateAppNavigationButtons();
 }
 
 function refreshProjectHubAfterSave(result, messageText) {
@@ -11095,6 +12018,7 @@ function showTaskForm(options) {
     return;
   }
 
+  enterAppScreen('todo', options);
   clearScreenMessages();
   const homeSection = document.getElementById('homeSection');
   const inputSection = document.getElementById('inputSection');
@@ -11507,7 +12431,7 @@ function showAssistantBriefing(title, detail) {
   window.clearTimeout(assistantBriefingTimer);
   setAssistantBriefingText(
     title,
-    detail || '必要な時にすぐ対応します。'
+    detail || '優先事項を確認しましょう。'
   );
   briefing.classList.remove('is-changing', 'is-standby', 'is-visible');
   void briefing.offsetWidth;
@@ -11554,8 +12478,8 @@ function setAssistantBriefingText(title, detail) {
 
 function getAssistantStandbyMessage() {
   return {
-    title: 'AI秘書が待機しています。',
-    detail: '必要な時にすぐ対応します。'
+    title: '今日の営業準備ができています。',
+    detail: '優先事項を確認しましょう。'
   };
 }
 
@@ -12524,7 +13448,8 @@ function getScheduleEventStartLabel(event) {
   return start && !isNaN(start.getTime()) ? formatScheduleTime(start) : getScheduleEventTimeText(event);
 }
 
-function showSalesMemoReportForm(event, customer) {
+function showSalesMemoReportForm(event, customer, options) {
+  enterAppScreen('salesMemo', options);
   clearScreenMessages();
   resetSalesMemoReportForm();
 
@@ -13904,6 +14829,7 @@ function runInitialHomeTask(label, task) {
     document.addEventListener('DOMContentLoaded', function() {
        runInitialHomeTask('Motion', initMotionInteractions);
        runInitialHomeTask('Calendar color', initCalendarColorOptions);
+       runInitialHomeTask('Navigation bars', ensureAppNavigationBars);
        runInitialHomeTask('Weather', loadWeatherForecast);
        runInitialHomeTask('Initial route', showInitialSetupOrHome);
        window.setInterval(function() {
