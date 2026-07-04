@@ -5737,7 +5737,7 @@ body.ai-processing .status-ready,
 
 .morning-briefing-title {
   margin: 0;
-  color: var(--ds-midnight);
+  color: var(--ds-royal);
   font-size: 18px;
   font-weight: 950;
   line-height: 1.25;
@@ -5780,10 +5780,42 @@ body.ai-processing .status-ready,
   line-height: 1;
 }
 
-.morning-briefing-comment {
+.morning-briefing-section {
   display: grid;
-  gap: 6px;
-  padding-top: 2px;
+  gap: 8px;
+  padding: var(--ds-space-2) 0 0;
+  border-top: 1px solid #E8EDF5;
+}
+
+.morning-briefing-section-label {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.morning-briefing-section-main {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.morning-briefing-section-note {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+.morning-briefing-section.is-ai-comment {
+  border-top-color: rgba(103, 232, 249, 0.32);
+}
+
+.morning-briefing-section.is-ai-comment .morning-briefing-section-label {
+  color: var(--ds-aurora);
 }
 
 .morning-briefing-comment-label {
@@ -5799,119 +5831,6 @@ body.ai-processing .status-ready,
   font-size: 14px;
   font-weight: 750;
   line-height: 1.65;
-}
-
-.ai-daily-brief-card {
-  position: relative;
-  display: grid;
-  gap: 0;
-  overflow: hidden;
-  padding: var(--ds-space-3);
-  border: 1px solid #E8EDF5;
-  border-radius: var(--ds-radius-card);
-  background: #FFFFFF;
-  box-shadow: var(--ds-shadow-card);
-}
-
-.ai-daily-brief-card::before {
-  content: "";
-  position: absolute;
-  top: var(--ds-space-3);
-  bottom: var(--ds-space-3);
-  left: 0;
-  width: 4px;
-  border-radius: 0 999px 999px 0;
-  background: var(--ds-royal);
-}
-
-.ai-daily-brief-head {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding-bottom: var(--ds-space-2);
-}
-
-.ai-daily-brief-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-  border: 1px solid rgba(23, 105, 170, 0.12);
-  border-radius: 14px;
-  color: var(--ds-royal);
-  background: rgba(23, 105, 170, 0.07);
-  font-size: 19px;
-  line-height: 1;
-}
-
-.ai-daily-brief-heading {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.ai-daily-brief-title {
-  margin: 0;
-  color: var(--ds-royal);
-  font-size: 18px;
-  font-weight: 950;
-  line-height: 1.25;
-}
-
-.ai-daily-brief-subtitle {
-  color: var(--ds-gray-500);
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.45;
-}
-
-.ai-daily-brief-block {
-  display: grid;
-  gap: 8px;
-  padding: var(--ds-space-2) 0;
-  border-top: 1px solid #E8EDF5;
-}
-
-.ai-daily-brief-block:last-child {
-  padding-bottom: 0;
-}
-
-.ai-daily-brief-block-label {
-  color: var(--ds-gray-500);
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1.3;
-}
-
-.ai-daily-brief-main {
-  margin: 0;
-  color: var(--ds-midnight);
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1.45;
-}
-
-.ai-daily-brief-reason {
-  margin: 0;
-  color: var(--ds-gray-500);
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.6;
-}
-
-.ai-daily-brief-block.is-ai-advice {
-  border-top-color: rgba(103, 232, 249, 0.32);
-}
-
-.ai-daily-brief-block.is-ai-advice .ai-daily-brief-block-label {
-  color: var(--ds-aurora);
-}
-
-.ai-daily-brief-block.is-ai-advice .ai-daily-brief-main {
-  color: var(--ds-midnight);
 }
 
 .home-section .ai-insight-card {
@@ -6094,7 +6013,6 @@ body.ai-processing .status-ready,
     align-items: center;
   }
 
-  .ai-daily-brief-card,
   .home-section .ai-insight-card {
     padding: 16px;
   }
@@ -6348,7 +6266,7 @@ body.ai-processing .status-ready,
       <span class="morning-briefing-icon icon-morning-briefing" aria-hidden="true">🔥</span>
       <span class="morning-briefing-heading">
         <h3 id="morningBriefingTitle" class="morning-briefing-title">Morning Briefing</h3>
-        <span class="morning-briefing-subtitle">今日の営業予定をAIが整理しました</span>
+        <span class="morning-briefing-subtitle">今日の営業をAIが整理しました</span>
       </span>
     </div>
     <div class="morning-briefing-metrics" aria-label="朝の営業指標">
@@ -6365,33 +6283,19 @@ body.ai-processing .status-ready,
         <strong class="morning-briefing-value">0件</strong>
       </div>
     </div>
-    <div class="morning-briefing-comment">
-      <span class="morning-briefing-comment-label">AIコメント</span>
-      <p>本日は優先対応案件はありません。新規営業・顧客フォローに時間を使えます。</p>
+    <div class="morning-briefing-section">
+      <span class="morning-briefing-section-label">最優先</span>
+      <p class="morning-briefing-section-main">🏥 ○○病院<br>10:00訪問</p>
+      <p class="morning-briefing-section-note">理由<br>見積提出があります</p>
     </div>
-  </section>
-
-  <section id="aiDailyBriefCard" class="ai-daily-brief-card" aria-labelledby="aiDailyBriefTitle">
-    <div class="ai-daily-brief-head">
-      <span class="ai-daily-brief-icon icon-ai-daily-brief" aria-hidden="true">🤖</span>
-      <span class="ai-daily-brief-heading">
-        <h3 id="aiDailyBriefTitle" class="ai-daily-brief-title">AIデイリーブリーフ</h3>
-        <span class="ai-daily-brief-subtitle">AI秘書が今日の営業を整理しました</span>
-      </span>
+    <div class="morning-briefing-section">
+      <span class="morning-briefing-section-label">次にやること</span>
+      <p class="morning-briefing-section-main">📞 △△特養へフォロー</p>
+      <p class="morning-briefing-section-note">前回訪問から31日経過</p>
     </div>
-    <div class="ai-daily-brief-block">
-      <span class="ai-daily-brief-block-label">最優先</span>
-      <p class="ai-daily-brief-main">🏥 ○○病院へ10:00訪問</p>
-      <p class="ai-daily-brief-reason">理由：見積提出予定があります。</p>
-    </div>
-    <div class="ai-daily-brief-block">
-      <span class="ai-daily-brief-block-label">次にやること</span>
-      <p class="ai-daily-brief-main">📞 △△特養へフォロー</p>
-      <p class="ai-daily-brief-reason">前回訪問から31日経過しています。</p>
-    </div>
-    <div class="ai-daily-brief-block is-ai-advice">
-      <span class="ai-daily-brief-block-label">AIアドバイス</span>
-      <p class="ai-daily-brief-main">午後は予定に余裕があります。新規営業へ時間を使えます。</p>
+    <div class="morning-briefing-section is-ai-comment">
+      <span class="morning-briefing-section-label">AIコメント</span>
+      <p class="morning-briefing-section-main">午後は予定に余裕があります。<br>新規営業へ時間を使えます。</p>
     </div>
   </section>
 
