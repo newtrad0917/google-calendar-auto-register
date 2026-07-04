@@ -44,6 +44,24 @@ content="#0f172a">
       --home-gap: 16px;
       --home-card-radius: 20px;
       --home-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+      --brand-navy: #0f172a;
+      --brand-blue: #1769aa;
+      --brand-blue-deep: #12558b;
+      --brand-sky-soft: #eff6ff;
+      --brand-surface: #ffffff;
+      --brand-surface-soft: #f8fafc;
+      --brand-border: rgba(148, 163, 184, 0.24);
+      --brand-radius-card: 20px;
+      --brand-radius-control: 14px;
+      --brand-radius-pill: 999px;
+      --brand-space-1: 6px;
+      --brand-space-2: 10px;
+      --brand-space-3: 14px;
+      --brand-space-4: 18px;
+      --brand-space-5: 24px;
+      --brand-shadow-card: 0 14px 34px rgba(15, 23, 42, 0.07);
+      --brand-shadow-control: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 8px 18px rgba(15, 23, 42, 0.05);
+      --brand-transition: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     * {
@@ -3598,6 +3616,174 @@ body {
   --ux-blue-line: inset 3px 0 0 rgba(23, 105, 170, 0.72);
 }
 
+/* Design System Ver1: shared brand primitives */
+button,
+.primary-button,
+.secondary-button,
+.danger-button,
+.ghost-button,
+.customer-hub-action,
+.customer-hub-add-button,
+.project-hub-add-button,
+.project-hub-card-actions button,
+.schedule-sales-action,
+.todo-add-button,
+.task-edit-item-button,
+.settings-actions button,
+.setup-wizard-actions button,
+.sales-memo-actions button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--brand-radius-pill);
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: 0;
+  transition:
+    background-color var(--brand-transition),
+    border-color var(--brand-transition),
+    box-shadow var(--brand-transition),
+    color var(--brand-transition),
+    transform var(--brand-transition);
+}
+
+button,
+.primary-button {
+  background: linear-gradient(180deg, var(--brand-blue) 0%, var(--brand-blue-deep) 100%);
+  box-shadow: var(--brand-shadow-control);
+}
+
+.secondary-button {
+  border: 1px solid var(--brand-border);
+  color: var(--brand-navy);
+  background: linear-gradient(180deg, #ffffff 0%, var(--brand-surface-soft) 100%);
+  box-shadow: var(--brand-shadow-control);
+}
+
+.customer-hub-danger-button,
+.danger-button {
+  border: 1px solid #f0c8c4 !important;
+  color: var(--danger) !important;
+  background: linear-gradient(180deg, #fffafa 0%, #fff7f6 100%) !important;
+}
+
+.ghost-button,
+.subscreen-home-link,
+.customer-hub-list-back-button {
+  border: 1px solid transparent;
+  color: #334155;
+  background: transparent;
+  box-shadow: none;
+}
+
+button:hover,
+.primary-button:hover {
+  background: linear-gradient(180deg, #1b74b8 0%, var(--brand-blue-deep) 100%);
+}
+
+.secondary-button:hover,
+.ghost-button:hover,
+.subscreen-home-link:hover,
+.customer-hub-list-back-button:hover {
+  color: var(--brand-blue);
+  border-color: rgba(23, 105, 170, 0.18);
+  background: #f4f9ff;
+}
+
+button:active,
+.primary-button:active,
+.secondary-button:active,
+.danger-button:active,
+.ghost-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+input,
+textarea,
+select,
+input[type="date"],
+input[type="datetime-local"] {
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: var(--brand-radius-control);
+  color: var(--brand-navy);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  transition:
+    border-color var(--brand-transition),
+    box-shadow var(--brand-transition),
+    background-color var(--brand-transition);
+}
+
+textarea {
+  line-height: 1.65;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(23, 105, 170, 0.42);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 4px rgba(23, 105, 170, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.field {
+  margin-top: var(--brand-space-3);
+}
+
+label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.panel,
+.today-card,
+.todo-card,
+.ai-insight-card,
+.customer-hub-card,
+.customer-hub-profile,
+.customer-ai-brief,
+.customer-hub-sales-memo,
+.project-hub-section,
+.project-hub-card,
+.project-hub-form,
+.sales-memo-card,
+.settings-card,
+.setup-wizard-card,
+.business-card-import-panel {
+  border: 1px solid var(--brand-border) !important;
+  border-radius: var(--brand-radius-card) !important;
+  background: var(--brand-surface) !important;
+  box-shadow: var(--brand-shadow-card) !important;
+}
+
+.section-title,
+.project-hub-title,
+.settings-title,
+.project-hub-form-title,
+.customer-hub-form-title {
+  color: var(--brand-navy);
+  letter-spacing: 0;
+}
+
+.section-description,
+.settings-description {
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.actions,
+.customer-hub-actions,
+.project-hub-card-actions,
+.sales-memo-actions,
+.settings-actions,
+.setup-wizard-actions {
+  gap: var(--brand-space-2);
+}
+
 body {
   position: relative;
   background:
@@ -5170,6 +5356,56 @@ body.ai-processing .assistant-briefing-icon {
   background: #f4f9ff;
 }
 
+/* Design System Ver1: final alignment layer */
+.today-card,
+.todo-card,
+.ai-insight-card,
+.customer-hub-card,
+.customer-hub-profile,
+.customer-ai-brief,
+.customer-hub-sales-memo,
+.project-hub-section,
+.project-hub-card,
+.project-hub-form,
+.sales-memo-card,
+.settings-card,
+.setup-wizard-card,
+.business-card-import-panel {
+  border-color: var(--brand-border) !important;
+  border-radius: var(--brand-radius-card) !important;
+  background-color: var(--brand-surface) !important;
+  box-shadow: var(--brand-shadow-card) !important;
+}
+
+button:not(.schedule-day-button):not(.calendar-color-option),
+.customer-hub-action,
+.customer-hub-add-button,
+.project-hub-add-button,
+.project-hub-card-actions button,
+.sales-memo-actions button,
+.settings-actions button,
+.setup-wizard-actions button {
+  min-height: 44px;
+  border-radius: var(--brand-radius-pill) !important;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.secondary-button,
+.subscreen-home-link,
+.customer-hub-list-back-button {
+  border-color: var(--brand-border);
+}
+
+input,
+textarea,
+select,
+input[type="date"],
+input[type="datetime-local"] {
+  border-radius: var(--brand-radius-control) !important;
+  border-color: rgba(148, 163, 184, 0.34);
+}
+
 @media (max-width: 520px) {
   .customer-hub-card {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -5365,7 +5601,7 @@ body.ai-processing .assistant-briefing-icon {
   <main class="app">
     <header id="appHeader" class="app-header">
       <h1 class="app-title">営業AI秘書</h1>
-      <p class="app-subtitle">カレンダー登録、AIメール作成、コンタクト検索をまとめてサポートします。</p>
+      <p class="app-subtitle">顧客管理、カレンダー登録、AIメール作成をまとめてサポートします。</p>
     </header>
 
     <ol id="stepList" class="step-list" aria-label="登録手順">
@@ -5380,7 +5616,7 @@ body.ai-processing .assistant-briefing-icon {
     <p class="brand-kicker">SALES AI ASSISTANT</p>
     <h2 class="brand-title">営業AI秘書</h2>
     <p class="brand-description">
-      カレンダー登録、AIメール作成、コンタクト検索をスマートにまとめます。
+      顧客管理を中心に、予定・メール・営業メモをスマートにまとめます。
     </p>
     <div id="assistantBriefing" class="assistant-briefing" aria-live="polite">
       <span class="assistant-briefing-icon" aria-hidden="true"></span>
@@ -5492,16 +5728,8 @@ body.ai-processing .assistant-briefing-icon {
     <button type="button" class="action-card" onclick="showCustomerHubScreen()">
       <span class="action-icon icon-customer-hub">👥</span>
       <span class="action-main">
-        <strong>顧客</strong>
+        <strong>顧客管理</strong>
         <span>顧客カルテからメール・予定・地図へすばやく移動</span>
-      </span>
-      <span class="action-arrow">›</span>
-    </button>
-    <button type="button" class="action-card" onclick="showContactScreen()">
-      <span class="action-icon icon-contact">👤</span>
-      <span class="action-main">
-        <strong>コンタクト検索</strong>
-        <span>Googleコンタクトから相手を検索</span>
       </span>
       <span class="action-arrow">›</span>
     </button>
@@ -5843,6 +6071,10 @@ body.ai-processing .assistant-briefing-icon {
 </section>
 <hr class="divider">
 <section id="contactSection" class="hidden">
+<h2 class="section-title">連絡先から顧客候補を探す</h2>
+<p class="section-description">
+  Googleコンタクトは補助検索です。顧客管理の基本はCustomer Hubを使用してください。
+</p>
 <div class="field">
   <label for="contactQuery">連絡先を名前・会社名で検索</label>
   <input id="contactQuery" type="search" placeholder="例：山田、ABC株式会社">
@@ -6234,6 +6466,7 @@ body.ai-processing .assistant-briefing-icon {
 
     <div class="settings-actions">
       <button type="button" class="secondary-button" onclick="clearAppCacheFromSettings()">キャッシュ削除</button>
+      <button type="button" class="secondary-button" onclick="showContactScreen()">連絡先から顧客候補を探す</button>
       <button type="button" onclick="showSetupWizardScreen({ reRun: true })">セットアップを再実行</button>
       <button type="button" onclick="loadAppSettingsStatus()">再確認</button>
       <button type="button" class="secondary-button" onclick="showHomeScreen()">ホームへ戻る</button>
@@ -10252,7 +10485,8 @@ function renderContactResults(contacts) {
       Boolean(contact.email),
       function() {
         document.getElementById('draftTo').value = contact.email;
-        showContactSearchMessage('宛先に反映しました。');
+        showMailScreen({ skipTransition: true });
+        showDraftMessage('宛先に反映しました。');
       }
     ));
 
@@ -10261,6 +10495,8 @@ function renderContactResults(contacts) {
       Boolean(contact.company),
       function() {
         appendContactText('draftSubject', contact.company, ' ');
+        showMailScreen({ skipTransition: true });
+        showDraftMessage('会社名を件名へ反映しました。');
       }
     ));
 
@@ -10269,6 +10505,8 @@ function renderContactResults(contacts) {
       Boolean(contact.company),
       function() {
         appendContactText('draftBody', contact.company, '\n');
+        showMailScreen({ skipTransition: true });
+        showDraftMessage('会社名を本文へ反映しました。');
       }
     ));
 
