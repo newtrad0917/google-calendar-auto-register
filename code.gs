@@ -505,15 +505,12 @@ ${data.company || ''}
 
 function getTodayCalendarEvents() {
   const calendar = CalendarApp.getDefaultCalendar();
-
+  const timeZone = getScheduleTimeZone_();
   const now = new Date();
-
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
-
   const events = calendar.getEvents(todayStart, todayEnd);
 
   return events
@@ -536,16 +533,20 @@ function getTodayCalendarEvents() {
         title: event.getTitle(),
         startTime: Utilities.formatDate(
           startTime,
-          Session.getScriptTimeZone(),
+          timeZone,
           'HH:mm'
         ),
         endTime: Utilities.formatDate(
           endTime,
-          Session.getScriptTimeZone(),
+          timeZone,
           'HH:mm'
         ),
+        start: startTime.toISOString(),
+        end: endTime.toISOString(),
+        dateKey: Utilities.formatDate(startTime, timeZone, 'yyyy-MM-dd'),
         location: event.getLocation() || '',
-        status: isCurrent ? 'current' : 'next'
+        status: isCurrent ? 'current' : 'next',
+        allDay: event.isAllDayEvent()
       };
     });
 }
@@ -3119,17 +3120,18 @@ function doGet(e) {
 
     try {
       const events = getTodayCalendarEvents();
+      const response = createScheduleSuccessResponse_(
+        events,
+        events.length ? '' : '本日の予定はありません'
+      );
 
       if (callback) {
-        return createJsonpResponse_(callback, events);
+        return createJsonpResponse_(callback, response);
       }
 
-      return createJsonResponse(events);
+      return createJsonResponse(response);
     } catch (error) {
-      const errorData = {
-        error: true,
-        message: error && error.message ? error.message : '予定を取得できませんでした。'
-      };
+      const errorData = createScheduleErrorResponse_(error);
 
       if (callback) {
         return createJsonpResponse_(callback, errorData);
@@ -3146,17 +3148,18 @@ function doGet(e) {
 
     try {
       const events = getCalendarEventsByRange(startDate, endDate);
+      const response = createScheduleSuccessResponse_(
+        events,
+        events.length ? '' : '指定期間の予定はありません'
+      );
 
       if (callback) {
-        return createJsonpResponse_(callback, events);
+        return createJsonpResponse_(callback, response);
       }
 
-      return createJsonResponse(events);
+      return createJsonResponse(response);
     } catch (error) {
-      const errorData = {
-        error: true,
-        message: error && error.message ? error.message : '予定を取得できませんでした。'
-      };
+      const errorData = createScheduleErrorResponse_(error);
 
       if (callback) {
         return createJsonpResponse_(callback, errorData);
@@ -3168,6 +3171,66 @@ function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('営業AI秘書')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function createScheduleSuccessResponse_(events, message) {
+  const eventList = Array.isArray(events) ? events : [];
+
+  return {
+    ok: true,
+    events: eventList,
+    count: eventList.length,
+    message: message || '',
+    timeZone: getScheduleTimeZone_(),
+    generatedAt: new Date().toISOString()
+  };
+}
+
+function createScheduleErrorResponse_(error) {
+  return {
+    ok: false,
+    error: true,
+    errorCode: classifyScheduleServerError_(error),
+    message: getScheduleServerErrorMessage_(error),
+    timeZone: getScheduleTimeZone_(),
+    generatedAt: new Date().toISOString()
+  };
+}
+
+function classifyScheduleServerError_(error) {
+  const message = error && error.message ? String(error.message) : '';
+
+  if (/permission|authorization|authorize|権限|承認|認証|アクセス/i.test(message)) {
+    return 'SCHEDULE_ERROR_AUTH_REQUIRED';
+  }
+
+  if (/Calendar|カレンダー/i.test(message)) {
+    return 'SCHEDULE_ERROR_CALENDAR_API';
+  }
+
+  if (/範囲|日付|date/i.test(message)) {
+    return 'SCHEDULE_ERROR_INVALID_RANGE';
+  }
+
+  return 'SCHEDULE_ERROR_SERVER_EXCEPTION';
+}
+
+function getScheduleServerErrorMessage_(error) {
+  const errorCode = classifyScheduleServerError_(error);
+
+  if (errorCode === 'SCHEDULE_ERROR_AUTH_REQUIRED') {
+    return 'カレンダー権限の確認が必要です。';
+  }
+
+  if (errorCode === 'SCHEDULE_ERROR_CALENDAR_API') {
+    return 'カレンダー予定を確認できませんでした。';
+  }
+
+  return error && error.message ? error.message : '予定を取得できませんでした。';
+}
+
+function getScheduleTimeZone_() {
+  return Session.getScriptTimeZone() || 'Asia/Tokyo';
 }
 
 function createJsonpResponse_(callback, data) {
