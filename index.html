@@ -4777,12 +4777,47 @@ body.ai-processing .assistant-briefing-icon {
   gap: 10px;
 }
 
+.project-hub-search-wrap {
+  position: sticky;
+  top: 66px;
+  z-index: 7;
+  margin: 0 -2px;
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.72);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(248, 250, 252, 0.92) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.project-hub-search {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 15px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 16px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 12px 28px rgba(15, 23, 42, 0.08);
+  font-size: 16px;
+  outline: none;
+}
+
+.project-hub-search:focus {
+  border-color: rgba(23, 105, 170, 0.38);
+  background: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    0 0 0 4px rgba(23, 105, 170, 0.08),
+    0 14px 30px rgba(15, 23, 42, 0.09);
+}
+
 .project-hub-card {
   position: relative;
   overflow: hidden;
   display: grid;
-  gap: 12px;
-  padding: 15px;
+  gap: 10px;
+  padding: 13px;
+  cursor: pointer;
 }
 
 .project-hub-card::before {
@@ -4804,11 +4839,27 @@ body.ai-processing .assistant-briefing-icon {
   align-items: start;
 }
 
+.project-hub-card.is-expanded {
+  border-color: rgba(23, 105, 170, 0.28);
+  box-shadow:
+    inset 4px 0 0 rgba(23, 105, 170, 0.86),
+    0 16px 34px rgba(15, 23, 42, 0.1);
+}
+
 .project-hub-card-title {
   margin: 0;
   color: #0f172a;
   font-size: 15px;
   font-weight: 900;
+  line-height: 1.35;
+}
+
+.project-hub-card-customer {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
   line-height: 1.35;
 }
 
@@ -5025,10 +5076,49 @@ body.ai-processing .assistant-briefing-icon {
   gap: 10px;
 }
 
+.project-hub-form-details {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.84);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.project-hub-form-details summary {
+  cursor: pointer;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.project-hub-form-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-hub-form-details[open] summary {
+  margin-bottom: 8px;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
 .customer-hub-detail.is-detail-entering .customer-ai-brief::before,
 .customer-hub-detail.is-detail-entering .customer-hub-profile::before {
   animation: customer-hub-line-flow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+.project-hub-inline-detail {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(226, 232, 240, 0.82);
+}
+
+.customer-hub-detail.is-detail-entering .project-hub-amount-grid,
+.customer-hub-detail.is-detail-entering .project-hub-focus-grid,
+.customer-hub-detail.is-detail-entering .project-hub-grid,
+.customer-hub-detail.is-detail-entering .project-hub-card-actions {
+  animation: ux-card-stream-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .customer-hub-detail.is-detail-entering .customer-hub-profile,
@@ -5056,20 +5146,22 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .customer-hub-back-row {
+  display: flex;
   justify-content: flex-start;
+  padding-top: 2px;
 }
 
 .customer-hub-list-back-button {
   width: auto;
-  min-height: 40px;
-  padding: 9px 13px;
+  min-height: 38px;
+  padding: 8px 12px;
   border: 1px solid #d7dce3;
   border-radius: 999px;
   color: #334155;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   font-size: 13px;
   font-weight: 850;
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
   white-space: nowrap;
 }
 
@@ -5099,6 +5191,17 @@ body.ai-processing .assistant-briefing-icon {
   }
 
   .customer-hub-search {
+    min-height: 50px;
+    border-radius: 15px;
+  }
+
+  .project-hub-search-wrap {
+    top: 58px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .project-hub-search {
     min-height: 50px;
     border-radius: 15px;
   }
@@ -6246,6 +6349,8 @@ body.ai-processing .assistant-briefing-icon {
     let customerHubSearchQuery = '';
     let projectData = [];
     let projectDataMessage = '';
+    let selectedProjectHubId = '';
+    let projectHubSearchQuery = '';
     const CUSTOMER_FORM_FIELDS = {
       companyName: 'customerFormCompanyName',
       corporationName: 'customerFormCorporationName',
@@ -8008,6 +8113,11 @@ function showCustomerHubDetail(customerId) {
     return;
   }
 
+  if (selectedCustomerHubId !== customerId) {
+    selectedProjectHubId = '';
+    projectHubSearchQuery = '';
+  }
+
   selectedCustomerHubId = customerId;
   clearCustomerHubDetailContainer();
   renderCustomerHubList();
@@ -8082,6 +8192,7 @@ function createCustomerHubInlineDetail(customer) {
   detail.appendChild(profile);
   detail.appendChild(createCustomerProjectSection(customer));
   detail.appendChild(createCustomerHubActions(customer));
+  detail.appendChild(createCustomerHubBackRow());
   window.setTimeout(function() {
     detail.classList.remove('is-detail-entering');
   }, 460);
@@ -8305,7 +8416,7 @@ function createCustomerHubBackRow() {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'customer-hub-list-back-button';
-  button.textContent = '顧客一覧へ戻る';
+  button.textContent = '↑ 上へ';
   button.addEventListener('click', scrollCustomerHubListIntoView);
 
   row.appendChild(button);
@@ -8313,7 +8424,7 @@ function createCustomerHubBackRow() {
 }
 
 function scrollCustomerHubListIntoView() {
-  const list = document.getElementById('customerHubList');
+  const list = document.querySelector('.customer-hub-search-wrap') || document.getElementById('customerHubList');
 
   if (!list) {
     return;
@@ -8386,6 +8497,21 @@ function createCustomerProjectSection(customer) {
   header.appendChild(addButton);
   section.appendChild(header);
 
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'project-hub-search-wrap';
+
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.className = 'project-hub-search';
+  search.placeholder = '案件名・顧客名・状態で検索';
+  search.value = projectHubSearchQuery;
+  search.addEventListener('input', function(event) {
+    projectHubSearchQuery = event.target.value || '';
+    updateProjectHubList(list, customer);
+  });
+  searchWrap.appendChild(search);
+  section.appendChild(searchWrap);
+
   if (projectDataMessage) {
     const message = document.createElement('p');
     message.className = 'customer-hub-empty';
@@ -8395,18 +8521,7 @@ function createCustomerProjectSection(customer) {
 
   const list = document.createElement('div');
   list.className = 'project-hub-list';
-  const projects = getProjectsByCustomerIdForClient(customer.id);
-
-  if (!projects.length) {
-    const empty = document.createElement('p');
-    empty.className = 'customer-hub-empty';
-    empty.textContent = '案件はまだ登録されていません';
-    list.appendChild(empty);
-  } else {
-    projects.forEach(function(project) {
-      list.appendChild(createProjectHubCard(project));
-    });
-  }
+  updateProjectHubList(list, customer);
 
   section.appendChild(list);
 
@@ -8417,39 +8532,77 @@ function createCustomerProjectSection(customer) {
   return section;
 }
 
+function updateProjectHubList(list, customer) {
+  if (!list) {
+    return;
+  }
+
+  list.replaceChildren();
+  const projects = filterProjectHubProjects(getProjectsByCustomerIdForClient(customer.id), customer);
+
+  if (!projects.length) {
+    const empty = document.createElement('p');
+    empty.className = 'customer-hub-empty';
+    empty.textContent = projectHubSearchQuery ? '該当する案件はありません' : '案件はまだ登録されていません';
+    list.appendChild(empty);
+  } else {
+    projects.forEach(function(project) {
+      list.appendChild(createProjectHubCard(project));
+    });
+  }
+}
+
 function createProjectHubCard(project) {
   const card = document.createElement('article');
   card.className = 'project-hub-card';
+  card.dataset.projectId = project.id;
+  card.classList.toggle('is-expanded', project.id === selectedProjectHubId);
 
   const head = document.createElement('div');
   head.className = 'project-hub-card-head';
 
+  const titleWrap = document.createElement('div');
   const title = document.createElement('p');
   title.className = 'project-hub-card-title';
   title.textContent = formatProjectValue(project.projectName);
-  head.appendChild(title);
+  titleWrap.appendChild(title);
+
+  const customerName = document.createElement('span');
+  customerName.className = 'project-hub-card-customer';
+  customerName.textContent = getProjectCustomerName(project);
+  titleWrap.appendChild(customerName);
+  head.appendChild(titleWrap);
 
   const statusRow = document.createElement('div');
   statusRow.className = 'project-hub-status-row';
-  statusRow.appendChild(createProjectHubBadge(project.status, 'status'));
   statusRow.appendChild(createProjectHubBadge(project.priority, 'priority'));
+  statusRow.appendChild(createProjectHubBadge(project.status, 'status'));
   head.appendChild(statusRow);
   card.appendChild(head);
 
-  const meta = document.createElement('div');
-  meta.className = 'project-hub-meta';
-  [
-    project.category
-  ].filter(Boolean).forEach(function(text) {
-    const chip = document.createElement('span');
-    chip.className = 'project-hub-chip';
-    chip.textContent = text;
-    meta.appendChild(chip);
+  card.addEventListener('click', function(event) {
+    if (event.target.closest('button, a, input, textarea, select')) {
+      return;
+    }
+
+    toggleProjectHubDetail(project.id);
   });
 
-  if (meta.childElementCount) {
-    card.appendChild(meta);
+  if (project.id === selectedProjectHubId) {
+    card.appendChild(createProjectHubInlineDetail(project));
   }
+
+  return card;
+}
+
+function createProjectHubInlineDetail(project) {
+  const detail = document.createElement('div');
+  detail.className = 'project-hub-inline-detail customer-hub-detail is-detail-entering';
+  detail.addEventListener('click', function(event) {
+    event.stopPropagation();
+  });
+
+  detail.appendChild(createProjectHubAiBriefCard(project));
 
   const amountGrid = document.createElement('div');
   amountGrid.className = 'project-hub-amount-grid';
@@ -8460,40 +8613,205 @@ function createProjectHubCard(project) {
   ].forEach(function(item) {
     amountGrid.appendChild(createProjectHubAmount(item[0], item[1], item[2]));
   });
-  card.appendChild(amountGrid);
+  detail.appendChild(amountGrid);
 
   const focusGrid = document.createElement('div');
   focusGrid.className = 'project-hub-focus-grid';
   [
     ['次アクション', project.nextAction],
-    ['予定工事日', project.expectedWorkDate],
+    ['工期', project.expectedWorkDate],
     ['入金予定日', project.expectedPaymentDate]
   ].forEach(function(item) {
     focusGrid.appendChild(createProjectHubField(item[0], item[1], true));
   });
-  card.appendChild(focusGrid);
+  detail.appendChild(focusGrid);
 
   const grid = document.createElement('div');
   grid.className = 'project-hub-grid';
   [
+    ['顧客名', getProjectCustomerName(project)],
+    ['カテゴリ', project.category],
+    ['担当', getProjectContactName(project)],
+    ['状態', project.status],
+    ['優先度', project.priority],
     ['受注予定日', project.expectedOrderDate],
-    ['メモ', project.memo || project.notes]
+    ['営業メモ', project.memo || project.notes]
   ].forEach(function(item) {
     grid.appendChild(createProjectHubField(item[0], item[1]));
   });
-  card.appendChild(grid);
+  detail.appendChild(grid);
 
   const actions = document.createElement('div');
   actions.className = 'project-hub-card-actions';
+  actions.appendChild(createProjectHubButton('Customer Hubを開く', function() {
+    openProjectCustomerHub(project);
+  }, 'secondary-button'));
+  actions.appendChild(createProjectHubButton('営業報告', function() {
+    startProjectSalesMemo(project);
+  }, 'secondary-button'));
   actions.appendChild(createProjectHubButton('編集', function() {
     showProjectForm(project.customerId, project.id);
   }, 'secondary-button'));
   actions.appendChild(createProjectHubButton('削除', function(target) {
     deleteProjectFromDetail(project.id, target);
   }, 'customer-hub-danger-button'));
-  card.appendChild(actions);
+  detail.appendChild(actions);
+  detail.appendChild(createProjectHubBackRow());
 
+  window.setTimeout(function() {
+    detail.classList.remove('is-detail-entering');
+  }, 460);
+  return detail;
+}
+
+function toggleProjectHubDetail(projectId) {
+  const id = String(projectId || '').trim();
+
+  if (!id) {
+    return;
+  }
+
+  selectedProjectHubId = selectedProjectHubId === id ? '' : id;
+  renderCustomerHubList();
+}
+
+function filterProjectHubProjects(projects, customer) {
+  const query = normalizeCustomerSearchText(projectHubSearchQuery);
+  const projectList = Array.isArray(projects) ? projects : [];
+
+  if (!query) {
+    return projectList;
+  }
+
+  return projectList.filter(function(project) {
+    return normalizeCustomerSearchText([
+      project.projectName,
+      getProjectCustomerName(project),
+      project.priority,
+      project.status,
+      project.category,
+      project.nextAction,
+      customer && customer.companyName
+    ].join(' ')).indexOf(query) !== -1;
+  });
+}
+
+function getProjectCustomerName(project) {
+  const customer = getCustomerById(project.customerId);
+  return formatProjectValue(
+    project.customerName ||
+    project.companyName ||
+    (customer && customer.companyName)
+  );
+}
+
+function getProjectContactName(project) {
+  const customer = getCustomerById(project.customerId);
+
+  if (!customer) {
+    return '';
+  }
+
+  return formatCustomerContactName(customer);
+}
+
+function createProjectHubAiBriefCard(project) {
+  const card = document.createElement('section');
+  card.className = 'customer-ai-brief';
+  card.setAttribute('aria-label', '案件AIブリーフ');
+
+  const head = document.createElement('div');
+  head.className = 'customer-ai-brief-head';
+
+  const title = document.createElement('h3');
+  title.className = 'customer-ai-brief-title';
+  title.textContent = 'AIブリーフ';
+  head.appendChild(title);
+
+  const badge = document.createElement('span');
+  badge.className = 'customer-ai-brief-badge';
+  badge.textContent = '案件';
+  head.appendChild(badge);
+  card.appendChild(head);
+
+  const list = document.createElement('div');
+  list.className = 'customer-ai-brief-list';
+  [
+    ['状態', project.status],
+    ['優先度', project.priority],
+    ['次アクション', project.nextAction],
+    ['予定工事日', project.expectedWorkDate],
+    ['入金予定日', project.expectedPaymentDate]
+  ].forEach(function(row) {
+    if (formatProjectValue(row[1]) !== '未登録') {
+      list.appendChild(createCustomerAiBriefRow(row[0], row[1]));
+    }
+  });
+
+  if (!list.childElementCount) {
+    list.appendChild(createCustomerAiBriefRow('ブリーフ', '案件情報を登録すると、ここに次アクションが表示されます。'));
+  }
+
+  card.appendChild(list);
   return card;
+}
+
+function createProjectHubBackRow() {
+  const row = document.createElement('div');
+  row.className = 'customer-hub-back-row';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'customer-hub-list-back-button';
+  button.textContent = '↑ 上へ';
+  button.addEventListener('click', scrollProjectHubTopIntoView);
+
+  row.appendChild(button);
+  return row;
+}
+
+function scrollProjectHubTopIntoView() {
+  const target = document.querySelector('.project-hub-search-wrap') ||
+    document.querySelector('.project-hub-section');
+
+  if (!target) {
+    return;
+  }
+
+  target.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+function openProjectCustomerHub(project) {
+  selectedProjectHubId = '';
+  showCustomerHubDetail(project.customerId);
+}
+
+function startProjectSalesMemo(project) {
+  const customer = getCustomerById(project.customerId) || {
+    id: project.customerId || '',
+    companyName: getProjectCustomerName(project)
+  };
+
+  showSalesMemoReportForm({
+    title: project.projectName || customer.companyName || '営業報告',
+    start: new Date()
+  }, customer);
+
+  window.setTimeout(function() {
+    const projectIdInput = document.getElementById('salesMemoProjectId');
+    const nextActionInput = document.getElementById('salesMemoNextAction');
+
+    if (projectIdInput) {
+      projectIdInput.value = project.id || '';
+    }
+
+    if (nextActionInput && project.nextAction) {
+      nextActionInput.value = project.nextAction;
+    }
+  }, 0);
 }
 
 function createProjectHubBadge(value, type) {
@@ -9502,20 +9820,11 @@ function renderProjectForm(customerId, project) {
   title.textContent = project.id ? '案件編集' : '案件追加';
   form.appendChild(title);
 
-  const grid = document.createElement('div');
-  grid.className = 'project-hub-form-grid';
+  const basicGrid = document.createElement('div');
+  basicGrid.className = 'project-hub-form-grid';
 
-  grid.appendChild(createProjectTextField('projectFormProjectName', '案件名', project.projectName, true, 'full'));
-  grid.appendChild(createProjectSelectField('projectFormCategory', 'カテゴリ', project.category, [
-    'LED',
-    '空調',
-    '新電力',
-    'エレベーター',
-    '給食',
-    '工事',
-    'その他'
-  ]));
-  grid.appendChild(createProjectSelectField('projectFormStatus', 'ステータス', project.status, [
+  basicGrid.appendChild(createProjectTextField('projectFormProjectName', '案件名', project.projectName, true, 'full'));
+  basicGrid.appendChild(createProjectSelectField('projectFormStatus', 'ステータス', project.status, [
     '提案前',
     '提案中',
     '見積中',
@@ -9524,22 +9833,23 @@ function renderProjectForm(customerId, project) {
     '失注',
     '完了'
   ]));
-  grid.appendChild(createProjectSelectField('projectFormPriority', '優先度', project.priority, [
+  basicGrid.appendChild(createProjectSelectField('projectFormPriority', '優先度', project.priority, [
     '高',
     '中',
     '低'
   ]));
-  grid.appendChild(createProjectTextField('projectFormProposalAmount', '予定金額', project.proposalAmount, false, '', 'number'));
-  grid.appendChild(createProjectTextField('projectFormCostAmount', '原価', project.costAmount, false, '', 'number'));
-  grid.appendChild(createProjectTextField('projectFormProfitAmount', '粗利', project.profitAmount, false, '', 'number'));
-  grid.appendChild(createProjectTextField('projectFormExpectedOrderDate', '受注予定日', project.expectedOrderDate, false, '', 'date'));
-  grid.appendChild(createProjectTextField('projectFormExpectedWorkDate', '予定工事日', project.expectedWorkDate, false, '', 'date'));
-  grid.appendChild(createProjectTextField('projectFormExpectedPaymentDate', '入金予定日', project.expectedPaymentDate, false, '', 'date'));
-  grid.appendChild(createProjectTextField('projectFormNextAction', '次アクション', project.nextAction, false, 'full'));
-  grid.appendChild(createProjectTextareaField('projectFormMemo', 'メモ', project.memo, 'full'));
-  grid.appendChild(createProjectTextareaField('projectFormNotes', '備考', project.notes, 'full'));
+  basicGrid.appendChild(createProjectSelectField('projectFormCategory', 'カテゴリ', project.category, [
+    'LED',
+    '空調',
+    '新電力',
+    'エレベーター',
+    '給食',
+    '工事',
+    'その他'
+  ]));
+  basicGrid.appendChild(createProjectTextareaField('projectFormMemo', '営業メモ', project.memo, 'full', 4));
 
-  form.appendChild(grid);
+  form.appendChild(basicGrid);
 
   const actions = document.createElement('div');
   actions.className = 'project-hub-form-actions';
@@ -9558,6 +9868,28 @@ function renderProjectForm(customerId, project) {
   actions.appendChild(cancelButton);
 
   form.appendChild(actions);
+
+  const detail = document.createElement('details');
+  detail.className = 'project-hub-form-details';
+
+  const summary = document.createElement('summary');
+  summary.textContent = '▼ 詳細情報を入力';
+  detail.appendChild(summary);
+
+  const detailGrid = document.createElement('div');
+  detailGrid.className = 'project-hub-form-grid';
+  detailGrid.appendChild(createProjectTextField('projectFormProposalAmount', '予定金額', project.proposalAmount, false, '', 'number'));
+  detailGrid.appendChild(createProjectTextField('projectFormCostAmount', '原価', project.costAmount, false, '', 'number'));
+  detailGrid.appendChild(createProjectTextField('projectFormProfitAmount', '粗利', project.profitAmount, false, '', 'number'));
+  detailGrid.appendChild(createProjectTextField('projectFormExpectedOrderDate', '受注予定日', project.expectedOrderDate, false, '', 'date'));
+  detailGrid.appendChild(createProjectTextField('projectFormExpectedWorkDate', '予定工事日', project.expectedWorkDate, false, '', 'date'));
+  detailGrid.appendChild(createProjectTextField('projectFormExpectedPaymentDate', '入金予定日', project.expectedPaymentDate, false, '', 'date'));
+  detailGrid.appendChild(createProjectReadonlyField('projectFormContactName', '担当者', getProjectFormContactName(customerId)));
+  detailGrid.appendChild(createProjectTextField('projectFormNextAction', '次アクション', project.nextAction, false, 'full'));
+  detailGrid.appendChild(createProjectTextareaField('projectFormNotes', '備考', project.notes, 'full', 3));
+  detail.appendChild(detailGrid);
+  form.appendChild(detail);
+
   mount.appendChild(form);
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -9617,7 +9949,30 @@ function createProjectSelectField(id, label, value, options) {
   return field;
 }
 
-function createProjectTextareaField(id, label, value, extraClassName) {
+function createProjectReadonlyField(id, label, value) {
+  const field = document.createElement('div');
+  field.className = 'field';
+
+  const labelNode = document.createElement('label');
+  labelNode.setAttribute('for', id);
+  labelNode.textContent = label;
+  field.appendChild(labelNode);
+
+  const input = document.createElement('input');
+  input.id = id;
+  input.type = 'text';
+  input.value = value || '';
+  input.readOnly = true;
+  field.appendChild(input);
+  return field;
+}
+
+function getProjectFormContactName(customerId) {
+  const customer = getCustomerById(customerId);
+  return customer ? formatCustomerContactName(customer) : '';
+}
+
+function createProjectTextareaField(id, label, value, extraClassName, rows) {
   const field = document.createElement('div');
   field.className = ['field', extraClassName || ''].filter(Boolean).join(' ');
 
@@ -9628,7 +9983,7 @@ function createProjectTextareaField(id, label, value, extraClassName) {
 
   const textarea = document.createElement('textarea');
   textarea.id = id;
-  textarea.rows = 4;
+  textarea.rows = rows || 4;
   textarea.value = value || '';
   field.appendChild(textarea);
   return field;
