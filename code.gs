@@ -1060,6 +1060,7 @@ function ensureCustomerDbHeaders_(sheet, desiredHeaders) {
 
 function styleCustomerDbSheet_(sheet, desiredHeaders) {
   var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+  var headers = getCustomerDbHeaderValues_(sheet);
 
   sheet.setFrozenRows(1);
   sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
@@ -1083,6 +1084,7 @@ function styleCustomerDbSheet_(sheet, desiredHeaders) {
   setCustomerDbColumnWidth_(sheet, 'memo', 220);
   setCustomerDbColumnWidth_(sheet, 'aiSummary', 240);
   setCustomerDbColumnWidth_(sheet, 'notes', 220);
+  formatCustomerPhoneColumns_(sheet, headers);
 }
 
 function setCustomerDbColumnWidth_(sheet, headerName, width) {
@@ -1092,6 +1094,18 @@ function setCustomerDbColumnWidth_(sheet, headerName, width) {
   if (index !== -1) {
     sheet.setColumnWidth(index + 1, width);
   }
+}
+
+function formatCustomerPhoneColumns_(sheet, headers) {
+  ['phone', 'officePhone', 'mobilePhone'].forEach(function(headerName) {
+    var index = headers.indexOf(headerName);
+
+    if (index !== -1) {
+      sheet
+        .getRange(1, index + 1, sheet.getMaxRows(), 1)
+        .setNumberFormat('@');
+    }
+  });
 }
 
 function setupBusinessCardImportSheet() {
@@ -1190,6 +1204,7 @@ function ensureBusinessCardImportHeaders_(sheet, desiredHeaders) {
 
 function styleBusinessCardImportSheet_(sheet, desiredHeaders) {
   var lastColumn = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+  var headers = getBusinessCardImportHeaderValues_(sheet);
 
   sheet.setFrozenRows(1);
   sheet.getRange(1, 1, 1, lastColumn).setFontWeight('bold');
@@ -1211,6 +1226,7 @@ function styleBusinessCardImportSheet_(sheet, desiredHeaders) {
   setBusinessCardImportColumnWidth_(sheet, '携帯電話', 150);
   setBusinessCardImportColumnWidth_(sheet, 'グループ', 170);
   setBusinessCardImportColumnWidth_(sheet, 'メモ', 260);
+  formatBusinessCardPhoneColumns_(sheet, headers);
 }
 
 function setBusinessCardImportColumnWidth_(sheet, headerName, width) {
@@ -1220,6 +1236,18 @@ function setBusinessCardImportColumnWidth_(sheet, headerName, width) {
   if (index !== -1) {
     sheet.setColumnWidth(index + 1, width);
   }
+}
+
+function formatBusinessCardPhoneColumns_(sheet, headers) {
+  ['会社電話', '会社FAX', '携帯電話'].forEach(function(headerName) {
+    var index = headers.indexOf(headerName);
+
+    if (index !== -1) {
+      sheet
+        .getRange(1, index + 1, sheet.getMaxRows(), 1)
+        .setNumberFormat('@');
+    }
+  });
 }
 
 function previewBusinessCardImport() {
@@ -1274,6 +1302,7 @@ function importBusinessCards() {
     var customerSheet = getCustomerSheet_();
     ensureCustomerDbHeaders_(customerSheet, getCustomerDbHeaders_());
     var customerHeaders = getCustomerDbHeaderValues_(customerSheet);
+    formatCustomerPhoneColumns_(customerSheet, customerHeaders);
     var existingCustomers = getCustomers();
     var now = new Date();
     var result = {
@@ -1317,7 +1346,7 @@ function importBusinessCards() {
         updatedAt: now
       }), customerHeaders);
 
-      customerSheet.appendRow(row);
+      writeCustomerRow_(customerSheet, customerSheet.getLastRow() + 1, row, customerHeaders);
       existingCustomers.push(Object.assign({}, customer, {
         id: id
       }));
@@ -1346,11 +1375,12 @@ function getBusinessCardImportRows_() {
   }
 
   var headers = getBusinessCardImportHeaderValues_(sheet);
-  var rows = sheet
-    .getRange(2, 1, lastRow - 1, lastColumn)
-    .getValues()
-    .map(function(row) {
-      return normalizeBusinessCardRow_(row, headers);
+  var range = sheet.getRange(2, 1, lastRow - 1, lastColumn);
+  var values = range.getValues();
+  var displayValues = range.getDisplayValues();
+  var rows = values
+    .map(function(row, index) {
+      return normalizeBusinessCardRow_(row, headers, displayValues[index]);
     });
 
   return {
@@ -1373,10 +1403,15 @@ function getBusinessCardImportSheet_() {
   return sheet;
 }
 
-function normalizeBusinessCardRow_(row, headers) {
+function normalizeBusinessCardRow_(row, headers, displayRow) {
   function value(headerName) {
     var index = headers.indexOf(headerName);
     return index === -1 ? '' : row[index];
+  }
+
+  function displayValue(headerName) {
+    var index = headers.indexOf(headerName);
+    return index === -1 || !displayRow ? '' : displayRow[index];
   }
 
   function text(headerName) {
@@ -1389,6 +1424,16 @@ function normalizeBusinessCardRow_(row, headers) {
     return String(rawValue).trim();
   }
 
+  function phoneText(headerName) {
+    var displayText = normalizeCustomerPhoneText_(displayValue(headerName));
+
+    if (displayText) {
+      return displayText;
+    }
+
+    return normalizeCustomerPhoneText_(value(headerName));
+  }
+
   return {
     companyName: text('会社名'),
     contactName: text('名前'),
@@ -1397,9 +1442,9 @@ function normalizeBusinessCardRow_(row, headers) {
     email: text('電子メール'),
     postalCode: text('郵便番号'),
     address: text('会社住所'),
-    officePhone: text('会社電話'),
-    fax: text('会社FAX'),
-    mobilePhone: text('携帯電話'),
+    officePhone: phoneText('会社電話'),
+    fax: phoneText('会社FAX'),
+    mobilePhone: phoneText('携帯電話'),
     registeredDate: formatBusinessCardDate_(value('名刺登録日')),
     exchangedDate: formatBusinessCardDate_(value('名刺交換日')),
     cardBookName: text('名刺帳名'),
@@ -2013,20 +2058,22 @@ function getTaskSpreadsheet_() {
  */
 function getCustomers() {
   var sheet = getCustomerSheet_();
-  var values = sheet.getDataRange().getValues();
+  var range = sheet.getDataRange();
+  var values = range.getValues();
+  var displayValues = range.getDisplayValues();
 
   if (values.length <= 1) {
     return [];
   }
 
-  var headers = values[0].map(function(header) {
+  var headers = displayValues[0].map(function(header) {
     return String(header || '').trim();
   });
 
   return values
     .slice(1)
-    .map(function(row) {
-      return normalizeCustomerRow_(row, headers);
+    .map(function(row, index) {
+      return normalizeCustomerRow_(row, headers, displayValues[index + 1]);
     })
     .filter(function(customer) {
       return customer.id && customer.companyName;
@@ -2051,6 +2098,53 @@ function getCustomer(customerId) {
   return customer;
 }
 
+function getCustomerPhoneDiagnostics() {
+  var sheet = getCustomerSheet_();
+  var range = sheet.getDataRange();
+  var values = range.getValues();
+  var displayValues = range.getDisplayValues();
+  var headers = displayValues.length
+    ? displayValues[0].map(function(header) {
+        return String(header || '').trim();
+      })
+    : [];
+  var phoneHeaders = ['phone', 'officePhone', 'mobilePhone'];
+  var phoneIndexes = phoneHeaders.reduce(function(result, header) {
+    result[header] = headers.indexOf(header);
+    return result;
+  }, {});
+
+  return {
+    sheetName: sheet.getName(),
+    lastRow: sheet.getLastRow(),
+    phoneIndexes: phoneIndexes,
+    rows: values.slice(1, 11).map(function(row, index) {
+      var displayRow = displayValues[index + 1] || [];
+      var normalized = normalizeCustomerRow_(row, headers, displayRow);
+      var item = {
+        rowNumber: index + 2,
+        id: normalized.id,
+        companyName: normalized.companyName,
+        resolved: {
+          phone: normalized.phone,
+          officePhone: normalized.officePhone,
+          mobilePhone: normalized.mobilePhone
+        },
+        raw: {},
+        display: {}
+      };
+
+      phoneHeaders.forEach(function(header) {
+        var columnIndex = phoneIndexes[header];
+        item.raw[header] = columnIndex === -1 ? '' : row[columnIndex];
+        item.display[header] = columnIndex === -1 ? '' : displayRow[columnIndex];
+      });
+
+      return item;
+    })
+  };
+}
+
 function addCustomer(customer) {
   var data = customer || {};
   var companyName = String(data.companyName || '').trim();
@@ -2066,6 +2160,7 @@ function addCustomer(customer) {
     var sheet = getCustomerSheet_();
     ensureCustomerDbHeaders_(sheet, getCustomerDbHeaders_());
     var headers = getCustomerDbHeaderValues_(sheet);
+    formatCustomerPhoneColumns_(sheet, headers);
     var now = new Date();
     var id = String(data.id || '').trim() || generateCustomerId_();
     var row = buildCustomerRowForHeaders_(Object.assign({}, data, {
@@ -2075,7 +2170,7 @@ function addCustomer(customer) {
       updatedAt: now
     }), headers);
 
-    sheet.appendRow(row);
+    writeCustomerRow_(sheet, sheet.getLastRow() + 1, row, headers);
 
     return {
       id: id,
@@ -2108,6 +2203,7 @@ function updateCustomer(customer) {
     var sheet = getCustomerSheet_();
     ensureCustomerDbHeaders_(sheet, getCustomerDbHeaders_());
     var headers = getCustomerDbHeaderValues_(sheet);
+    formatCustomerPhoneColumns_(sheet, headers);
     var rowNumber = findCustomerRowById_(sheet, id);
 
     if (!rowNumber) {
@@ -2123,7 +2219,7 @@ function updateCustomer(customer) {
       updatedAt: new Date()
     }), headers, existingRow);
 
-    sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+    writeCustomerRow_(sheet, rowNumber, row, headers);
 
     return {
       id: id,
@@ -2223,7 +2319,9 @@ function buildCustomerRowForHeaders_(customer, headers, existingRow) {
 
   return headers.map(function(header, index) {
     if (Object.prototype.hasOwnProperty.call(data, header)) {
-      return data[header];
+      return isCustomerPhoneHeader_(header)
+        ? normalizeCustomerPhoneText_(data[header])
+        : data[header];
     }
 
     if (!knownFields[header]) {
@@ -2234,6 +2332,62 @@ function buildCustomerRowForHeaders_(customer, headers, existingRow) {
 
     return '';
   });
+}
+
+function writeCustomerRow_(sheet, rowNumber, row, headers) {
+  ensureSheetRowCapacity_(sheet, rowNumber);
+  formatCustomerPhoneColumns_(sheet, headers);
+  formatCustomerPhoneCells_(sheet, rowNumber, headers);
+  sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+}
+
+function ensureSheetRowCapacity_(sheet, rowNumber) {
+  var maxRows = sheet.getMaxRows();
+
+  if (rowNumber > maxRows) {
+    sheet.insertRowsAfter(maxRows, rowNumber - maxRows);
+  }
+}
+
+function formatCustomerPhoneCells_(sheet, rowNumber, headers) {
+  ['phone', 'officePhone', 'mobilePhone'].forEach(function(headerName) {
+    var index = headers.indexOf(headerName);
+
+    if (index !== -1) {
+      sheet
+        .getRange(rowNumber, index + 1, 1, 1)
+        .setNumberFormat('@');
+    }
+  });
+}
+
+function isCustomerPhoneHeader_(header) {
+  return ['phone', 'officePhone', 'mobilePhone'].indexOf(header) !== -1;
+}
+
+function normalizeCustomerPhoneText_(value) {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  return formatCustomerPhoneText_(String(value).trim());
+}
+
+function formatCustomerPhoneText_(phoneText) {
+  var text = String(phoneText || '').trim();
+  var digits = text.replace(/[^\d]/g, '');
+
+  if (/^(070|080|090)\d{8}$/.test(digits)) {
+    return digits.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+
+  // 推定補完: Sheetsで数値化済みの携帯番号は先頭0を復元できないため、
+  // 10桁かつ7/8/9始まりの場合だけ表示・以後の保存用に先頭0を補い、携帯形式へ整えます。
+  if (/^[789]\d{9}$/.test(digits)) {
+    return ('0' + digits).replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+
+  return text;
 }
 
 function deleteCustomerRow_(sheet, rowNumber) {
@@ -2560,10 +2714,15 @@ function getProjectSheet_() {
   return sheet;
 }
 
-function normalizeCustomerRow_(row, headers) {
+function normalizeCustomerRow_(row, headers, displayRow) {
   function value(name) {
     var index = headers.indexOf(name);
     return index === -1 ? '' : row[index];
+  }
+
+  function displayValue(name) {
+    var index = headers.indexOf(name);
+    return index === -1 || !displayRow ? '' : displayRow[index];
   }
 
   function text(name) {
@@ -2574,6 +2733,16 @@ function normalizeCustomerRow_(row, headers) {
     }
 
     return String(rawValue).trim();
+  }
+
+  function phoneText(name) {
+    var displayText = normalizeCustomerPhoneText_(displayValue(name));
+
+    if (displayText) {
+      return displayText;
+    }
+
+    return normalizeCustomerPhoneText_(value(name));
   }
 
   function dateText(name) {
@@ -2596,9 +2765,9 @@ function normalizeCustomerRow_(row, headers) {
   var nextAction = text('nextAction') || dateText('nextVisit');
   var memo = text('memo');
   var aiSummary = text('aiSummary');
-  var legacyPhone = text('phone');
-  var officePhone = text('officePhone') || legacyPhone;
-  var mobilePhone = text('mobilePhone');
+  var legacyPhone = phoneText('phone');
+  var officePhone = phoneText('officePhone') || legacyPhone;
+  var mobilePhone = phoneText('mobilePhone');
 
   return {
     id: text('id'),

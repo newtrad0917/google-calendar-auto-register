@@ -4333,7 +4333,9 @@ body.ai-processing .assistant-briefing-icon {
 .customer-hub-card {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  cursor: default;
+  min-height: 64px;
+  padding: 12px 14px;
+  cursor: pointer;
 }
 
 .customer-hub-card.is-selected {
@@ -4345,7 +4347,7 @@ body.ai-processing .assistant-briefing-icon {
 
 .customer-hub-card-body {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -6049,6 +6051,8 @@ body.ai-processing .assistant-briefing-icon {
     let weatherForecastState = 'idle';
     let weatherForecastDays = [];
     let weatherForecastAnimationPending = false;
+    let weatherForecastErrorCode = '';
+    let weatherForecastErrorDetail = '';
     let lastScheduleEvents = null;
     let lastScheduleView = '';
     let lastScheduleDateKey = '';
@@ -6067,6 +6071,11 @@ body.ai-processing .assistant-briefing-icon {
       forecastUrl: 'https://www.jma.go.jp/bosai/forecast/data/forecast/400000.json'
     };
     const WEATHER_FETCH_TIMEOUT_MS = 8000;
+    const WEATHER_ERROR_LOCATION_EMPTY = 'WEATHER_ERROR_LOCATION_EMPTY';
+    const WEATHER_ERROR_OPEN_METEO_TIMEOUT = 'WEATHER_ERROR_OPEN_METEO_TIMEOUT';
+    const WEATHER_ERROR_OPEN_METEO_FAILED = 'WEATHER_ERROR_OPEN_METEO_FAILED';
+    const WEATHER_ERROR_JMA_FAILED = 'WEATHER_ERROR_JMA_FAILED';
+    const WEATHER_ERROR_NO_FORECAST_DAYS = 'WEATHER_ERROR_NO_FORECAST_DAYS';
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
     const DEMO_CUSTOMERS = [
@@ -7338,8 +7347,9 @@ function setCustomerData(customers, options) {
 function normalizeCustomerForClient(customer) {
   const personName = customer.personName || customer.contactName || '';
   const cc = customer.cc || customer.ccEmail || '';
-  const officePhone = customer.officePhone || customer.phone || '';
-  const mobilePhone = customer.mobilePhone || '';
+  const legacyPhone = normalizeCustomerPhoneValue(customer.phone);
+  const officePhone = normalizeCustomerPhoneValue(customer.officePhone) || legacyPhone;
+  const mobilePhone = normalizeCustomerPhoneValue(customer.mobilePhone);
 
   return {
     id: String(customer.id || '').trim(),
@@ -7358,7 +7368,7 @@ function normalizeCustomerForClient(customer) {
     address: customer.address || '',
     officePhone: officePhone,
     mobilePhone: mobilePhone,
-    phone: customer.phone || mobilePhone || officePhone,
+    phone: mobilePhone || officePhone || legacyPhone,
     googleMapUrl: customer.googleMapUrl || '',
     memo: customer.memo || '',
     salesMemo: customer.salesMemo || customer.memo || '',
@@ -7658,15 +7668,13 @@ function renderCustomerHub() {
   const selectedCustomer = visibleCustomers.find(function(customer) {
     return customer.id === selectedCustomerHubId;
   });
-  const firstCustomer = visibleCustomers[0];
-  selectedCustomerHubId = selectedCustomer
-    ? selectedCustomer.id
-    : (firstCustomer ? firstCustomer.id : '');
 
-  if (selectedCustomerHubId) {
+  if (selectedCustomer) {
     renderCustomerDetail(selectedCustomerHubId);
     return;
   }
+
+  selectedCustomerHubId = '';
 
   const detail = document.getElementById('customerHubDetail');
 
@@ -7725,52 +7733,51 @@ function renderCustomerHubList() {
     title.className = 'customer-hub-card-title';
     title.textContent = formatCustomerValue(customer.companyName);
 
-    if (customer.corporationName) {
-      const corporation = document.createElement('span');
-      corporation.className = 'customer-hub-card-meta';
-      corporation.textContent = '法人名：' + customer.corporationName;
-      title.dataset.corporationName = corporation.textContent;
-    }
-
     const meta = document.createElement('span');
     meta.className = 'customer-hub-card-meta';
-    meta.textContent = [
-      '担当者：' + formatCustomerContactName(customer),
-      '部署：' + formatCustomerValue(customer.department),
-      '業種：' + formatCustomerValue(customer.industry)
-    ].join(' / ');
+    meta.textContent = '担当者：' + formatCustomerContactName(customer);
 
     const tags = document.createElement('span');
     tags.className = 'customer-hub-card-tags';
-
-    [
-      ['市区', getCustomerAreaText(customer), 'customer-hub-card-tag'],
-      ['前回訪問', formatCustomerValue(customer.lastVisit), 'customer-hub-card-tag'],
-      ['次回訪問', getCustomerNextScheduleText(customer), 'customer-hub-next-schedule']
-    ].forEach(function(item) {
-      const tag = document.createElement('span');
-      tag.className = item[2];
-      tag.textContent = item[0] + '：' + item[1];
-      tags.appendChild(tag);
-    });
     tags.appendChild(createCustomerHotLevelBadge(customer.hotLevel));
+    const statusTag = createCustomerHubListStatusTag(customer);
+
+    if (statusTag) {
+      tags.appendChild(statusTag);
+    }
 
     body.appendChild(title);
-    if (title.dataset.corporationName) {
-      const corporation = document.createElement('span');
-      corporation.className = 'customer-hub-card-meta';
-      corporation.textContent = title.dataset.corporationName;
-      body.appendChild(corporation);
-    }
     body.appendChild(meta);
     body.appendChild(tags);
 
     const detailButton = createCustomerHubDetailButton(customer, card);
 
+    card.setAttribute('aria-label', customer.companyName + 'の詳細を見る');
+    card.addEventListener('click', function(event) {
+      if (event.target.closest('button')) {
+        return;
+      }
+
+      playCustomerHubLine(card);
+      showCustomerHubDetail(customer.id);
+    });
     card.appendChild(body);
     card.appendChild(detailButton);
     list.appendChild(card);
   });
+}
+
+function createCustomerHubListStatusTag(customer) {
+  const lastVisit = String(customer.lastVisit || customer.lastContactDate || '').trim();
+
+  if (!lastVisit) {
+    return null;
+  }
+
+  const tag = document.createElement('span');
+  tag.className = 'customer-hub-card-tag';
+  tag.textContent = '最終接触：' + lastVisit;
+  return tag;
 }
 
 function getCustomerAreaText(customer) {
@@ -7915,8 +7922,8 @@ function showCustomerHubDetail(customerId) {
     ['業種', customer.industry],
     ['都道府県', customer.prefecture],
     ['市区', customer.city],
-    ['代表電話', customer.officePhone, customer.officePhone ? 'tel:' + customer.officePhone : ''],
-    ['携帯電話', customer.mobilePhone, customer.mobilePhone ? 'tel:' + customer.mobilePhone : ''],
+    ['代表電話', customer.officePhone, createCustomerTelHref(customer.officePhone)],
+    ['携帯電話', customer.mobilePhone, createCustomerTelHref(customer.mobilePhone)],
     ['メール', customer.email, customer.email ? 'mailto:' + customer.email : ''],
     ['CC', customer.ccEmail],
     ['住所', customer.address, customer.address || customer.googleMapUrl ? getCustomerMapUrl(customer) : ''],
@@ -7955,8 +7962,41 @@ function formatCustomerValue(value) {
   return text || '未登録';
 }
 
+function normalizeCustomerPhoneValue(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return '';
+  }
+
+  return formatCustomerPhoneText(String(value).trim());
+}
+
+function formatCustomerPhoneText(phoneText) {
+  const text = String(phoneText || '').trim();
+  const digits = text.replace(/[^\d]/g, '');
+
+  if (/^(070|080|090)\d{8}$/.test(digits)) {
+    return digits.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+
+  // 推定補完: Sheets上で数値化され先頭0が失われた携帯番号は元値を確定できないため、
+  // 10桁かつ7/8/9始まりの場合だけ表示・電話リンク用に先頭0を補い、携帯形式へ整える。
+  if (/^[789]\d{9}$/.test(digits)) {
+    return ('0' + digits).replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+
+  return text;
+}
+
 function getCustomerPrimaryPhone(customer) {
-  return customer.mobilePhone || customer.officePhone || customer.phone || '';
+  return normalizeCustomerPhoneValue(customer.mobilePhone) ||
+    normalizeCustomerPhoneValue(customer.officePhone) ||
+    normalizeCustomerPhoneValue(customer.phone);
+}
+
+function createCustomerTelHref(phone) {
+  const phoneText = normalizeCustomerPhoneValue(phone);
+  const telText = phoneText.replace(/[^\d+]/g, '');
+  return telText ? 'tel:' + telText : '';
 }
 
 function createCustomerAiBriefCard(customer) {
@@ -8388,6 +8428,7 @@ function createCustomerHubActions(customer) {
   const actions = document.createElement('div');
   actions.className = 'customer-hub-actions';
   const phone = getCustomerPrimaryPhone(customer);
+  const telHref = createCustomerTelHref(phone);
 
   actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer)));
 
@@ -8401,8 +8442,8 @@ function createCustomerHubActions(customer) {
     startCustomerMail(customer.id);
   }));
 
-  if (phone) {
-    actions.appendChild(createCustomerHubLink('☎ 電話', 'tel:' + phone));
+  if (telHref) {
+    actions.appendChild(createCustomerHubLink('☎ 電話', telHref));
   } else {
     actions.appendChild(createCustomerHubButton('☎ 電話番号未登録', function() {}, true));
   }
@@ -8983,6 +9024,9 @@ function getCustomerFormData() {
     const input = document.getElementById(CUSTOMER_FORM_FIELDS[field]);
     customer[field] = input ? input.value.trim() : '';
   });
+
+  customer.officePhone = normalizeCustomerPhoneValue(customer.officePhone);
+  customer.mobilePhone = normalizeCustomerPhoneValue(customer.mobilePhone);
 
   return customer;
 }
@@ -11461,8 +11505,9 @@ function createScheduleSalesAction(label, onClick, extraClassName) {
 
 function createScheduleSalesPhoneAction(customer) {
   const phone = getCustomerPrimaryPhone(customer);
+  const telHref = createCustomerTelHref(phone);
 
-  if (!phone) {
+  if (!telHref) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'schedule-sales-action';
@@ -11474,7 +11519,7 @@ function createScheduleSalesPhoneAction(customer) {
 
   const link = document.createElement('a');
   link.className = 'schedule-sales-action';
-  link.href = 'tel:' + phone;
+  link.href = telHref;
   link.textContent = '電話';
   link.addEventListener('click', function(event) {
     event.stopPropagation();
@@ -11863,16 +11908,28 @@ function shouldShowWeatherCard(view, dateKey) {
 
 function loadWeatherForecast() {
   weatherForecastState = 'loading';
+  weatherForecastErrorCode = '';
+  weatherForecastErrorDetail = '';
+  window.SALES_AI_SECRETARY_WEATHER_ERROR = null;
   updateScheduleWeatherTabs();
 
   if (!window.fetch) {
-    setWeatherForecastError();
+    setWeatherForecastError(createWeatherError(WEATHER_ERROR_OPEN_METEO_FAILED, 'fetch APIが利用できません。'));
+    return;
+  }
+
+  const weatherLocation = getWeatherLocationConfig();
+
+  if (!weatherLocation) {
+    setWeatherForecastError(createWeatherError(WEATHER_ERROR_LOCATION_EMPTY, '天気取得地域が未設定です。'));
     return;
   }
 
   fetchWeatherJsonWithTimeout(
-    buildOpenMeteoForecastUrl(),
-    '天気APIの取得に失敗しました。'
+    buildOpenMeteoForecastUrl(weatherLocation),
+    '天気APIの取得に失敗しました。',
+    WEATHER_ERROR_OPEN_METEO_FAILED,
+    WEATHER_ERROR_OPEN_METEO_TIMEOUT
   )
     .then(function(data) {
       return loadJmaForecast()
@@ -11890,12 +11947,30 @@ function loadWeatherForecast() {
           };
         });
     })
+    .catch(function(openMeteoError) {
+      return loadJmaForecast()
+        .then(function(jmaForecast) {
+          return {
+            openMeteo: null,
+            jmaForecast: jmaForecast,
+            openMeteoError: openMeteoError
+          };
+        })
+        .catch(function(jmaError) {
+          throw createCombinedWeatherError(openMeteoError, jmaError);
+        });
+    })
     .then(function(weatherData) {
-      weatherForecastDays = normalizeOpenMeteoForecast(weatherData.openMeteo);
-      applyJmaPrecipitationToWeatherForecast(weatherForecastDays, weatherData.jmaForecast);
+      weatherForecastDays = weatherData.openMeteo
+        ? normalizeOpenMeteoForecast(weatherData.openMeteo)
+        : normalizeJmaFallbackForecast(weatherData.jmaForecast);
+
+      if (weatherData.openMeteo) {
+        applyJmaPrecipitationToWeatherForecast(weatherForecastDays, weatherData.jmaForecast);
+      }
 
       if (!weatherForecastDays.length) {
-        throw new Error('天気データを確認できませんでした。');
+        throw createWeatherError(WEATHER_ERROR_NO_FORECAST_DAYS, '天気データを確認できませんでした。');
       }
 
       weatherForecastState = 'ready';
@@ -11905,19 +11980,31 @@ function loadWeatherForecast() {
     })
     .catch(function(error) {
       console.error(error);
-      setWeatherForecastError();
+      setWeatherForecastError(error);
     });
 }
 
-function buildOpenMeteoForecastUrl() {
+function getWeatherLocationConfig() {
+  return WEATHER_LOCATION && WEATHER_LOCATION.latitude && WEATHER_LOCATION.longitude
+    ? WEATHER_LOCATION
+    : null;
+}
+
+function buildOpenMeteoForecastUrl(weatherLocation) {
+  const location = weatherLocation || getWeatherLocationConfig();
+
+  if (!location) {
+    return '';
+  }
+
   // Open-Meteoは非商用利用ではAPIキー不要。将来商用利用する場合は有料プランを検討する。
   const params = new URLSearchParams({
-    latitude: WEATHER_LOCATION.latitude,
-    longitude: WEATHER_LOCATION.longitude,
+    latitude: location.latitude,
+    longitude: location.longitude,
     current: 'temperature_2m,weather_code',
     hourly: 'precipitation_probability',
     daily: 'precipitation_probability_max,weather_code,temperature_2m_max,temperature_2m_min',
-    timezone: WEATHER_LOCATION.timezone,
+    timezone: location.timezone,
     forecast_days: '2'
   });
 
@@ -11931,26 +12018,55 @@ function buildJmaForecastUrl() {
 function loadJmaForecast() {
   return fetchWeatherJsonWithTimeout(
     buildJmaForecastUrl(),
-    '気象庁データの取得に失敗しました。'
+    '気象庁データの取得に失敗しました。',
+    WEATHER_ERROR_JMA_FAILED,
+    WEATHER_ERROR_JMA_FAILED
   )
     .then(normalizeJmaForecast);
 }
 
-function fetchWeatherJsonWithTimeout(url, errorMessage) {
+function fetchWeatherJsonWithTimeout(url, errorMessage, errorCode, timeoutErrorCode) {
+  if (!url) {
+    return Promise.reject(createWeatherError(WEATHER_ERROR_LOCATION_EMPTY, '天気取得URLを作成できませんでした。'));
+  }
+
   return Promise.race([
     fetch(url).then(function(response) {
       if (!response.ok) {
-        throw new Error(errorMessage);
+        throw createWeatherError(errorCode, errorMessage + ' HTTP ' + response.status);
       }
 
       return response.json();
     }),
     new Promise(function(resolve, reject) {
       window.setTimeout(function() {
-        reject(new Error(errorMessage + ' 時間をおいて再確認してください。'));
+        reject(createWeatherError(timeoutErrorCode || errorCode, errorMessage + ' タイムアウトしました。'));
       }, WEATHER_FETCH_TIMEOUT_MS);
     })
   ]);
+}
+
+function createWeatherError(code, message, detail) {
+  const error = new Error(message || code || '天気取得に失敗しました。');
+  error.weatherErrorCode = code || WEATHER_ERROR_OPEN_METEO_FAILED;
+  error.weatherErrorDetail = detail || '';
+  return error;
+}
+
+function createCombinedWeatherError(openMeteoError, jmaError) {
+  const openMeteoCode = getWeatherErrorCode(openMeteoError);
+  const jmaCode = getWeatherErrorCode(jmaError) || WEATHER_ERROR_JMA_FAILED;
+  return createWeatherError(
+    jmaCode,
+    'Open-Meteoと気象庁データの両方を取得できませんでした。',
+    [openMeteoCode, jmaCode].filter(Boolean).join(' / ')
+  );
+}
+
+function getWeatherErrorCode(error) {
+  return error && error.weatherErrorCode
+    ? error.weatherErrorCode
+    : '';
 }
 
 function normalizeJmaForecast(data) {
@@ -11979,6 +12095,44 @@ function normalizeJmaForecast(data) {
       return entry.time;
     })
   };
+}
+
+function normalizeJmaFallbackForecast(jmaForecast) {
+  if (!jmaForecast || !Array.isArray(jmaForecast.entries)) {
+    return [];
+  }
+
+  const referenceDate = new Date();
+  const today = formatScheduleDateKey(referenceDate);
+  const tomorrowDate = new Date(referenceDate.getTime());
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = formatScheduleDateKey(tomorrowDate);
+
+  return [
+    { date: today, view: 'today' },
+    { date: tomorrow, view: 'tomorrow' }
+  ].map(function(day) {
+    const jmaPop = getCurrentJmaPop(jmaForecast, day.date, referenceDate);
+    const jmaPopNumber = toWeatherProbabilityNumber(jmaPop);
+
+    return {
+      date: day.date,
+      view: day.view,
+      hourly: [],
+      icon: '☁️',
+      condition: '気象庁予報',
+      temperatureText: '',
+      precipitationText: formatPrecipitationProbability(jmaPop),
+      precipitationLabel: '降水',
+      precipitationProbability: jmaPopNumber,
+      precipitationSource: 'jma-fallback',
+      precipitationAreaLabel: jmaForecast.areaName || JMA_FORECAST_CONFIG.areaLabel,
+      weatherAdvice: getWeatherMoveAdviceText(jmaPopNumber),
+      needsRainAttention: isFinite(jmaPopNumber) && jmaPopNumber >= 50
+    };
+  }).filter(function(day) {
+    return isFinite(day.precipitationProbability);
+  });
 }
 
 function applyJmaPrecipitationToWeatherForecast(days, jmaForecast) {
@@ -12228,9 +12382,17 @@ function getWeatherMoveAdviceText(precipitationProbability) {
   return '天気による移動リスクは低め';
 }
 
-function setWeatherForecastError() {
+function setWeatherForecastError(error) {
   weatherForecastState = 'error';
   weatherForecastDays = [];
+  weatherForecastErrorCode = getWeatherErrorCode(error) || WEATHER_ERROR_OPEN_METEO_FAILED;
+  weatherForecastErrorDetail = error && error.weatherErrorDetail
+    ? error.weatherErrorDetail
+    : (error && error.message ? error.message : '');
+  window.SALES_AI_SECRETARY_WEATHER_ERROR = {
+    code: weatherForecastErrorCode,
+    detail: weatherForecastErrorDetail
+  };
   updateScheduleWeatherTabs();
   refreshWeatherDependentViews();
 }
@@ -12240,6 +12402,10 @@ function createWeatherPreviewCard(view) {
   const card = document.createElement('div');
   card.className = 'schedule-weather-card';
   card.classList.toggle('is-weather-error', weather.source === 'error');
+  if (weather.errorCode) {
+    card.dataset.weatherErrorCode = weather.errorCode;
+    card.title = weather.errorCode;
+  }
   card.id = view === 'tomorrow' ? 'weatherTomorrowCard' : 'weatherTodayCard';
 
   const main = document.createElement('div');
@@ -12293,9 +12459,11 @@ function getWeatherPreviewStatus(view) {
     return {
       icon: '--',
       label: '天気（' + WEATHER_LOCATION.name + '）',
-      statusText: '取得できませんでした。通信状況を確認してください',
+      statusText: '天気だけ取得できませんでした。予定は表示できます',
       advice: '訪問前に雨雲と道路状況を一度確認してください。',
-      source: 'error'
+      source: 'error',
+      errorCode: weatherForecastErrorCode,
+      errorDetail: weatherForecastErrorDetail
     };
   }
 
@@ -12305,7 +12473,7 @@ function getWeatherPreviewStatus(view) {
     return {
       icon: getWeatherDisplayIcon(forecast),
       label: (view === 'tomorrow' ? '明日の天気' : '本日の天気') + '（' + getWeatherLocationLabel(forecast) + '）',
-      statusText: forecast.temperatureText + ' ' + forecast.condition + ' / ' + forecast.precipitationLabel + forecast.precipitationText,
+      statusText: getWeatherForecastStatusText(forecast),
       advice: forecast.weatherAdvice,
       source: 'api'
     };
@@ -12317,6 +12485,23 @@ function getWeatherPreviewStatus(view) {
     statusText: '取得中...',
     source: 'loading'
   };
+}
+
+function getWeatherForecastStatusText(forecast) {
+  const mainParts = [
+    shouldShowWeatherTemperatureText(forecast.temperatureText) ? forecast.temperatureText : '',
+    forecast.condition
+  ].filter(Boolean);
+  const precipitationText = forecast.precipitationLabel + forecast.precipitationText;
+
+  return mainParts.length
+    ? mainParts.join(' ') + ' / ' + precipitationText
+    : precipitationText;
+}
+
+function shouldShowWeatherTemperatureText(temperatureText) {
+  const text = String(temperatureText || '').trim();
+  return text !== '' && text !== '--℃';
 }
 
 function getWeatherDisplayIcon(forecast) {
