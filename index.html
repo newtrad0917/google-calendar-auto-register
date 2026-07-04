@@ -5800,6 +5800,7 @@ body.ai-processing .status-ready,
   font-size: 16px;
   font-weight: 900;
   line-height: 1.45;
+  white-space: pre-line;
 }
 
 .morning-briefing-section-note {
@@ -5808,6 +5809,7 @@ body.ai-processing .status-ready,
   font-size: 13px;
   font-weight: 750;
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .morning-briefing-section.is-ai-comment {
@@ -6272,30 +6274,30 @@ body.ai-processing .status-ready,
     <div class="morning-briefing-metrics" aria-label="朝の営業指標">
       <div class="morning-briefing-metric">
         <span class="morning-briefing-label">本日の訪問</span>
-        <strong class="morning-briefing-value">0件</strong>
+        <strong id="morningBriefingVisitCount" class="morning-briefing-value">0件</strong>
       </div>
       <div class="morning-briefing-metric">
         <span class="morning-briefing-label">本日期限</span>
-        <strong class="morning-briefing-value">0件</strong>
+        <strong id="morningBriefingTodoCount" class="morning-briefing-value">0件</strong>
       </div>
       <div class="morning-briefing-metric">
         <span class="morning-briefing-label">HOT顧客</span>
-        <strong class="morning-briefing-value">0件</strong>
+        <strong id="morningBriefingHotCount" class="morning-briefing-value">0件</strong>
       </div>
     </div>
     <div class="morning-briefing-section">
       <span class="morning-briefing-section-label">最優先</span>
-      <p class="morning-briefing-section-main">🏥 ○○病院<br>10:00訪問</p>
-      <p class="morning-briefing-section-note">理由<br>見積提出があります</p>
+      <p id="morningBriefingPrimaryMain" class="morning-briefing-section-main">データを確認中です</p>
+      <p id="morningBriefingPrimaryNote" class="morning-briefing-section-note">既存データから優先事項を整理します</p>
     </div>
     <div class="morning-briefing-section">
       <span class="morning-briefing-section-label">次にやること</span>
-      <p class="morning-briefing-section-main">📞 △△特養へフォロー</p>
-      <p class="morning-briefing-section-note">前回訪問から31日経過</p>
+      <p id="morningBriefingSecondaryMain" class="morning-briefing-section-main">データを確認中です</p>
+      <p id="morningBriefingSecondaryNote" class="morning-briefing-section-note">予定・TODO・顧客情報を確認しています</p>
     </div>
     <div class="morning-briefing-section is-ai-comment">
       <span class="morning-briefing-section-label">AIコメント</span>
-      <p class="morning-briefing-section-main">午後は予定に余裕があります。<br>新規営業へ時間を使えます。</p>
+      <p id="morningBriefingComment" class="morning-briefing-section-main">今日の営業状況を確認しています。</p>
     </div>
   </section>
 
@@ -7175,6 +7177,7 @@ body.ai-processing .status-ready,
     let lastScheduleDateKey = '';
     let isSavingSalesMemo = false;
     let salesMemoDashboardStats = { todayCount: 0 };
+    let morningBriefingRenderFrame = 0;
     const WEATHER_LOCATION = {
       name: '朝倉',
       latitude: 33.42,
@@ -7527,6 +7530,7 @@ document.getElementById('stepList').classList.add('hidden');
       '優先事項を確認しましょう。'
     );
   });
+  runInitialHomeTask('Morning briefing', scheduleRenderMorningBriefingCard);
   runInitialHomeTask('AI insight', scheduleRenderAiInsightCard);
   runInitialHomeTask('TODO', function() {
     loadTasks(currentTaskFilter);
@@ -7743,6 +7747,215 @@ function getActiveProjectCount() {
     const status = String(project.status || '').trim();
     return status === '見積中' || status === '契約予定';
   }).length;
+}
+
+function scheduleRenderMorningBriefingCard() {
+  if (morningBriefingRenderFrame) {
+    return;
+  }
+
+  const scheduleFrame = window.requestAnimationFrame || function(callback) {
+    return window.setTimeout(callback, 16);
+  };
+
+  morningBriefingRenderFrame = scheduleFrame(function() {
+    morningBriefingRenderFrame = 0;
+    renderMorningBriefingCard();
+  });
+}
+
+function renderMorningBriefingCard() {
+  const visitCount = getTodayVisitCount();
+  const todoCount = getTodayTodoCount();
+  const hotCount = getHotDormantCustomerCount();
+  const candidates = getMorningBriefingCandidates();
+  const primary = candidates[0] || getMorningBriefingFallbackItem('primary');
+  const secondary = candidates[1] || getMorningBriefingFallbackItem('secondary');
+
+  setMorningBriefingText('morningBriefingVisitCount', formatMorningBriefingCount(visitCount));
+  setMorningBriefingText('morningBriefingTodoCount', formatMorningBriefingCount(todoCount));
+  setMorningBriefingText('morningBriefingHotCount', formatMorningBriefingCount(hotCount));
+  setMorningBriefingText('morningBriefingPrimaryMain', primary.main);
+  setMorningBriefingText('morningBriefingPrimaryNote', primary.note);
+  setMorningBriefingText('morningBriefingSecondaryMain', secondary.main);
+  setMorningBriefingText('morningBriefingSecondaryNote', secondary.note);
+  setMorningBriefingText('morningBriefingComment', getMorningBriefingComment({
+    visitCount: visitCount,
+    todoCount: todoCount,
+    hotCount: hotCount,
+    dueProjectCount: getTodayDueProjectCandidates().length,
+    overdueFollowCount: getOverdueFollowCustomerCount()
+  }));
+}
+
+function setMorningBriefingText(id, text) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = text;
+  }
+}
+
+function formatMorningBriefingCount(value) {
+  return Number(value || 0).toLocaleString('ja-JP') + '件';
+}
+
+function getMorningBriefingCandidates() {
+  const candidates = []
+    .concat(getTodayDueProjectCandidates())
+    .concat(getTodayScheduleCandidates())
+    .concat(getHotCustomerCandidates())
+    .concat(getOverdueFollowCustomerCandidates());
+  const seen = {};
+
+  return candidates.filter(function(candidate) {
+    if (!candidate || !candidate.key || seen[candidate.key]) {
+      return false;
+    }
+
+    seen[candidate.key] = true;
+    return true;
+  });
+}
+
+function getTodayDueProjectCandidates() {
+  const todayKey = formatScheduleDateKey(new Date());
+
+  return projectData
+    .filter(function(project) {
+      return getProjectTodayDueLabel(project, todayKey);
+    })
+    .sort(compareProjectsForDisplay)
+    .map(function(project) {
+      const customer = getCustomerByIdForClient(project.customerId);
+      const customerName = customer ? customer.companyName : '';
+      const dueLabel = getProjectTodayDueLabel(project, todayKey);
+      return {
+        key: 'project:' + project.id,
+        main: '📌 ' + formatCustomerValue(project.projectName),
+        note: [formatCustomerValue(customerName), dueLabel + 'があります'].filter(function(value) {
+          return value && value !== '未登録';
+        }).join('\n')
+      };
+    });
+}
+
+function getProjectTodayDueLabel(project, todayKey) {
+  const dueFields = [
+    ['expectedOrderDate', '受注予定'],
+    ['expectedWorkDate', '予定工事'],
+    ['expectedPaymentDate', '入金予定']
+  ];
+
+  for (let i = 0; i < dueFields.length; i++) {
+    const field = dueFields[i][0];
+    const label = dueFields[i][1];
+    const date = parseCustomerDate(project && project[field]);
+
+    if (date && formatScheduleDateKey(date) === todayKey) {
+      return label;
+    }
+  }
+
+  return '';
+}
+
+function getTodayScheduleCandidates() {
+  const todayKey = formatScheduleDateKey(new Date());
+  const events = Array.isArray(lastScheduleEvents) ? lastScheduleEvents : [];
+
+  return events
+    .filter(function(event) {
+      return getScheduleEventDateKey(event) === todayKey && isScheduleFutureEventVisible(event);
+    })
+    .slice()
+    .sort(compareScheduleEventsByStart)
+    .map(function(event, index) {
+      const title = String(event.title || '予定').trim();
+      const time = getScheduleEventStartLabel(event);
+      return {
+        key: 'schedule:' + (event.id || event.htmlLink || event.start || index),
+        main: '📅 ' + title,
+        note: time ? time + '予定' : '本日の予定'
+      };
+    });
+}
+
+function getHotCustomerCandidates() {
+  const threshold = getCustomerTodayStart();
+  threshold.setDate(threshold.getDate() - 30);
+
+  return customerData
+    .filter(function(customer) {
+      const lastVisit = parseCustomerDate(customer.lastVisit);
+      return String(customer.hotLevel || '').trim().toUpperCase() === 'HOT' &&
+        (!lastVisit || lastVisit.getTime() <= threshold.getTime());
+    })
+    .sort(function(a, b) {
+      const aDate = parseCustomerDate(a.lastVisit);
+      const bDate = parseCustomerDate(b.lastVisit);
+      const aTime = aDate ? aDate.getTime() : 0;
+      const bTime = bDate ? bDate.getTime() : 0;
+      return aTime - bTime;
+    })
+    .map(function(customer) {
+      const lastVisit = parseCustomerDate(customer.lastVisit);
+      return {
+        key: 'hot:' + customer.id,
+        main: '🔥 ' + formatCustomerValue(customer.companyName) + 'へフォロー',
+        note: lastVisit
+          ? 'HOT顧客です。最終訪問から30日以上経過しています'
+          : 'HOT顧客です。訪問履歴が未登録です'
+      };
+    });
+}
+
+function getOverdueFollowCustomerCandidates() {
+  const today = getCustomerTodayStart();
+
+  return customerData
+    .filter(function(customer) {
+      const nextVisit = parseCustomerDate(customer.nextVisit);
+      return nextVisit && nextVisit.getTime() < today.getTime();
+    })
+    .sort(compareCustomersByNextVisit)
+    .map(function(customer) {
+      return {
+        key: 'overdue:' + customer.id,
+        main: '📞 ' + formatCustomerValue(customer.companyName) + 'へフォロー',
+        note: '次回訪問予定を過ぎています'
+      };
+    });
+}
+
+function getMorningBriefingFallbackItem(type) {
+  if (type === 'primary') {
+    return {
+      main: '本日の最優先はありません',
+      note: '予定・TODO・顧客情報に大きな警告はありません'
+    };
+  }
+
+  return {
+    main: '新規営業・顧客フォロー',
+    note: '空き時間を使って次の接点を作れます'
+  };
+}
+
+function getMorningBriefingComment(summary) {
+  if (summary.dueProjectCount > 0 || summary.todoCount > 0) {
+    return '期限案件があります。\n午前中の対応を推奨します。';
+  }
+
+  if (summary.visitCount > 0) {
+    return '本日は' + summary.visitCount + '件訪問があります。\n移動時間を考慮してください。';
+  }
+
+  if (summary.hotCount > 0 || summary.overdueFollowCount > 0) {
+    return 'フォロー対象の顧客があります。\n短い連絡から始めましょう。';
+  }
+
+  return '今日の予定はありません。\n新規営業に時間を使えます。';
 }
 
 function focusTodaySchedule() {
@@ -8654,6 +8867,7 @@ function setCustomerData(customers, options) {
   updateCustomerSelectOptions();
   renderCustomerHub();
   refreshScheduleCustomerLink();
+  scheduleRenderMorningBriefingCard();
   scheduleRenderAiInsightCard();
 }
 
@@ -8721,6 +8935,7 @@ function setProjectData(projects) {
     : [];
   projectDataMessage = '';
   renderCustomerHub();
+  scheduleRenderMorningBriefingCard();
   scheduleRenderAiInsightCard();
 }
 
@@ -8816,6 +9031,14 @@ function getProjectByIdForClient(projectId) {
 
   return projectData.find(function(project) {
     return project.id === id;
+  }) || null;
+}
+
+function getCustomerByIdForClient(customerId) {
+  const id = String(customerId || '').trim();
+
+  return customerData.find(function(customer) {
+    return customer.id === id;
   }) || null;
 }
 
@@ -12223,6 +12446,8 @@ function loadTasks(category) {
 
   if (!window.google || !google.script || !google.script.run) {
     container.innerHTML = '<p class="task-empty">TODOはApps Script版で表示されます。</p>';
+    currentTasks = [];
+    scheduleRenderMorningBriefingCard();
     updateTodoStatusSummary([], '待機中');
     return;
   }
@@ -12240,6 +12465,7 @@ function loadTasks(category) {
     settled = true;
     window.clearTimeout(timeoutId);
     currentTasks = [];
+    scheduleRenderMorningBriefingCard();
     scheduleRenderAiInsightCard();
     container.innerHTML = '<p class="task-empty">TODOを取得できませんでした。</p>';
     updateTodoStatusSummary([], 'TODO取得失敗');
@@ -12279,6 +12505,7 @@ function loadTasks(category) {
 
 function renderTasks(tasks) {
   currentTasks = Array.isArray(tasks) ? tasks.slice() : [];
+  scheduleRenderMorningBriefingCard();
   scheduleRenderAiInsightCard();
   renderVisibleTasks();
 }
@@ -13118,6 +13345,7 @@ function renderScheduleEvents(events, view, dateKey) {
   lastScheduleEvents = Array.isArray(events) ? events.slice() : [];
   lastScheduleView = view || 'today';
   lastScheduleDateKey = dateKey || '';
+  scheduleRenderMorningBriefingCard();
   scheduleRenderAiInsightCard();
 
   const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
