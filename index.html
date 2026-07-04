@@ -5820,6 +5820,75 @@ body.ai-processing .status-ready,
   color: var(--ds-aurora);
 }
 
+.morning-briefing-actions-section {
+  gap: 12px;
+}
+
+.morning-briefing-action-list {
+  display: grid;
+  gap: 10px;
+}
+
+.morning-briefing-action-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #E8EDF5;
+  border-radius: 16px;
+  background: var(--ds-gray-50);
+}
+
+.morning-briefing-action-kicker {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.morning-briefing-action-title {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.morning-briefing-action-reason {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.morning-briefing-action-button {
+  justify-self: start;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal) !important;
+  background: #FFFFFF !important;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.morning-briefing-action-button:hover {
+  border-color: rgba(23, 105, 170, 0.30) !important;
+  background: #FFFFFF !important;
+}
+
+.morning-briefing-action-empty {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
 .morning-briefing-comment-label {
   color: var(--ds-royal);
   font-size: 12px;
@@ -6298,6 +6367,12 @@ body.ai-processing .status-ready,
     <div class="morning-briefing-section is-ai-comment">
       <span class="morning-briefing-section-label">AIコメント</span>
       <p id="morningBriefingComment" class="morning-briefing-section-main">今日の営業状況を確認しています。</p>
+    </div>
+    <div class="morning-briefing-section morning-briefing-actions-section">
+      <span class="morning-briefing-section-label">🤖 AIアクション提案</span>
+      <div id="morningBriefingActionList" class="morning-briefing-action-list">
+        <p class="morning-briefing-action-empty">既存データから提案を整理しています。</p>
+      </div>
     </div>
   </section>
 
@@ -7786,6 +7861,7 @@ function renderMorningBriefingCard() {
     dueProjectCount: getTodayDueProjectCandidates().length,
     overdueFollowCount: getOverdueFollowCustomerCount()
   }));
+  renderMorningBriefingActionCenter(getMorningBriefingActionItems());
 }
 
 function setMorningBriefingText(id, text) {
@@ -7956,6 +8032,221 @@ function getMorningBriefingComment(summary) {
   }
 
   return '今日の予定はありません。\n新規営業に時間を使えます。';
+}
+
+function getMorningBriefingActionItems() {
+  const items = []
+    .concat(getTodayDueProjectActionItems())
+    .concat(getTodayVisitActionItems())
+    .concat(getHotCustomerActionItems())
+    .concat(getOverdueFollowActionItems());
+  const seen = {};
+
+  return items.filter(function(item) {
+    if (!item || !item.key || seen[item.key]) {
+      return false;
+    }
+
+    seen[item.key] = true;
+    return true;
+  }).slice(0, 3);
+}
+
+function getTodayDueProjectActionItems() {
+  const todayKey = formatScheduleDateKey(new Date());
+
+  return projectData
+    .filter(function(project) {
+      return getProjectTodayDueLabel(project, todayKey);
+    })
+    .sort(compareProjectsForDisplay)
+    .map(function(project) {
+      const customer = getCustomerByIdForClient(project.customerId);
+      return {
+        key: 'action-project:' + project.id,
+        title: customer ? customer.companyName : project.projectName,
+        reason: getProjectTodayDueLabel(project, todayKey) + '期限',
+        actionLabel: customer ? 'AIメール作成' : '顧客を開く',
+        actionType: customer ? 'mail' : 'projectHub',
+        customerId: customer ? customer.id : '',
+        projectId: project.id
+      };
+    });
+}
+
+function getTodayVisitActionItems() {
+  const todayKey = formatScheduleDateKey(new Date());
+  const events = Array.isArray(lastScheduleEvents) ? lastScheduleEvents : [];
+
+  return events
+    .filter(function(event) {
+      return getScheduleEventDateKey(event) === todayKey && isScheduleFutureEventVisible(event);
+    })
+    .slice()
+    .sort(compareScheduleEventsByStart)
+    .map(function(event, index) {
+      const customer = findCustomerByScheduleEvent(event);
+
+      if (!customer) {
+        return null;
+      }
+
+      return {
+        key: 'action-visit:' + (event.id || event.htmlLink || event.start || index),
+        title: customer.companyName,
+        reason: getScheduleEventStartLabel(event) + '訪問',
+        actionLabel: 'GoogleMap',
+        actionType: 'map',
+        customerId: customer.id
+      };
+    })
+    .filter(Boolean);
+}
+
+function getHotCustomerActionItems() {
+  const threshold = getCustomerTodayStart();
+  threshold.setDate(threshold.getDate() - 30);
+
+  return customerData
+    .filter(function(customer) {
+      const lastVisit = parseCustomerDate(customer.lastVisit);
+      return String(customer.hotLevel || '').trim().toUpperCase() === 'HOT' &&
+        (!lastVisit || lastVisit.getTime() <= threshold.getTime());
+    })
+    .sort(function(a, b) {
+      const aDate = parseCustomerDate(a.lastVisit);
+      const bDate = parseCustomerDate(b.lastVisit);
+      const aTime = aDate ? aDate.getTime() : 0;
+      const bTime = bDate ? bDate.getTime() : 0;
+      return aTime - bTime;
+    })
+    .map(function(customer) {
+      return {
+        key: 'action-hot:' + customer.id,
+        title: customer.companyName,
+        reason: customer.lastVisit ? '30日以上訪問なし' : '訪問履歴未登録',
+        actionLabel: '顧客を開く',
+        actionType: 'customer',
+        customerId: customer.id
+      };
+    });
+}
+
+function getOverdueFollowActionItems() {
+  const today = getCustomerTodayStart();
+
+  return customerData
+    .filter(function(customer) {
+      const nextVisit = parseCustomerDate(customer.nextVisit);
+      return nextVisit && nextVisit.getTime() < today.getTime();
+    })
+    .sort(compareCustomersByNextVisit)
+    .map(function(customer) {
+      const hasPhone = Boolean(createCustomerTelHref(getCustomerPrimaryPhone(customer)));
+      return {
+        key: 'action-overdue:' + customer.id,
+        title: customer.companyName,
+        reason: 'フォロー期限超過',
+        actionLabel: hasPhone ? '電話' : '予定登録',
+        actionType: hasPhone ? 'phone' : 'calendar',
+        customerId: customer.id
+      };
+    });
+}
+
+function renderMorningBriefingActionCenter(items) {
+  const list = document.getElementById('morningBriefingActionList');
+
+  if (!list) {
+    return;
+  }
+
+  list.replaceChildren();
+
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'morning-briefing-action-empty';
+    empty.textContent = '本日はAIから追加提案はありません。\n新規営業または顧客フォローをおすすめします。';
+    list.appendChild(empty);
+    return;
+  }
+
+  items.forEach(function(item) {
+    list.appendChild(createMorningBriefingActionCard(item));
+  });
+}
+
+function createMorningBriefingActionCard(item) {
+  const card = document.createElement('article');
+  card.className = 'morning-briefing-action-card';
+
+  const kicker = document.createElement('p');
+  kicker.className = 'morning-briefing-action-kicker';
+  kicker.textContent = '🤖 AIアクション';
+  card.appendChild(kicker);
+
+  const title = document.createElement('p');
+  title.className = 'morning-briefing-action-title';
+  title.textContent = formatCustomerValue(item.title);
+  card.appendChild(title);
+
+  const reason = document.createElement('p');
+  reason.className = 'morning-briefing-action-reason';
+  reason.textContent = item.reason || '';
+  card.appendChild(reason);
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'morning-briefing-action-button';
+  button.textContent = item.actionLabel || '顧客を開く';
+  button.addEventListener('click', function() {
+    handleMorningBriefingAction(item);
+  });
+  card.appendChild(button);
+
+  return card;
+}
+
+function handleMorningBriefingAction(item) {
+  const customer = item && item.customerId ? getCustomerByIdForClient(item.customerId) : null;
+
+  if (item.actionType === 'mail' && customer) {
+    startCustomerMail(customer.id);
+    return;
+  }
+
+  if (item.actionType === 'map' && customer) {
+    window.open(getCustomerMapUrl(customer), '_blank', 'noopener');
+    return;
+  }
+
+  if (item.actionType === 'phone' && customer) {
+    const telHref = createCustomerTelHref(getCustomerPrimaryPhone(customer));
+
+    if (telHref) {
+      window.location.href = telHref;
+      return;
+    }
+  }
+
+  if (item.actionType === 'calendar' && customer) {
+    startCustomerCalendar(customer.id);
+    return;
+  }
+
+  if (item.actionType === 'projectHub') {
+    openProjectHubDashboard();
+    return;
+  }
+
+  if (customer) {
+    openMorningBriefingCustomer(customer.id);
+  }
+}
+
+function openMorningBriefingCustomer(customerId) {
+  showCustomerHubScreen({ skipTransition: true });
+  showCustomerHubDetail(customerId);
 }
 
 function focusTodaySchedule() {
