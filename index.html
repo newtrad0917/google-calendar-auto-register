@@ -6044,6 +6044,41 @@ body.ai-processing .status-ready,
   white-space: pre-line;
 }
 
+.sales-focus-empty-state {
+  display: grid;
+  gap: 10px;
+}
+
+.sales-focus-empty-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sales-focus-empty-action {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal) !important;
+  background: #FFFFFF !important;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.sales-focus-empty-action.is-ghost {
+  color: var(--ds-gray-500) !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.sales-focus-empty-action:hover {
+  border-color: rgba(23, 105, 170, 0.30) !important;
+  background: #FFFFFF !important;
+}
+
 .customer-activity-timeline {
   position: relative;
   display: grid;
@@ -8691,16 +8726,41 @@ function renderSalesFocusCard(items) {
   list.replaceChildren();
 
   if (!items.length) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'sales-focus-empty-state';
+
     const empty = document.createElement('p');
     empty.className = 'sales-focus-empty';
     empty.textContent = '本日すぐ対応が必要な営業フォーカスはありません。\n新規営業や既存顧客フォローに時間を使えます。';
-    list.appendChild(empty);
+    emptyState.appendChild(empty);
+
+    const actions = document.createElement('div');
+    actions.className = 'sales-focus-empty-actions';
+    actions.appendChild(createSalesFocusEmptyAction('顧客を探す', showCustomerHubScreen));
+    actions.appendChild(createSalesFocusEmptyAction('予定を登録', showCalendarScreen, true));
+    actions.appendChild(createSalesFocusEmptyAction('営業報告を書く', openSalesMemoDashboard));
+    actions.appendChild(createSalesFocusEmptyAction('AIメールを作成', showMailScreen, true));
+    emptyState.appendChild(actions);
+    list.appendChild(emptyState);
     return;
   }
 
   items.forEach(function(item) {
     list.appendChild(createSalesFocusItemCard(item));
   });
+}
+
+function createSalesFocusEmptyAction(label, onClick, isGhost) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = ['sales-focus-empty-action', isGhost ? 'is-ghost' : ''].filter(Boolean).join(' ');
+  button.textContent = label;
+  button.addEventListener('click', function() {
+    if (typeof onClick === 'function') {
+      onClick();
+    }
+  });
+  return button;
 }
 
 function createSalesFocusItemCard(item) {
