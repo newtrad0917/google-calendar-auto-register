@@ -7573,6 +7573,7 @@ body.ai-processing .status-ready,
     let salesMemoDashboardStats = { todayCount: 0 };
     let morningBriefingRenderFrame = 0;
     let salesFocusWorkflowContext = null;
+    let visitCompletionWorkflowContext = null;
     const WEATHER_LOCATION = {
       name: '朝倉',
       latitude: 33.42,
@@ -8163,24 +8164,30 @@ function renderMorningBriefingCard() {
   const visitCount = getTodayVisitCount();
   const todoCount = getTodayTodoCount();
   const hotCount = getHotDormantCustomerCount();
+  const dueProjectCount = getTodayDueProjectCandidates().length;
+  const overdueFollowCount = getOverdueFollowCustomerCount();
+  const activeProjectCount = getActiveProjectCount();
   const candidates = getMorningBriefingCandidates();
   const primary = candidates[0] || getMorningBriefingFallbackItem('primary');
   const secondary = candidates[1] || getMorningBriefingFallbackItem('secondary');
+  const morningSummary = {
+    visitCount: visitCount,
+    todoCount: todoCount,
+    hotCount: hotCount,
+    dueProjectCount: dueProjectCount,
+    overdueFollowCount: overdueFollowCount,
+    activeProjectCount: activeProjectCount
+  };
 
   setMorningBriefingText('morningBriefingVisitCount', formatMorningBriefingCount(visitCount));
   setMorningBriefingText('morningBriefingTodoCount', formatMorningBriefingCount(todoCount));
   setMorningBriefingText('morningBriefingHotCount', formatMorningBriefingCount(hotCount));
+  renderMorningBriefingMorningMessage(getMorningBriefingMorningMessage(morningSummary));
   setMorningBriefingText('morningBriefingPrimaryMain', primary.main);
   setMorningBriefingText('morningBriefingPrimaryNote', primary.note);
   setMorningBriefingText('morningBriefingSecondaryMain', secondary.main);
   setMorningBriefingText('morningBriefingSecondaryNote', secondary.note);
-  setMorningBriefingText('morningBriefingComment', getMorningBriefingComment({
-    visitCount: visitCount,
-    todoCount: todoCount,
-    hotCount: hotCount,
-    dueProjectCount: getTodayDueProjectCandidates().length,
-    overdueFollowCount: getOverdueFollowCustomerCount()
-  }));
+  setMorningBriefingText('morningBriefingComment', getMorningBriefingComment(morningSummary));
   renderMorningBriefingActionCenter(getMorningBriefingActionItems());
   renderSalesFocusCard(getSalesFocusItems());
 }
@@ -8191,6 +8198,95 @@ function setMorningBriefingText(id, text) {
   if (element) {
     element.textContent = text;
   }
+}
+
+function renderMorningBriefingMorningMessage(message) {
+  const section = ensureMorningBriefingMorningMessageSection();
+  const messageElement = document.getElementById('morningBriefingMorningMessage');
+
+  if (!section || !messageElement) {
+    return;
+  }
+
+  messageElement.textContent = message;
+}
+
+function ensureMorningBriefingMorningMessageSection() {
+  let section = document.getElementById('morningBriefingMorningMessageSection');
+
+  if (section) {
+    return section;
+  }
+
+  const card = document.getElementById('morningBriefingCard');
+
+  if (!card) {
+    return null;
+  }
+
+  section = document.createElement('div');
+  section.id = 'morningBriefingMorningMessageSection';
+  section.className = 'morning-briefing-section is-ai-comment';
+
+  const label = document.createElement('span');
+  label.className = 'morning-briefing-section-label';
+  label.textContent = 'AI朝礼メッセージ';
+
+  const message = document.createElement('p');
+  message.id = 'morningBriefingMorningMessage';
+  message.className = 'morning-briefing-section-main';
+
+  section.appendChild(label);
+  section.appendChild(message);
+
+  const primaryText = document.getElementById('morningBriefingPrimaryMain');
+  const primarySection = primaryText ? primaryText.closest('.morning-briefing-section') : null;
+
+  if (primarySection && primarySection.parentNode === card) {
+    card.insertBefore(section, primarySection);
+  } else {
+    card.appendChild(section);
+  }
+
+  return section;
+}
+
+function getMorningBriefingMorningMessage(summary) {
+  const visitCount = Number(summary && summary.visitCount || 0);
+  const todoCount = Number(summary && summary.todoCount || 0);
+  const hotCount = Number(summary && summary.hotCount || 0);
+  const dueProjectCount = Number(summary && summary.dueProjectCount || 0);
+  const overdueFollowCount = Number(summary && summary.overdueFollowCount || 0);
+  const activeProjectCount = Number(summary && summary.activeProjectCount || 0);
+  const lines = ['おはようございます。'];
+
+  lines.push(visitCount > 0
+    ? '本日は訪問予定が' + visitCount + '件あります。'
+    : '本日の訪問予定はまだありません。');
+
+  if (dueProjectCount > 0) {
+    lines.push('見積提出期限が' + dueProjectCount + '件ありますので、午前中の対応をおすすめします。');
+  } else if (todoCount > 0) {
+    lines.push('本日期限のTODOが' + todoCount + '件あります。早めに確認しましょう。');
+  } else {
+    lines.push('本日期限の対応は落ち着いています。');
+  }
+
+  lines.push(activeProjectCount > 0
+    ? '進行中の案件が' + activeProjectCount + '件あります。次アクションを確認しましょう。'
+    : '午後は比較的余裕があります。');
+
+  if (hotCount > 0) {
+    lines.push('30日以上訪問していないHOT顧客が' + hotCount + '社あります。時間があればフォローしましょう。');
+  } else if (overdueFollowCount > 0) {
+    lines.push('フォロー期限を過ぎた顧客が' + overdueFollowCount + '社あります。短い連絡から始めましょう。');
+  } else {
+    lines.push('フォロー待ちは大きく増えていません。');
+  }
+
+  lines.push('今日も頑張りましょう。');
+
+  return lines.slice(0, 6).join('\n\n');
 }
 
 function formatMorningBriefingCount(value) {
@@ -8932,6 +9028,104 @@ function handleSalesFocusCalendarSaved(message) {
     if (message) {
       showMessage(message);
     }
+  }, 450);
+
+  return true;
+}
+
+function startVisitCompletionWorkflow(customerId) {
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    return;
+  }
+
+  visitCompletionWorkflowContext = {
+    source: 'visitCompletionSalesMemo',
+    customerId: customer.id
+  };
+
+  showSalesMemoReportForm({
+    title: customer.companyName + ' 営業報告',
+    start: new Date()
+  }, customer);
+}
+
+function isVisitCompletionSalesMemoWorkflow(customerId) {
+  return Boolean(
+    visitCompletionWorkflowContext &&
+    visitCompletionWorkflowContext.source === 'visitCompletionSalesMemo' &&
+    visitCompletionWorkflowContext.customerId === customerId
+  );
+}
+
+function handleVisitCompletionSalesMemoSaved(customerId) {
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    visitCompletionWorkflowContext = null;
+    showHomeScreen();
+    return;
+  }
+
+  visitCompletionWorkflowContext = {
+    source: 'visitCompletionCalendar',
+    customerId: customer.id
+  };
+  startCustomerCalendar(customer.id);
+}
+
+function isVisitCompletionCalendarWorkflow() {
+  return Boolean(
+    visitCompletionWorkflowContext &&
+    visitCompletionWorkflowContext.source === 'visitCompletionCalendar'
+  );
+}
+
+function handleVisitCompletionCalendarSaved() {
+  if (!isVisitCompletionCalendarWorkflow()) {
+    return false;
+  }
+
+  const customerId = visitCompletionWorkflowContext.customerId;
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    visitCompletionWorkflowContext = null;
+    showHomeScreen();
+    return true;
+  }
+
+  visitCompletionWorkflowContext = {
+    source: 'visitCompletionMail',
+    customerId: customer.id
+  };
+
+  window.setTimeout(function() {
+    startCustomerMail(customer.id);
+  }, 450);
+
+  return true;
+}
+
+function isVisitCompletionMailWorkflow() {
+  return Boolean(
+    visitCompletionWorkflowContext &&
+    visitCompletionWorkflowContext.source === 'visitCompletionMail'
+  );
+}
+
+function handleVisitCompletionMailSaved() {
+  if (!isVisitCompletionMailWorkflow()) {
+    return false;
+  }
+
+  visitCompletionWorkflowContext = null;
+
+  window.setTimeout(function() {
+    showHomeScreen();
+    window.alert('訪問完了');
+    showMessage('訪問完了');
   }, 450);
 
   return true;
@@ -11538,6 +11732,11 @@ function createCustomerHubActions(customer) {
   const phone = getCustomerPrimaryPhone(customer);
   const telHref = createCustomerTelHref(phone);
 
+  actions.appendChild(createCustomerHubButton('✅ 訪問終了', function(target) {
+    playCustomerHubLine(target);
+    startVisitCompletionWorkflow(customer.id);
+  }, false, 'secondary-button icon-action-sales-memo'));
+
   actions.appendChild(createCustomerHubButton('📅 予定登録', function(target) {
     playCustomerHubLine(target);
     startCustomerCalendar(customer.id);
@@ -11748,6 +11947,10 @@ function playCustomerHubLine(element) {
           showMessage(message);
           button.disabled = false;
           button.textContent = 'Googleカレンダーに登録';
+
+          if (handleVisitCompletionCalendarSaved()) {
+            return;
+          }
 
           if (handleSalesFocusCalendarSaved(message)) {
             return;
@@ -12791,6 +12994,10 @@ google.script.run
 
   button.disabled = false;
   button.textContent = 'Gmail下書きに保存';
+
+  if (handleVisitCompletionMailSaved()) {
+    return;
+  }
 
   window.setTimeout(function() {
     showHomeScreen();
@@ -15040,7 +15247,12 @@ function saveSalesMemoReport() {
 
       window.setTimeout(function() {
         const shouldContinueSalesFocus = isSalesFocusSalesMemoWorkflow(data.customerId);
+        const shouldContinueVisitCompletion = isVisitCompletionSalesMemoWorkflow(data.customerId);
         resetSalesMemoReportForm();
+        if (shouldContinueVisitCompletion) {
+          handleVisitCompletionSalesMemoSaved(data.customerId);
+          return;
+        }
         if (shouldContinueSalesFocus) {
           handleSalesFocusSalesMemoSaved(data.customerId);
           return;
