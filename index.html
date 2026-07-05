@@ -5909,6 +5909,186 @@ body.ai-processing .status-ready,
   white-space: pre-line;
 }
 
+.today-progress-card {
+  position: relative;
+  display: grid;
+  gap: var(--ds-space-2);
+  overflow: hidden;
+  padding: var(--ds-space-3);
+  border: 1px solid #E8EDF5;
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.today-progress-card::before {
+  content: "";
+  position: absolute;
+  top: var(--ds-space-3);
+  bottom: var(--ds-space-3);
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: var(--ds-royal);
+}
+
+.today-progress-head {
+  display: grid;
+  gap: 4px;
+}
+
+.today-progress-title {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.today-progress-description {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.today-progress-meter {
+  display: grid;
+  gap: 8px;
+}
+
+.today-progress-track {
+  overflow: hidden;
+  height: 10px;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-gray-100);
+}
+
+.today-progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ds-royal), var(--ds-aurora));
+  transition: width var(--ds-transition-normal);
+}
+
+.today-progress-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.today-progress-rate {
+  color: var(--ds-midnight);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.today-progress-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.today-progress-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.today-progress-group-title {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.today-progress-list {
+  display: grid;
+  gap: 8px;
+}
+
+.today-progress-item {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid #E8EDF5;
+  border-radius: 14px;
+  background: var(--ds-gray-50);
+}
+
+.today-progress-item.is-done {
+  border-color: rgba(23, 105, 170, 0.18);
+  background: rgba(23, 105, 170, 0.05);
+}
+
+.today-progress-status {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  color: var(--ds-gray-500);
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 950;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.today-progress-item.is-done .today-progress-status {
+  color: #FFFFFF;
+  background: var(--ds-royal);
+}
+
+.today-progress-item-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.today-progress-item-label {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.today-progress-item-detail {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.today-progress-empty {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .today-progress-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .today-progress-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .morning-briefing-comment-label {
   color: var(--ds-royal);
   font-size: 12px;
@@ -6681,6 +6861,36 @@ body.ai-processing .status-ready,
       <span class="morning-briefing-section-label">🤖 AIアクション提案</span>
       <div id="morningBriefingActionList" class="morning-briefing-action-list">
         <p class="morning-briefing-action-empty">既存データから提案を整理しています。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="todayProgressCard" class="today-progress-card" aria-labelledby="todayProgressTitle">
+    <div class="today-progress-head">
+      <h3 id="todayProgressTitle" class="today-progress-title">今日の営業進捗</h3>
+      <p class="today-progress-description">今日あと何を終わらせれば一区切りになるかを整理します</p>
+    </div>
+    <div class="today-progress-meter" aria-label="今日の営業進捗率">
+      <div class="today-progress-track" aria-hidden="true">
+        <div id="todayProgressFill" class="today-progress-fill"></div>
+      </div>
+      <div class="today-progress-summary">
+        <span id="todayProgressSummary">進捗を確認しています</span>
+        <strong id="todayProgressRate" class="today-progress-rate">0%</strong>
+      </div>
+    </div>
+    <div class="today-progress-groups">
+      <div class="today-progress-group">
+        <p class="today-progress-group-title">今日完了した営業行動</p>
+        <div id="todayProgressDoneList" class="today-progress-list">
+          <p class="today-progress-empty">完了状況を確認しています。</p>
+        </div>
+      </div>
+      <div class="today-progress-group">
+        <p class="today-progress-group-title">今日残っている営業行動</p>
+        <div id="todayProgressRemainingList" class="today-progress-list">
+          <p class="today-progress-empty">残り行動を確認しています。</p>
+        </div>
       </div>
     </div>
   </section>
@@ -8189,7 +8399,175 @@ function renderMorningBriefingCard() {
   setMorningBriefingText('morningBriefingSecondaryNote', secondary.note);
   setMorningBriefingText('morningBriefingComment', getMorningBriefingComment(morningSummary));
   renderMorningBriefingActionCenter(getMorningBriefingActionItems());
+  renderTodayProgressCard();
   renderSalesFocusCard(getSalesFocusItems());
+}
+
+function renderTodayProgressCard() {
+  const card = document.getElementById('todayProgressCard');
+
+  if (!card) {
+    return;
+  }
+
+  const items = getTodayProgressItems();
+  const rate = getTodayProgressRate(items);
+  const doneItems = items.filter(function(item) {
+    return item.isDone;
+  });
+  const remainingItems = items.filter(function(item) {
+    return !item.isDone;
+  });
+  const fill = document.getElementById('todayProgressFill');
+  const rateText = document.getElementById('todayProgressRate');
+  const summary = document.getElementById('todayProgressSummary');
+  const doneList = document.getElementById('todayProgressDoneList');
+  const remainingList = document.getElementById('todayProgressRemainingList');
+
+  if (fill) {
+    fill.style.width = rate + '%';
+  }
+
+  if (rateText) {
+    rateText.textContent = rate + '%';
+  }
+
+  if (summary) {
+    summary.textContent = doneItems.length + ' / ' + items.length + ' 完了';
+  }
+
+  if (doneList) {
+    doneList.replaceChildren();
+    if (doneItems.length) {
+      doneItems.forEach(function(item) {
+        doneList.appendChild(createTodayProgressItem(item));
+      });
+    } else {
+      const empty = document.createElement('p');
+      empty.className = 'today-progress-empty';
+      empty.textContent = 'まだ完了した営業行動はありません。';
+      doneList.appendChild(empty);
+    }
+  }
+
+  if (remainingList) {
+    remainingList.replaceChildren();
+    if (remainingItems.length) {
+      remainingItems.forEach(function(item) {
+        remainingList.appendChild(createTodayProgressItem(item));
+      });
+    } else {
+      const empty = document.createElement('p');
+      empty.className = 'today-progress-empty';
+      empty.textContent = '今日の営業行動は一区切りです。';
+      remainingList.appendChild(empty);
+    }
+  }
+}
+
+function getTodayProgressItems() {
+  const visitCount = getTodayVisitCount();
+  const dueProjectCount = getTodayDueProjectCandidates().length;
+  const todoCount = getTodayTodoCount();
+  const salesMemoCount = Number(salesMemoDashboardStats && salesMemoDashboardStats.todayCount || 0);
+  const nextVisitCount = getTodayProgressNextVisitCount();
+  const mailCount = getTodayProgressMailCount();
+  const dueDetailParts = [];
+
+  if (dueProjectCount > 0) {
+    dueDetailParts.push('本日期限案件 ' + dueProjectCount + '件');
+  }
+
+  if (todoCount > 0) {
+    dueDetailParts.push('本日期限TODO ' + todoCount + '件');
+  }
+
+  return [
+    {
+      label: '今日訪問予定',
+      detail: visitCount > 0 ? '残り ' + visitCount + '件' : '本日の訪問予定は残っていません',
+      isDone: visitCount === 0
+    },
+    {
+      label: '本日期限案件',
+      detail: dueDetailParts.length ? dueDetailParts.join(' / ') : '本日期限の案件・TODOは残っていません',
+      isDone: dueProjectCount === 0 && todoCount === 0
+    },
+    {
+      label: '営業報告',
+      detail: salesMemoCount > 0 ? '今日 ' + salesMemoCount + '件登録済み' : '訪問後の報告が未登録です',
+      isDone: salesMemoCount > 0
+    },
+    {
+      label: '次回訪問登録',
+      detail: nextVisitCount > 0 ? '次回訪問予定が登録済みです' : '次回訪問予定が未登録です',
+      isDone: nextVisitCount > 0
+    },
+    {
+      label: 'AIメール',
+      detail: mailCount > 0 ? '今日 ' + mailCount + '件作成済み' : '今日のAIメール作成は未完了です',
+      isDone: mailCount > 0
+    }
+  ];
+}
+
+function getTodayProgressRate(items) {
+  const progressItems = Array.isArray(items) ? items : [];
+
+  if (!progressItems.length) {
+    return 0;
+  }
+
+  const doneCount = progressItems.filter(function(item) {
+    return item && item.isDone;
+  }).length;
+
+  return Math.round((doneCount / progressItems.length) * 100);
+}
+
+function createTodayProgressItem(item) {
+  const node = document.createElement('div');
+  node.className = 'today-progress-item' + (item.isDone ? ' is-done' : '');
+
+  const status = document.createElement('span');
+  status.className = 'today-progress-status';
+  status.textContent = item.isDone ? '✓' : '•';
+  node.appendChild(status);
+
+  const body = document.createElement('span');
+  body.className = 'today-progress-item-body';
+
+  const label = document.createElement('p');
+  label.className = 'today-progress-item-label';
+  label.textContent = item.label;
+  body.appendChild(label);
+
+  const detail = document.createElement('p');
+  detail.className = 'today-progress-item-detail';
+  detail.textContent = item.detail;
+  body.appendChild(detail);
+
+  node.appendChild(body);
+  return node;
+}
+
+function getTodayProgressNextVisitCount() {
+  const today = getCustomerTodayStart();
+
+  return customerData.filter(function(customer) {
+    const nextVisit = parseCustomerDate(customer.nextVisit);
+    return nextVisit && nextVisit.getTime() >= today.getTime();
+  }).length;
+}
+
+function getTodayProgressMailCount() {
+  const todayKey = formatScheduleDateKey(new Date());
+
+  return getStoredCustomerMailHistory().filter(function(mail) {
+    const source = mail.savedAt || mail.createdAt || mail.updatedAt || mail.date;
+    const date = source ? new Date(source) : null;
+    return date && !isNaN(date.getTime()) && formatScheduleDateKey(date) === todayKey;
+  }).length;
 }
 
 function setMorningBriefingText(id, text) {
@@ -9226,6 +9604,7 @@ function openSalesMemoDashboard() {
 function loadSalesMemoDashboardStats() {
   if (!window.google || !google.script || !google.script.run) {
     salesMemoDashboardStats = { todayCount: 0 };
+    scheduleRenderMorningBriefingCard();
     scheduleRenderAiInsightCard();
     return;
   }
@@ -9235,11 +9614,13 @@ function loadSalesMemoDashboardStats() {
       salesMemoDashboardStats = stats && typeof stats.todayCount === 'number'
         ? stats
         : { todayCount: 0 };
+      scheduleRenderMorningBriefingCard();
       scheduleRenderAiInsightCard();
     })
     .withFailureHandler(function(error) {
       console.error('Sales memo dashboard stats load failed.', error);
       salesMemoDashboardStats = { todayCount: 0 };
+      scheduleRenderMorningBriefingCard();
       scheduleRenderAiInsightCard();
     })
     .getSalesMemoDashboardStats();
