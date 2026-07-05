@@ -3635,12 +3635,21 @@ body {
   font-weight: 900;
   text-align: center;
   text-decoration: none;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .customer-hub-action[aria-disabled="true"] {
   color: #94a3b8;
   background: linear-gradient(180deg, #f8fafc 0%, #f3f6fa 100%);
   box-shadow: none;
+}
+
+.customer-hub-action.is-danger-action,
+.project-hub-card-actions .is-danger-action {
+  grid-column: 1 / -1;
+  margin-top: 6px;
 }
 
 .customer-hub-back-row {
@@ -5306,6 +5315,17 @@ body.ai-processing .assistant-briefing-icon {
   padding: 8px 10px;
   border-radius: 999px;
   font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.project-hub-card-actions button[aria-disabled="true"],
+.project-hub-card-actions button:disabled {
+  color: #94a3b8 !important;
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
 }
 
 .project-hub-form {
@@ -7517,6 +7537,7 @@ body.ai-processing .status-ready,
     let isSavingSalesMemo = false;
     let salesMemoDashboardStats = { todayCount: 0 };
     let morningBriefingRenderFrame = 0;
+    let salesFocusWorkflowContext = null;
     const WEATHER_LOCATION = {
       name: '朝倉',
       latitude: 33.42,
@@ -8552,7 +8573,7 @@ function getTodayDueProjectSalesFocusItems() {
         customerId: customer.id,
         customerName: customer.companyName,
         reason: getProjectTodayDueLabel(project, todayKey) + 'が本日期限です',
-        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'mail'])
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'salesMemo', 'mail'])
       };
     })
     .filter(Boolean);
@@ -8580,7 +8601,7 @@ function getTodayVisitSalesFocusItems() {
         customerId: customer.id,
         customerName: customer.companyName,
         reason: '本日訪問予定があります',
-        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'map'])
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'map', 'salesMemo'])
       };
     })
     .filter(Boolean);
@@ -8609,7 +8630,7 @@ function getHotCustomerSalesFocusItems() {
         customerId: customer.id,
         customerName: customer.companyName,
         reason: getSalesFocusDormantReason(customer),
-        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'mail'])
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'salesMemo', 'mail'])
       };
     });
 }
@@ -8629,7 +8650,7 @@ function getOverdueFollowSalesFocusItems() {
         customerId: customer.id,
         customerName: customer.companyName,
         reason: 'フォロー期限を過ぎています',
-        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'calendar'])
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'calendar', 'salesMemo'])
       };
     });
 }
@@ -8735,10 +8756,11 @@ function createSalesFocusActionControl(action) {
 function getSalesFocusActionLabel(type) {
   const labels = {
     customer: '顧客を開く',
-    phone: '電話',
-    mail: 'メール',
-    calendar: '予定登録',
-    map: 'Map'
+    phone: '☎ 電話',
+    mail: '✉ AIメール',
+    calendar: '📅 予定登録',
+    map: '📍 地図',
+    salesMemo: '📝 活動記録'
   };
 
   return labels[type] || '顧客を開く';
@@ -8756,6 +8778,11 @@ function handleSalesFocusAction(action) {
     return;
   }
 
+  if (action.type === 'salesMemo') {
+    startSalesFocusSalesMemo(customer.id);
+    return;
+  }
+
   if (action.type === 'calendar') {
     startCustomerCalendar(customer.id);
     return;
@@ -8767,6 +8794,87 @@ function handleSalesFocusAction(action) {
   }
 
   openMorningBriefingCustomer(customer.id);
+}
+
+function startSalesFocusSalesMemo(customerId) {
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    return;
+  }
+
+  salesFocusWorkflowContext = {
+    source: 'salesFocusSalesMemo',
+    customerId: customer.id
+  };
+
+  showSalesMemoReportForm({
+    title: customer.companyName + ' 営業報告',
+    start: new Date()
+  }, customer);
+}
+
+function isSalesFocusSalesMemoWorkflow(customerId) {
+  return Boolean(
+    salesFocusWorkflowContext &&
+    salesFocusWorkflowContext.source === 'salesFocusSalesMemo' &&
+    salesFocusWorkflowContext.customerId === customerId
+  );
+}
+
+function handleSalesFocusSalesMemoSaved(customerId) {
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    salesFocusWorkflowContext = null;
+    showHomeScreen();
+    return;
+  }
+
+  if (window.confirm('次回訪問を登録しますか？')) {
+    salesFocusWorkflowContext = {
+      source: 'salesFocusCalendar',
+      customerId: customer.id,
+      promptMailAfterCalendar: true
+    };
+    startCustomerCalendar(customer.id);
+    return;
+  }
+
+  salesFocusWorkflowContext = null;
+  showHomeScreen();
+}
+
+function isSalesFocusCalendarWorkflow() {
+  return Boolean(
+    salesFocusWorkflowContext &&
+    salesFocusWorkflowContext.source === 'salesFocusCalendar' &&
+    salesFocusWorkflowContext.promptMailAfterCalendar
+  );
+}
+
+function handleSalesFocusCalendarSaved(message) {
+  if (!isSalesFocusCalendarWorkflow()) {
+    return false;
+  }
+
+  const customerId = salesFocusWorkflowContext.customerId;
+  const customer = getCustomerByIdForClient(customerId);
+  salesFocusWorkflowContext = null;
+
+  window.setTimeout(function() {
+    if (customer && window.confirm('AIメールを作成しますか？')) {
+      startCustomerMail(customer.id);
+      return;
+    }
+
+    showHomeScreen();
+    if (message) {
+      showMessage(message);
+    }
+  }, 450);
+
+  return true;
 }
 
 function focusTodaySchedule() {
@@ -11066,18 +11174,48 @@ function createProjectHubInlineDetail(project) {
 
   const actions = document.createElement('div');
   actions.className = 'project-hub-card-actions';
-  actions.appendChild(createProjectHubButton('Customer Hubを開く', function() {
-    openProjectCustomerHub(project);
-  }, 'secondary-button'));
-  actions.appendChild(createProjectHubButton('営業報告', function() {
+  const customer = getCustomerById(project.customerId);
+  const phone = customer ? getCustomerPrimaryPhone(customer) : '';
+  const telHref = createCustomerTelHref(phone);
+
+  actions.appendChild(createProjectHubButton('📅 予定登録', function() {
+    if (customer) {
+      startCustomerCalendar(customer.id);
+    } else {
+      openProjectCustomerHub(project);
+    }
+  }, 'secondary-button icon-action-calendar'));
+  actions.appendChild(createProjectHubButton('✉ AIメール', function() {
+    if (customer) {
+      startCustomerMail(customer.id);
+    } else {
+      openProjectCustomerHub(project);
+    }
+  }, 'secondary-button icon-action-mail'));
+  actions.appendChild(createProjectHubButton('📍 GoogleMap', function() {
+    if (customer) {
+      window.open(getCustomerMapUrl(customer), '_blank', 'noopener');
+    } else {
+      openProjectCustomerHub(project);
+    }
+  }, 'secondary-button icon-action-map'));
+  actions.appendChild(createProjectHubButton(telHref ? '☎ 電話' : '☎ 電話番号未登録', function() {
+    if (telHref) {
+      window.location.href = telHref;
+    }
+  }, telHref ? 'secondary-button icon-action-phone' : 'secondary-button icon-action-phone is-disabled-action'));
+  actions.appendChild(createProjectHubButton('📝 営業報告', function() {
     startProjectSalesMemo(project);
-  }, 'secondary-button'));
-  actions.appendChild(createProjectHubButton('編集', function() {
+  }, 'secondary-button icon-action-sales-memo'));
+  actions.appendChild(createProjectHubButton('✏ 編集', function() {
     showProjectForm(project.customerId, project.id);
-  }, 'secondary-button'));
-  actions.appendChild(createProjectHubButton('削除', function(target) {
+  }, 'secondary-button icon-action-edit'));
+  actions.appendChild(createProjectHubButton('👤 顧客を開く', function() {
+    openProjectCustomerHub(project);
+  }, 'secondary-button icon-action-customer'));
+  actions.appendChild(createProjectHubButton('🗑 削除', function(target) {
     deleteProjectFromDetail(project.id, target);
-  }, 'customer-hub-danger-button'));
+  }, 'customer-hub-danger-button icon-action-delete is-danger-action'));
   detail.appendChild(actions);
   detail.appendChild(createProjectHubBackRow());
 
@@ -11318,8 +11456,12 @@ function createProjectHubField(label, value, isPrimary) {
 function createProjectHubButton(label, onClick, extraClassName) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = extraClassName || '';
+  button.className = ['project-hub-action', extraClassName || ''].filter(Boolean).join(' ');
   button.textContent = label;
+  if (String(extraClassName || '').indexOf('is-disabled-action') !== -1) {
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+  }
   button.addEventListener('click', function() {
     if (button.disabled) {
       return;
@@ -11336,12 +11478,23 @@ function createCustomerHubActions(customer) {
   const phone = getCustomerPrimaryPhone(customer);
   const telHref = createCustomerTelHref(phone);
 
-  actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer)));
-
   actions.appendChild(createCustomerHubButton('📅 予定登録', function(target) {
     playCustomerHubLine(target);
     startCustomerCalendar(customer.id);
-  }));
+  }, false, 'secondary-button icon-action-calendar'));
+
+  actions.appendChild(createCustomerHubButton('✉ AIメール', function(target) {
+    playCustomerHubLine(target);
+    startCustomerMail(customer.id);
+  }, false, 'secondary-button icon-action-mail'));
+
+  actions.appendChild(createCustomerHubLink('📍 GoogleMap', getCustomerMapUrl(customer), 'secondary-button icon-action-map'));
+
+  if (telHref) {
+    actions.appendChild(createCustomerHubLink('☎ 電話', telHref, 'secondary-button icon-action-phone'));
+  } else {
+    actions.appendChild(createCustomerHubButton('☎ 電話番号未登録', function() {}, true, 'secondary-button icon-action-phone'));
+  }
 
   actions.appendChild(createCustomerHubButton('📝 営業報告', function(target) {
     playCustomerHubLine(target);
@@ -11349,28 +11502,17 @@ function createCustomerHubActions(customer) {
       title: customer.companyName + ' 営業報告',
       start: new Date()
     }, customer);
-  }));
+  }, false, 'secondary-button icon-action-sales-memo'));
 
-  actions.appendChild(createCustomerHubButton('📧 メール', function(target) {
-    playCustomerHubLine(target);
-    startCustomerMail(customer.id);
-  }));
-
-  if (telHref) {
-    actions.appendChild(createCustomerHubLink('☎ 電話', telHref));
-  } else {
-    actions.appendChild(createCustomerHubButton('☎ 電話番号未登録', function() {}, true));
-  }
-
-  actions.appendChild(createCustomerHubButton('編集', function(target) {
+  actions.appendChild(createCustomerHubButton('✏ 編集', function(target) {
     playCustomerHubLine(target);
     showCustomerForm(customer.id);
-  }, false, 'secondary-button'));
+  }, false, 'secondary-button icon-action-edit'));
 
-  actions.appendChild(createCustomerHubButton('削除', function(target) {
+  actions.appendChild(createCustomerHubButton('🗑 削除', function(target) {
     playCustomerHubLine(target);
     deleteCustomerFromDetail(customer.id, target);
-  }, false, 'customer-hub-danger-button'));
+  }, false, 'customer-hub-danger-button icon-action-delete is-danger-action'));
 
   return actions;
 }
@@ -11394,9 +11536,9 @@ function createCustomerHubButton(label, onClick, disabled, extraClassName) {
   return button;
 }
 
-function createCustomerHubLink(label, href) {
+function createCustomerHubLink(label, href, extraClassName) {
   const link = document.createElement('a');
-  link.className = 'customer-hub-action';
+  link.className = ['customer-hub-action', extraClassName || ''].filter(Boolean).join(' ');
   link.href = href;
   link.textContent = label;
 
@@ -11546,6 +11688,10 @@ function playCustomerHubLine(element) {
           showMessage(message);
           button.disabled = false;
           button.textContent = 'Googleカレンダーに登録';
+
+          if (handleSalesFocusCalendarSaved(message)) {
+            return;
+          }
 
           if (result && result.meetLink) {
             openMeetMailDraft(data, result.meetLink);
@@ -14833,7 +14979,12 @@ function saveSalesMemoReport() {
       setSalesMemoSavingState(false);
 
       window.setTimeout(function() {
+        const shouldContinueSalesFocus = isSalesFocusSalesMemoWorkflow(data.customerId);
         resetSalesMemoReportForm();
+        if (shouldContinueSalesFocus) {
+          handleSalesFocusSalesMemoSaved(data.customerId);
+          return;
+        }
         showHomeScreen();
       }, 550);
     })
