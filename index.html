@@ -8258,7 +8258,7 @@ function getMorningBriefingMorningMessage(summary) {
   const dueProjectCount = Number(summary && summary.dueProjectCount || 0);
   const overdueFollowCount = Number(summary && summary.overdueFollowCount || 0);
   const activeProjectCount = Number(summary && summary.activeProjectCount || 0);
-  const lines = ['おはようございます。'];
+  const lines = [getMorningBriefingGreeting()];
 
   lines.push(visitCount > 0
     ? '本日は訪問予定が' + visitCount + '件あります。'
@@ -8284,9 +8284,45 @@ function getMorningBriefingMorningMessage(summary) {
     lines.push('フォロー待ちは大きく増えていません。');
   }
 
-  lines.push('今日も頑張りましょう。');
+  lines.push(getMorningBriefingClosing());
 
   return lines.slice(0, 6).join('\n\n');
+}
+
+function getMorningBriefingGreeting(date) {
+  const hour = (date || new Date()).getHours();
+
+  if (hour >= 5 && hour < 11) {
+    return 'おはようございます。';
+  }
+
+  if (hour >= 11 && hour < 17) {
+    return 'お疲れさまです。';
+  }
+
+  if (hour >= 17) {
+    return 'こんばんは。今日もお疲れさまです。';
+  }
+
+  return '遅くまでお疲れさまです。';
+}
+
+function getMorningBriefingClosing(date) {
+  const hour = (date || new Date()).getHours();
+
+  if (hour >= 5 && hour < 11) {
+    return '今日も頑張りましょう。';
+  }
+
+  if (hour >= 11 && hour < 17) {
+    return '午後も落ち着いて進めましょう。';
+  }
+
+  if (hour >= 17) {
+    return '今日もお疲れさまでした。';
+  }
+
+  return '無理せず休む準備も進めましょう。';
 }
 
 function formatMorningBriefingCount(value) {
