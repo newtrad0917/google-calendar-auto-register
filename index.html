@@ -2868,6 +2868,143 @@ body {
   font-weight: 900;
 }
 
+.sales-memo-guided {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.sales-memo-step {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ds-gray-200);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-white);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.sales-memo-step-head {
+  display: grid;
+  gap: 4px;
+}
+
+.sales-memo-step-title {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.sales-memo-step-description {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.sales-memo-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sales-memo-basic-item {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #E8EDF5;
+  border-radius: 14px;
+  background: var(--ds-gray-50);
+}
+
+.sales-memo-basic-label {
+  color: var(--ds-gray-500);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.sales-memo-basic-value {
+  color: var(--ds-midnight);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sales-memo-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sales-memo-choice-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #E8EDF5 !important;
+  border-radius: 16px !important;
+  color: var(--ds-midnight) !important;
+  background: var(--ds-white) !important;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.sales-memo-choice-card.is-selected {
+  border-color: var(--ds-royal) !important;
+  color: var(--ds-white) !important;
+  background: linear-gradient(180deg, var(--ds-royal) 0%, var(--ds-royal-deep) 100%) !important;
+}
+
+.sales-memo-ai-memo {
+  min-height: 132px;
+}
+
+.sales-memo-summary {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: var(--ds-radius-card);
+  background: linear-gradient(180deg, rgba(103, 232, 249, 0.08), rgba(255, 255, 255, 0.96));
+}
+
+.sales-memo-summary-title {
+  margin: 0;
+  color: var(--ds-aurora);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.sales-memo-summary-text {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.sales-memo-native-fields {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .sales-memo-basic-grid,
+  .sales-memo-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .schedule-day-group {
   padding: 12px 0 !important;
   border-top: 1px solid rgba(226, 232, 240, 0.92) !important;
@@ -7608,7 +7745,71 @@ body.ai-processing .status-ready,
     <input id="salesMemoProjectId" type="hidden">
     <input id="salesMemoEventTitle" type="hidden">
 
-    <div class="sales-memo-grid">
+    <div class="sales-memo-guided">
+      <section class="sales-memo-step" aria-label="基本情報">
+        <div class="sales-memo-step-head">
+          <h3 class="sales-memo-step-title">① 基本情報</h3>
+          <p class="sales-memo-step-description">顧客情報から自動入力しています。</p>
+        </div>
+        <div class="sales-memo-basic-grid">
+          <div class="sales-memo-basic-item">
+            <span class="sales-memo-basic-label">顧客名</span>
+            <span id="salesMemoBasicCustomer" class="sales-memo-basic-value">未登録</span>
+          </div>
+          <div class="sales-memo-basic-item">
+            <span class="sales-memo-basic-label">担当者</span>
+            <span id="salesMemoBasicContact" class="sales-memo-basic-value">未登録</span>
+          </div>
+          <div class="sales-memo-basic-item">
+            <span class="sales-memo-basic-label">訪問日時</span>
+            <span id="salesMemoBasicVisitDate" class="sales-memo-basic-value">未登録</span>
+          </div>
+          <div class="sales-memo-basic-item">
+            <span class="sales-memo-basic-label">訪問先</span>
+            <span id="salesMemoBasicPlace" class="sales-memo-basic-value">未登録</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sales-memo-step" aria-label="商談結果">
+        <div class="sales-memo-step-head">
+          <h3 class="sales-memo-step-title">② 商談結果</h3>
+          <p class="sales-memo-step-description">今回の結果を1つ選択してください。</p>
+        </div>
+        <div id="salesResultSelector" class="sales-memo-choice-grid"></div>
+      </section>
+
+      <section class="sales-memo-step" aria-label="顧客温度感">
+        <div class="sales-memo-step-head">
+          <h3 class="sales-memo-step-title">③ 顧客温度感</h3>
+          <p class="sales-memo-step-description">次に動く優先度を選択してください。</p>
+        </div>
+        <div id="customerTemperatureSelector" class="sales-memo-choice-grid"></div>
+      </section>
+
+      <section class="sales-memo-step" aria-label="次回アクション">
+        <div class="sales-memo-step-head">
+          <h3 class="sales-memo-step-title">④ 次回アクション</h3>
+          <p class="sales-memo-step-description">次に行う営業アクションを選択してください。</p>
+        </div>
+        <div id="nextActionSelector" class="sales-memo-choice-grid"></div>
+      </section>
+
+      <section class="sales-memo-step" aria-label="AIメモ">
+        <div class="sales-memo-step-head">
+          <h3 class="sales-memo-step-title">⑤ AIメモ</h3>
+          <p class="sales-memo-step-description">必要最低限の補足だけ入力してください。</p>
+        </div>
+        <textarea id="salesMemoMemo" class="sales-memo-ai-memo" rows="5" placeholder="院長より来月予算化予定。&#10;LED提案へ興味あり。"></textarea>
+      </section>
+
+      <section class="sales-memo-summary" aria-label="今回の営業内容">
+        <p class="sales-memo-summary-title">今回の営業内容</p>
+        <p id="salesMemoSummaryText" class="sales-memo-summary-text">選択内容を整理しています。</p>
+      </section>
+    </div>
+
+    <div class="sales-memo-grid sales-memo-native-fields">
       <div class="field">
         <label for="salesMemoVisitDate">訪問日</label>
         <input id="salesMemoVisitDate" type="date">
@@ -7622,11 +7823,6 @@ body.ai-processing .status-ready,
       <div class="field">
         <label for="salesMemoContactName">担当者</label>
         <input id="salesMemoContactName" type="text">
-      </div>
-
-      <div class="field full">
-        <label for="salesMemoMemo">商談メモ</label>
-        <textarea id="salesMemoMemo" rows="5" placeholder="話した内容、反応、温度感など"></textarea>
       </div>
 
       <div class="field full">
@@ -15601,6 +15797,11 @@ function showSalesMemoReportForm(event, customer, options) {
   document.getElementById('stepList').classList.add('hidden');
 
   populateSalesMemoReportForm(event, customer);
+  renderSalesResultSelector();
+  renderCustomerTemperatureSelector();
+  renderNextActionSelector();
+  renderVoiceMemoSection();
+  updateSalesMemoSummary();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -15622,6 +15823,161 @@ function populateSalesMemoReportForm(event, customer) {
   document.getElementById('salesMemoNotes').value = '';
 }
 
+function renderSalesResultSelector() {
+  renderSalesMemoChoiceGroup('salesResultSelector', 'salesResult', [
+    { label: '受注', value: '受注' },
+    { label: '見積提出', value: '見積提出' },
+    { label: '打合せ', value: '打合せ' },
+    { label: '現地調査', value: '現地調査' },
+    { label: 'フォロー', value: 'フォロー' },
+    { label: 'その他', value: 'その他' }
+  ]);
+}
+
+function renderCustomerTemperatureSelector() {
+  renderSalesMemoChoiceGroup('customerTemperatureSelector', 'customerTemperature', [
+    { label: '🔥 HOT', value: 'HOT' },
+    { label: '🟡 WARM', value: 'WARM' },
+    { label: '🔵 COLD', value: 'COLD' }
+  ]);
+}
+
+function renderNextActionSelector() {
+  renderSalesMemoChoiceGroup('nextActionSelector', 'nextAction', [
+    { label: '見積提出', value: '見積提出' },
+    { label: '電話フォロー', value: '電話フォロー' },
+    { label: '再訪問', value: '再訪問' },
+    { label: 'メール送信', value: 'メール送信' },
+    { label: '案件保留', value: '案件保留' },
+    { label: 'その他', value: 'その他' }
+  ]);
+}
+
+function renderVoiceMemoSection() {
+  const memo = document.getElementById('salesMemoMemo');
+
+  if (!memo) {
+    return;
+  }
+
+  memo.placeholder = '院長より来月予算化予定。\nLED提案へ興味あり。';
+  memo.setAttribute('inputmode', 'text');
+
+  if (!memo.dataset.salesMemoSummaryReady) {
+    memo.addEventListener('input', updateSalesMemoSummary);
+    memo.dataset.salesMemoSummaryReady = 'true';
+  }
+}
+
+function updateSalesMemoSummary() {
+  const customer = document.getElementById('salesMemoCustomerName');
+  const contact = document.getElementById('salesMemoContactName');
+  const visitDate = document.getElementById('salesMemoVisitDate');
+  const eventTitle = document.getElementById('salesMemoEventTitle');
+  const nextActionInput = document.getElementById('salesMemoNextAction');
+  const notesInput = document.getElementById('salesMemoNotes');
+  const result = getSalesMemoSelection('salesResult') || '未選択';
+  const temperature = getSalesMemoSelection('customerTemperature') || '未選択';
+  const nextAction = getSalesMemoSelection('nextAction') || nextActionInput.value || '未選択';
+
+  setSalesMemoBasicText('salesMemoBasicCustomer', customer.value || '未登録');
+  setSalesMemoBasicText('salesMemoBasicContact', contact.value || '未登録');
+  setSalesMemoBasicText('salesMemoBasicVisitDate', visitDate.value || '未登録');
+  setSalesMemoBasicText('salesMemoBasicPlace', eventTitle.value || customer.value || '未登録');
+
+  if (nextActionInput && getSalesMemoSelection('nextAction')) {
+    nextActionInput.value = getSalesMemoSelection('nextAction');
+  }
+
+  if (notesInput) {
+    notesInput.value = [
+      result !== '未選択' ? '商談結果：' + result : '',
+      temperature !== '未選択' ? '温度感：' + temperature : ''
+    ].filter(Boolean).join('\n');
+  }
+
+  const summary = document.getElementById('salesMemoSummaryText');
+
+  if (summary) {
+    summary.textContent = [
+      '顧客：' + (customer.value || '未登録'),
+      '結果：' + result,
+      '温度感：' + temperature,
+      '次回：' + nextAction
+    ].join('\n');
+  }
+}
+
+function renderSalesMemoChoiceGroup(containerId, key, options) {
+  const container = document.getElementById(containerId);
+
+  if (!container) {
+    return;
+  }
+
+  container.replaceChildren();
+
+  options.forEach(function(option) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sales-memo-choice-card';
+    button.textContent = option.label;
+    button.dataset.choiceKey = key;
+    button.dataset.choiceValue = option.value;
+    button.addEventListener('click', function() {
+      setSalesMemoSelection(key, option.value);
+      updateSalesMemoChoiceSelection(key);
+      updateSalesMemoSummary();
+    });
+    container.appendChild(button);
+  });
+
+  updateSalesMemoChoiceSelection(key);
+}
+
+function setSalesMemoSelection(key, value) {
+  const section = document.getElementById('salesMemoSection');
+
+  if (section) {
+    section.dataset[key] = value || '';
+  }
+}
+
+function getSalesMemoSelection(key) {
+  const section = document.getElementById('salesMemoSection');
+  return section ? String(section.dataset[key] || '').trim() : '';
+}
+
+function updateSalesMemoChoiceSelection(key) {
+  const selectedValue = getSalesMemoSelection(key);
+  const buttons = document.querySelectorAll('.sales-memo-choice-card[data-choice-key="' + key + '"]');
+
+  buttons.forEach(function(button) {
+    button.classList.toggle('is-selected', button.dataset.choiceValue === selectedValue);
+    button.setAttribute('aria-pressed', button.dataset.choiceValue === selectedValue ? 'true' : 'false');
+  });
+}
+
+function setSalesMemoBasicText(id, value) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = value || '未登録';
+  }
+}
+
+function buildSalesMemoAutoMemo() {
+  const result = getSalesMemoSelection('salesResult');
+  const temperature = getSalesMemoSelection('customerTemperature');
+  const nextAction = getSalesMemoSelection('nextAction');
+
+  return [
+    result ? '商談結果：' + result : '',
+    temperature ? '温度感：' + temperature : '',
+    nextAction ? '次回アクション：' + nextAction : ''
+  ].filter(Boolean).join('\n');
+}
+
 function getCustomerPrimaryProjectId(customerId) {
   const projects = getProjectsByCustomerIdForClient(customerId);
   return projects.length ? projects[0].id : '';
@@ -15638,10 +15994,18 @@ function saveSalesMemoReport() {
     return;
   }
 
+  updateSalesMemoSummary();
+  const memoInput = document.getElementById('salesMemoMemo');
+
+  if (memoInput && !memoInput.value.trim()) {
+    memoInput.value = buildSalesMemoAutoMemo();
+    updateSalesMemoSummary();
+  }
+
   const data = getSalesMemoReportFormData();
 
   if (!data.memo) {
-    showSalesMemoMessage('商談メモを入力してください。', true);
+    showSalesMemoMessage('商談結果・温度感・次回アクションのいずれかを選択するか、AIメモを入力してください。', true);
     document.getElementById('salesMemoMemo').focus();
     return;
   }
@@ -15747,6 +16111,16 @@ function resetSalesMemoReportForm() {
     }
   });
 
+  const section = document.getElementById('salesMemoSection');
+
+  if (section) {
+    delete section.dataset.salesResult;
+    delete section.dataset.customerTemperature;
+    delete section.dataset.nextAction;
+  }
+
+  ['salesResult', 'customerTemperature', 'nextAction'].forEach(updateSalesMemoChoiceSelection);
+  updateSalesMemoSummary();
   hideSalesMemoMessage();
   setSalesMemoSavingState(false);
 }
