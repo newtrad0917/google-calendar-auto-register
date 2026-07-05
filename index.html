@@ -5904,6 +5904,260 @@ body.ai-processing .status-ready,
   line-height: 1.65;
 }
 
+.sales-focus-card {
+  position: relative;
+  display: grid;
+  gap: var(--ds-space-2);
+  overflow: hidden;
+  padding: var(--ds-space-3);
+  border: 1px solid #E8EDF5;
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.sales-focus-card::before {
+  content: "";
+  position: absolute;
+  top: var(--ds-space-3);
+  bottom: var(--ds-space-3);
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: var(--ds-royal);
+}
+
+.sales-focus-head {
+  display: grid;
+  gap: 4px;
+}
+
+.sales-focus-title {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.sales-focus-description {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.sales-focus-list {
+  display: grid;
+  gap: 12px;
+}
+
+.sales-focus-item {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #E8EDF5;
+  border-radius: 16px;
+  background: var(--ds-gray-50);
+}
+
+.sales-focus-customer {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.sales-focus-reason {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.sales-focus-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sales-focus-button,
+.sales-focus-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal) !important;
+  background: #FFFFFF !important;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.sales-focus-button.is-ghost,
+.sales-focus-link.is-ghost {
+  color: var(--ds-gray-500) !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.sales-focus-button:hover,
+.sales-focus-link:hover {
+  border-color: rgba(23, 105, 170, 0.30) !important;
+  background: #FFFFFF !important;
+}
+
+.sales-focus-empty {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.customer-activity-timeline {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  overflow: hidden;
+  padding: var(--ds-space-3);
+  border: 1px solid #E8EDF5;
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.customer-activity-timeline::before {
+  content: "";
+  position: absolute;
+  top: var(--ds-space-3);
+  bottom: var(--ds-space-3);
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: var(--ds-royal);
+}
+
+.customer-activity-timeline-head {
+  display: grid;
+  gap: 4px;
+}
+
+.customer-activity-timeline-title {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.customer-activity-timeline-subtitle {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.customer-activity-timeline-list {
+  display: grid;
+  gap: 16px;
+}
+
+.customer-activity-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #E8EDF5;
+  border-radius: 16px;
+  background: var(--ds-gray-50);
+}
+
+.customer-activity-date {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.customer-activity-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: var(--ds-royal);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.customer-activity-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(23, 105, 170, 0.08);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.customer-activity-content {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.customer-activity-empty {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.customer-activity-empty-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-activity-empty-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.customer-activity-empty-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal) !important;
+  background: #FFFFFF !important;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.customer-activity-empty-button:hover {
+  border-color: rgba(23, 105, 170, 0.30) !important;
+  background: #FFFFFF !important;
+}
+
 .home-section .ai-insight-card {
   padding: var(--ds-space-2);
   border-color: rgba(148, 163, 184, 0.20) !important;
@@ -6373,6 +6627,16 @@ body.ai-processing .status-ready,
       <div id="morningBriefingActionList" class="morning-briefing-action-list">
         <p class="morning-briefing-action-empty">既存データから提案を整理しています。</p>
       </div>
+    </div>
+  </section>
+
+  <section id="salesFocusCard" class="sales-focus-card" aria-labelledby="salesFocusTitle">
+    <div class="sales-focus-head">
+      <h3 id="salesFocusTitle" class="sales-focus-title">営業フォーカス</h3>
+      <p class="sales-focus-description">今日優先して対応すべき営業アクションです</p>
+    </div>
+    <div id="salesFocusList" class="sales-focus-list">
+      <p class="sales-focus-empty">既存データから営業フォーカスを整理しています。</p>
     </div>
   </section>
 
@@ -7862,6 +8126,7 @@ function renderMorningBriefingCard() {
     overdueFollowCount: getOverdueFollowCustomerCount()
   }));
   renderMorningBriefingActionCenter(getMorningBriefingActionItems());
+  renderSalesFocusCard(getSalesFocusItems());
 }
 
 function setMorningBriefingText(id, text) {
@@ -8247,6 +8512,261 @@ function handleMorningBriefingAction(item) {
 function openMorningBriefingCustomer(customerId) {
   showCustomerHubScreen({ skipTransition: true });
   showCustomerHubDetail(customerId);
+}
+
+function getSalesFocusItems() {
+  const items = []
+    .concat(getTodayDueProjectSalesFocusItems())
+    .concat(getTodayVisitSalesFocusItems())
+    .concat(getHotCustomerSalesFocusItems())
+    .concat(getOverdueFollowSalesFocusItems());
+  const seenCustomers = {};
+
+  return items.filter(function(item) {
+    if (!item || !item.customerId || seenCustomers[item.customerId]) {
+      return false;
+    }
+
+    seenCustomers[item.customerId] = true;
+    return true;
+  }).slice(0, 3);
+}
+
+function getTodayDueProjectSalesFocusItems() {
+  const todayKey = formatScheduleDateKey(new Date());
+
+  return projectData
+    .filter(function(project) {
+      return getProjectTodayDueLabel(project, todayKey);
+    })
+    .sort(compareProjectsForDisplay)
+    .map(function(project) {
+      const customer = getCustomerByIdForClient(project.customerId);
+
+      if (!customer) {
+        return null;
+      }
+
+      return {
+        key: 'focus-project:' + project.id,
+        customerId: customer.id,
+        customerName: customer.companyName,
+        reason: getProjectTodayDueLabel(project, todayKey) + 'が本日期限です',
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'mail'])
+      };
+    })
+    .filter(Boolean);
+}
+
+function getTodayVisitSalesFocusItems() {
+  const todayKey = formatScheduleDateKey(new Date());
+  const events = Array.isArray(lastScheduleEvents) ? lastScheduleEvents : [];
+
+  return events
+    .filter(function(event) {
+      return getScheduleEventDateKey(event) === todayKey && isScheduleFutureEventVisible(event);
+    })
+    .slice()
+    .sort(compareScheduleEventsByStart)
+    .map(function(event, index) {
+      const customer = findCustomerByScheduleEvent(event);
+
+      if (!customer) {
+        return null;
+      }
+
+      return {
+        key: 'focus-visit:' + (event.id || event.htmlLink || event.start || index),
+        customerId: customer.id,
+        customerName: customer.companyName,
+        reason: '本日訪問予定があります',
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'map'])
+      };
+    })
+    .filter(Boolean);
+}
+
+function getHotCustomerSalesFocusItems() {
+  const threshold = getCustomerTodayStart();
+  threshold.setDate(threshold.getDate() - 30);
+
+  return customerData
+    .filter(function(customer) {
+      const lastVisit = parseCustomerDate(customer.lastVisit);
+      return String(customer.hotLevel || '').trim().toUpperCase() === 'HOT' &&
+        (!lastVisit || lastVisit.getTime() <= threshold.getTime());
+    })
+    .sort(function(a, b) {
+      const aDate = parseCustomerDate(a.lastVisit);
+      const bDate = parseCustomerDate(b.lastVisit);
+      const aTime = aDate ? aDate.getTime() : 0;
+      const bTime = bDate ? bDate.getTime() : 0;
+      return aTime - bTime;
+    })
+    .map(function(customer) {
+      return {
+        key: 'focus-hot:' + customer.id,
+        customerId: customer.id,
+        customerName: customer.companyName,
+        reason: getSalesFocusDormantReason(customer),
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'phone', 'mail'])
+      };
+    });
+}
+
+function getOverdueFollowSalesFocusItems() {
+  const today = getCustomerTodayStart();
+
+  return customerData
+    .filter(function(customer) {
+      const nextVisit = parseCustomerDate(customer.nextVisit);
+      return nextVisit && nextVisit.getTime() < today.getTime();
+    })
+    .sort(compareCustomersByNextVisit)
+    .map(function(customer) {
+      return {
+        key: 'focus-overdue:' + customer.id,
+        customerId: customer.id,
+        customerName: customer.companyName,
+        reason: 'フォロー期限を過ぎています',
+        actions: getSalesFocusActionsForCustomer(customer, ['customer', 'calendar'])
+      };
+    });
+}
+
+function getSalesFocusDormantReason(customer) {
+  const lastVisit = parseCustomerDate(customer.lastVisit);
+  const days = lastVisit ? Math.max(0, Math.floor((getCustomerTodayStart().getTime() - lastVisit.getTime()) / 86400000)) : 0;
+
+  if (days > 0) {
+    return '前回訪問から' + days + '日経過しています';
+  }
+
+  return 'HOT顧客です。訪問履歴が未登録です';
+}
+
+function getSalesFocusActionsForCustomer(customer, actionTypes) {
+  return actionTypes.map(function(type) {
+    return {
+      type: type,
+      customerId: customer.id
+    };
+  }).filter(function(action) {
+    if (action.type === 'phone') {
+      return Boolean(createCustomerTelHref(getCustomerPrimaryPhone(customer)));
+    }
+
+    return true;
+  });
+}
+
+function renderSalesFocusCard(items) {
+  const list = document.getElementById('salesFocusList');
+
+  if (!list) {
+    return;
+  }
+
+  list.replaceChildren();
+
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'sales-focus-empty';
+    empty.textContent = '本日すぐ対応が必要な営業フォーカスはありません。\n新規営業や既存顧客フォローに時間を使えます。';
+    list.appendChild(empty);
+    return;
+  }
+
+  items.forEach(function(item) {
+    list.appendChild(createSalesFocusItemCard(item));
+  });
+}
+
+function createSalesFocusItemCard(item) {
+  const card = document.createElement('article');
+  card.className = 'sales-focus-item';
+
+  const title = document.createElement('p');
+  title.className = 'sales-focus-customer';
+  title.textContent = formatCustomerValue(item.customerName);
+  card.appendChild(title);
+
+  const reason = document.createElement('p');
+  reason.className = 'sales-focus-reason';
+  reason.textContent = item.reason || '';
+  card.appendChild(reason);
+
+  const actions = document.createElement('div');
+  actions.className = 'sales-focus-actions';
+  item.actions.forEach(function(action) {
+    actions.appendChild(createSalesFocusActionControl(action));
+  });
+  card.appendChild(actions);
+
+  return card;
+}
+
+function createSalesFocusActionControl(action) {
+  const customer = getCustomerByIdForClient(action.customerId);
+  const label = getSalesFocusActionLabel(action.type);
+
+  if (action.type === 'phone' && customer) {
+    const telHref = createCustomerTelHref(getCustomerPrimaryPhone(customer));
+
+    if (telHref) {
+      const link = document.createElement('a');
+      link.className = 'sales-focus-link is-ghost';
+      link.href = telHref;
+      link.textContent = label;
+      return link;
+    }
+  }
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = action.type === 'customer' ? 'sales-focus-button' : 'sales-focus-button is-ghost';
+  button.textContent = label;
+  button.addEventListener('click', function() {
+    handleSalesFocusAction(action);
+  });
+  return button;
+}
+
+function getSalesFocusActionLabel(type) {
+  const labels = {
+    customer: '顧客を開く',
+    phone: '電話',
+    mail: 'メール',
+    calendar: '予定登録',
+    map: 'Map'
+  };
+
+  return labels[type] || '顧客を開く';
+}
+
+function handleSalesFocusAction(action) {
+  const customer = getCustomerByIdForClient(action.customerId);
+
+  if (!customer) {
+    return;
+  }
+
+  if (action.type === 'mail') {
+    startCustomerMail(customer.id);
+    return;
+  }
+
+  if (action.type === 'calendar') {
+    startCustomerCalendar(customer.id);
+    return;
+  }
+
+  if (action.type === 'map') {
+    window.open(getCustomerMapUrl(customer), '_blank', 'noopener');
+    return;
+  }
+
+  openMorningBriefingCustomer(customer.id);
 }
 
 function focusTodaySchedule() {
@@ -9800,6 +10320,7 @@ function createCustomerHubInlineDetail(customer) {
   profile.appendChild(grid);
   detail.appendChild(profile);
   detail.appendChild(createCustomerProjectSection(customer));
+  detail.appendChild(createCustomerActivityTimelineSection(customer));
   detail.appendChild(createCustomerHubActions(customer));
   detail.appendChild(createCustomerHubBackRow());
   window.setTimeout(function() {
@@ -9994,6 +10515,305 @@ function getCustomerSalesMemoText(customer) {
   const weatherAdvice = getWeatherSalesAdviceText();
 
   return weatherAdvice ? baseMemo + '\n' + weatherAdvice : baseMemo;
+}
+
+function createCustomerActivityTimelineSection(customer) {
+  const section = document.createElement('section');
+  section.className = 'customer-activity-timeline';
+  section.setAttribute('aria-label', '営業タイムライン');
+
+  const head = document.createElement('div');
+  head.className = 'customer-activity-timeline-head';
+
+  const title = document.createElement('h3');
+  title.className = 'customer-activity-timeline-title';
+  title.textContent = '営業タイムライン';
+  head.appendChild(title);
+
+  const subtitle = document.createElement('p');
+  subtitle.className = 'customer-activity-timeline-subtitle';
+  subtitle.textContent = '営業報告・案件・予定・メール履歴を時系列で確認できます';
+  head.appendChild(subtitle);
+  section.appendChild(head);
+
+  const list = document.createElement('div');
+  list.className = 'customer-activity-timeline-list';
+  const items = getCustomerActivityTimelineItems(customer);
+
+  if (!items.length) {
+    const emptyWrap = document.createElement('div');
+    emptyWrap.className = 'customer-activity-empty-actions';
+
+    const empty = document.createElement('p');
+    empty.className = 'customer-activity-empty';
+    empty.textContent = '営業履歴はまだありません。\n最初の営業活動を登録すると\nここへ時系列で表示されます。';
+    emptyWrap.appendChild(empty);
+
+    const buttons = document.createElement('div');
+    buttons.className = 'customer-activity-empty-buttons';
+    buttons.appendChild(createCustomerActivityEmptyButton('営業報告を書く', function() {
+      showSalesMemoReportForm({
+        title: customer.companyName + ' 営業報告',
+        start: new Date()
+      }, customer);
+    }));
+    buttons.appendChild(createCustomerActivityEmptyButton('次回訪問を登録', function() {
+      startCustomerCalendar(customer.id);
+    }));
+    buttons.appendChild(createCustomerActivityEmptyButton('AIメールを作成', function() {
+      startCustomerMail(customer.id);
+    }));
+    emptyWrap.appendChild(buttons);
+    list.appendChild(emptyWrap);
+  } else {
+    items.forEach(function(item) {
+      list.appendChild(createCustomerActivityTimelineCard(item));
+    });
+  }
+
+  section.appendChild(list);
+  return section;
+}
+
+function createCustomerActivityEmptyButton(label, onClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'customer-activity-empty-button';
+  button.textContent = label;
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function getCustomerActivityTimelineItems(customer) {
+  return []
+    .concat(getCustomerSalesMemoTimelineItems(customer))
+    .concat(getCustomerProjectTimelineItems(customer))
+    .concat(getCustomerScheduleTimelineItems(customer))
+    .concat(getCustomerMailTimelineItems(customer))
+    .sort(compareCustomerActivityTimelineItems);
+}
+
+function getCustomerSalesMemoTimelineItems(customer) {
+  const memo = String(customer.salesMemo || customer.memo || '').trim();
+
+  if (!memo) {
+    return [];
+  }
+
+  const date = parseCustomerActivityDate(customer.updatedAt || customer.lastVisit || customer.createdAt);
+
+  return [{
+    date: date,
+    fallbackDateText: customer.updatedAt || customer.lastVisit || customer.createdAt || '',
+    type: 'salesMemo',
+    content: memo.split('\n').filter(Boolean)[0] || memo
+  }];
+}
+
+function getCustomerProjectTimelineItems(customer) {
+  return getProjectsByCustomerIdForClient(customer.id).map(function(project) {
+    const dateSource = project.updatedAt ||
+      project.createdAt ||
+      project.expectedWorkDate ||
+      project.expectedOrderDate ||
+      project.expectedPaymentDate;
+    const date = parseCustomerActivityDate(dateSource);
+    const summary = [
+      project.projectName,
+      project.status,
+      project.nextAction || project.memo || project.notes
+    ].filter(Boolean).join('\n');
+
+    return {
+      date: date,
+      fallbackDateText: dateSource || '',
+      type: 'project',
+      content: summary || '案件情報'
+    };
+  });
+}
+
+function getCustomerScheduleTimelineItems(customer) {
+  const events = Array.isArray(lastScheduleEvents) ? lastScheduleEvents : [];
+
+  return events.filter(function(event) {
+    const matchedCustomer = findCustomerByScheduleEvent(event);
+    return matchedCustomer && matchedCustomer.id === customer.id;
+  }).map(function(event) {
+    const date = parseCustomerActivityDate(event.start || event.startIso || event.date);
+    return {
+      date: date,
+      fallbackDateText: event.start || event.startIso || event.date || '',
+      type: getCustomerScheduleActivityType(event),
+      content: String(event.title || '予定').trim()
+    };
+  });
+}
+
+function getCustomerMailTimelineItems(customer) {
+  return getStoredCustomerMailHistory()
+    .filter(function(mail) {
+      return isMailHistoryForCustomer(mail, customer);
+    })
+    .map(function(mail) {
+      const dateSource = mail.savedAt || mail.createdAt || mail.updatedAt || mail.date;
+      return {
+        date: parseCustomerActivityDate(dateSource),
+        fallbackDateText: dateSource || '',
+        type: 'mail',
+        content: mail.subject || mail.title || 'メール下書き'
+      };
+    });
+}
+
+function getStoredCustomerMailHistory() {
+  const candidates = [];
+
+  if (Array.isArray(window.SALES_AI_SECRETARY_MAIL_HISTORY)) {
+    candidates.push.apply(candidates, window.SALES_AI_SECRETARY_MAIL_HISTORY);
+  }
+
+  if (Array.isArray(window.salesAiSecretaryMailHistory)) {
+    candidates.push.apply(candidates, window.salesAiSecretaryMailHistory);
+  }
+
+  try {
+    const stored = window.localStorage
+      ? window.localStorage.getItem('SALES_AI_SECRETARY_MAIL_HISTORY')
+      : '';
+    const parsed = stored ? JSON.parse(stored) : null;
+
+    if (Array.isArray(parsed)) {
+      candidates.push.apply(candidates, parsed);
+    }
+  } catch (error) {
+    console.warn('Mail history could not be read for timeline.', error);
+  }
+
+  return candidates;
+}
+
+function isMailHistoryForCustomer(mail, customer) {
+  const customerId = String(customer.id || '').trim();
+  const mailCustomerId = String(mail.customerId || '').trim();
+
+  if (customerId && mailCustomerId && customerId === mailCustomerId) {
+    return true;
+  }
+
+  const email = normalizeCustomerSearchText(customer.email);
+  const to = normalizeCustomerSearchText(mail.to || mail.email || '');
+
+  if (email && to.indexOf(email) !== -1) {
+    return true;
+  }
+
+  const companyName = normalizeCustomerSearchText(customer.companyName);
+  const subject = normalizeCustomerSearchText(mail.subject || mail.title || '');
+  return companyName && subject.indexOf(companyName) !== -1;
+}
+
+function createCustomerActivityTimelineCard(item) {
+  const card = document.createElement('article');
+  card.className = 'customer-activity-card';
+
+  const date = document.createElement('div');
+  date.className = 'customer-activity-date';
+  date.textContent = '📅 ' + formatCustomerActivityDate(item);
+  card.appendChild(date);
+
+  const kind = getCustomerActivityKindMeta(item.type);
+  const kindNode = document.createElement('div');
+  kindNode.className = 'customer-activity-kind';
+
+  const icon = document.createElement('span');
+  icon.className = 'customer-activity-icon ' + kind.iconClass;
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = kind.icon;
+  kindNode.appendChild(icon);
+
+  const label = document.createElement('span');
+  label.textContent = kind.label;
+  kindNode.appendChild(label);
+  card.appendChild(kindNode);
+
+  const content = document.createElement('p');
+  content.className = 'customer-activity-content';
+  content.textContent = item.content || '内容未登録';
+  card.appendChild(content);
+
+  return card;
+}
+
+function getCustomerActivityKindMeta(type) {
+  const types = {
+    phone: { icon: '📞', label: '電話', iconClass: 'icon-activity-phone' },
+    mail: { icon: '📧', label: 'メール', iconClass: 'icon-activity-mail' },
+    visit: { icon: '🚗', label: '訪問', iconClass: 'icon-activity-visit' },
+    salesMemo: { icon: '📝', label: '営業報告', iconClass: 'icon-activity-sales-memo' },
+    schedule: { icon: '📅', label: '予定', iconClass: 'icon-activity-schedule' },
+    project: { icon: '💰', label: '案件', iconClass: 'icon-activity-project' }
+  };
+
+  return types[type] || types.schedule;
+}
+
+function getCustomerScheduleActivityType(event) {
+  const text = normalizeCustomerSearchText((event && event.title) || '');
+
+  if (/電話|tel|call/.test(text)) {
+    return 'phone';
+  }
+
+  if (/メール|mail|送付/.test(text)) {
+    return 'mail';
+  }
+
+  if (/訪問|商談|打合|打ち合わせ|meeting/.test(text)) {
+    return 'visit';
+  }
+
+  return 'schedule';
+}
+
+function parseCustomerActivityDate(value) {
+  const customerDate = parseCustomerDate(value);
+
+  if (customerDate) {
+    return customerDate;
+  }
+
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatCustomerActivityDate(item) {
+  const date = item && item.date;
+
+  if (date && !Number.isNaN(date.getTime())) {
+    return date.getFullYear() + '/' +
+      padTwoDigits(date.getMonth() + 1) + '/' +
+      padTwoDigits(date.getDate());
+  }
+
+  return String(item && item.fallbackDateText ? item.fallbackDateText : '日付未登録');
+}
+
+function compareCustomerActivityTimelineItems(a, b) {
+  const aTime = a.date && !Number.isNaN(a.date.getTime()) ? a.date.getTime() : 0;
+  const bTime = b.date && !Number.isNaN(b.date.getTime()) ? b.date.getTime() : 0;
+
+  if (aTime !== bTime) {
+    return bTime - aTime;
+  }
+
+  return String(a.content || '').localeCompare(String(b.content || ''), 'ja');
 }
 
 function markCustomerHubCardSelected(customerId) {
