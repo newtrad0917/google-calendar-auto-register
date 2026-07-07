@@ -1642,6 +1642,78 @@ body.ai-processing #gmailDraftSection::before {
   white-space: nowrap;
 }
 
+.task-submission-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.task-submission-link-button {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.task-submission-linked-badge {
+  border-color: #bbf7d0;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.task-submission-link-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.task-submission-link-form .field {
+  margin: 0;
+}
+
+.task-submission-link-form label {
+  display: grid;
+  gap: 5px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.task-submission-link-form input,
+.task-submission-link-form select,
+.task-submission-link-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.task-submission-link-form textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.task-submission-form-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.task-submission-form-actions button {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.task-item.has-submission-form {
+  max-height: none;
+}
+
 .task-empty {
   margin: 2px 0 0;
   padding: 10px 12px;
@@ -4408,6 +4480,16 @@ body::before {
     min-width: 40px;
     height: 40px;
   }
+
+  .task-submission-tools,
+  .task-submission-form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .task-submission-link-button {
+    width: 100%;
+  }
 }
 
 /* UX Sprint Ver1: AI Insight */
@@ -5801,6 +5883,29 @@ body.ai-processing .assistant-briefing-icon {
   background: #FFF7F7 !important;
 }
 
+.submission-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+  padding: 14px;
+  border: 1px solid rgba(23, 105, 170, 0.16);
+  border-radius: var(--ds-radius-card);
+  background: #F8FAFC;
+}
+
+.submission-edit-form .field:nth-child(2),
+.submission-edit-form .field:nth-child(7),
+.submission-edit-actions {
+  grid-column: 1 / -1;
+}
+
+.submission-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .submission-empty {
   margin: 0;
   padding: 16px;
@@ -6998,6 +7103,10 @@ body.ai-processing .status-ready,
   .submission-filter-button,
   .submission-action-button {
     width: 100%;
+  }
+
+  .submission-edit-form {
+    grid-template-columns: 1fr;
   }
 
   .morning-briefing-card {
@@ -8287,6 +8396,8 @@ body.ai-processing .status-ready,
     let isSavingTask = false;
     let currentTasks = [];
     let editingTaskId = '';
+    let activeTaskSubmissionFormId = '';
+    let savingTaskSubmissionLinkId = '';
     let editingCalendarEvent = null;
     let scheduleRequestId = 0;
     let scheduleLoadErrorCode = '';
@@ -8312,6 +8423,7 @@ body.ai-processing .status-ready,
     let lastScheduleDateKey = '';
     let customerHubMode = 'customers';
     let submissionCenterFilter = 'estimate';
+    let editingSubmissionKey = '';
     let isSavingSalesMemo = false;
     let salesMemoDashboardStats = { todayCount: 0 };
     let morningBriefingRenderFrame = 0;
@@ -8323,6 +8435,8 @@ body.ai-processing .status-ready,
       longitude: 130.67,
       timezone: 'Asia/Tokyo'
     };
+    const TASK_SUBMISSION_KEYWORDS = ['見積書', '見積', '請求書', '請求', '提出'];
+    const TASK_SUBMISSION_LINK_MARKER = '提出管理に追加済み';
     const JMA_FORECAST_CONFIG = {
       areaLabel: '筑後地方',
       officeCode: '400000',
@@ -11086,11 +11200,19 @@ function normalizeProjectForClient(project) {
     expectedOrderDate: project.expectedOrderDate || '',
     expectedWorkDate: project.expectedWorkDate || '',
     expectedPaymentDate: project.expectedPaymentDate || '',
+    customerName: project.customerName || '',
+    submissionEnabled: project.submissionEnabled || '',
+    submissionHidden: project.submissionHidden || '',
+    estimateSubmissionEnabled: project.estimateSubmissionEnabled || '',
+    estimateSubmissionHidden: project.estimateSubmissionHidden || '',
     estimateStatus: project.estimateStatus || '',
     estimateSubmittedDate: project.estimateSubmittedDate || '',
+    invoiceSubmissionEnabled: project.invoiceSubmissionEnabled || '',
+    invoiceSubmissionHidden: project.invoiceSubmissionHidden || '',
     invoiceStatus: project.invoiceStatus || '',
     invoiceSubmittedDate: project.invoiceSubmittedDate || '',
     paymentConfirmedDate: project.paymentConfirmedDate || '',
+    submissionMemo: project.submissionMemo || '',
     nextAction: project.nextAction || '',
     memo: project.memo || '',
     createdAt: project.createdAt || '',
@@ -11544,10 +11666,65 @@ function getFilteredSubmissionItems() {
 
 function getSubmissionCenterItems() {
   return projectData.reduce(function(items, project) {
-    items.push(createSubmissionItem(project, 'estimate'));
-    items.push(createSubmissionItem(project, 'invoice'));
+    if (shouldShowSubmissionItem(project, 'estimate')) {
+      items.push(createSubmissionItem(project, 'estimate'));
+    }
+
+    if (shouldShowSubmissionItem(project, 'invoice')) {
+      items.push(createSubmissionItem(project, 'invoice'));
+    }
+
     return items;
   }, []);
+}
+
+function shouldShowSubmissionItem(project, documentType) {
+  if (isProjectSubmissionHidden(project)) {
+    return false;
+  }
+
+  if (documentType === 'estimate') {
+    if (isTruthyProjectFlag(project.estimateSubmissionHidden)) {
+      return false;
+    }
+
+    return (
+      isTruthyProjectFlag(project.submissionEnabled) &&
+      !hasSubmissionDocumentMarker(project)
+    ) ||
+      isTruthyProjectFlag(project.estimateSubmissionEnabled) ||
+      Boolean(project.estimateStatus || project.estimateSubmittedDate);
+  }
+
+  if (isTruthyProjectFlag(project.invoiceSubmissionHidden)) {
+    return false;
+  }
+
+  return isTruthyProjectFlag(project.invoiceSubmissionEnabled) ||
+    Boolean(project.invoiceStatus || project.invoiceSubmittedDate || project.paymentConfirmedDate);
+}
+
+function hasSubmissionDocumentMarker(project) {
+  return Boolean(
+    project.estimateSubmissionEnabled ||
+    project.estimateSubmissionHidden ||
+    project.estimateStatus ||
+    project.estimateSubmittedDate ||
+    project.invoiceSubmissionEnabled ||
+    project.invoiceSubmissionHidden ||
+    project.invoiceStatus ||
+    project.invoiceSubmittedDate ||
+    project.paymentConfirmedDate
+  );
+}
+
+function isProjectSubmissionHidden(project) {
+  return isTruthyProjectFlag(project.submissionHidden);
+}
+
+function isTruthyProjectFlag(value) {
+  const text = String(value || '').trim().toLowerCase();
+  return text === 'true' || text === '1' || text === 'yes' || text === '表示';
 }
 
 function createSubmissionItem(project, documentType) {
@@ -11665,6 +11842,10 @@ function createSubmissionCard(item) {
   card.appendChild(grid);
   card.appendChild(createSubmissionActions(item));
 
+  if (editingSubmissionKey === getSubmissionItemKey(item.project, item.documentType)) {
+    card.appendChild(createSubmissionEditForm(item));
+  }
+
   return card;
 }
 
@@ -11700,7 +11881,26 @@ function createSubmissionActions(item) {
     actions.appendChild(button);
   });
 
-  if (!actions.childElementCount) {
+  const editButton = document.createElement('button');
+  editButton.type = 'button';
+  editButton.className = 'secondary-button submission-action-button';
+  editButton.textContent = '✏ 編集';
+  editButton.addEventListener('click', function() {
+    editingSubmissionKey = getSubmissionItemKey(item.project, item.documentType);
+    renderSubmissionCenter();
+  });
+  actions.appendChild(editButton);
+
+  const deleteButton = document.createElement('button');
+  deleteButton.type = 'button';
+  deleteButton.className = 'submission-action-button is-danger';
+  deleteButton.textContent = '🗑 削除';
+  deleteButton.addEventListener('click', function() {
+    hideSubmissionItem(item);
+  });
+  actions.appendChild(deleteButton);
+
+  if (getSubmissionActions(item).length === 0) {
     const done = document.createElement('span');
     done.className = 'submission-status';
     done.textContent = '履歴として保存中';
@@ -11747,6 +11947,201 @@ function getSubmissionActions(item) {
   return [];
 }
 
+function getSubmissionItemKey(project, documentType) {
+  return String(project && project.id || '') + ':' + String(documentType || '');
+}
+
+function createSubmissionEditForm(item) {
+  const form = document.createElement('form');
+  form.className = 'submission-edit-form';
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    saveSubmissionEdit(item, form);
+  });
+
+  form.appendChild(createSubmissionEditField('顧客名', 'customerName', getProjectCustomerName(item.project)));
+  form.appendChild(createSubmissionEditField('案件名', 'projectName', item.project.projectName || '', 'text', true));
+  form.appendChild(createSubmissionEditField('書類種別', 'documentType', item.documentType, 'select', true));
+  form.appendChild(createSubmissionEditField('金額', 'amount', item.amount || '', 'number'));
+  form.appendChild(createSubmissionEditField('提出日', 'submittedDate', item.submittedDate || '', 'date'));
+  form.appendChild(createSubmissionEditField('ステータス', 'status', item.status, 'status', true));
+  form.appendChild(createSubmissionEditField('メモ', 'memo', item.project.submissionMemo || item.project.notes || '', 'textarea'));
+
+  const actions = document.createElement('div');
+  actions.className = 'submission-edit-actions';
+
+  const save = document.createElement('button');
+  save.type = 'submit';
+  save.className = 'submission-action-button';
+  save.textContent = '保存';
+  actions.appendChild(save);
+
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'secondary-button submission-action-button';
+  cancel.textContent = 'キャンセル';
+  cancel.addEventListener('click', function() {
+    editingSubmissionKey = '';
+    renderSubmissionCenter();
+  });
+  actions.appendChild(cancel);
+
+  form.appendChild(actions);
+  return form;
+}
+
+function createSubmissionEditField(label, name, value, type, required) {
+  const field = document.createElement('div');
+  field.className = 'field';
+
+  const id = 'submissionEdit' + name.charAt(0).toUpperCase() + name.slice(1);
+  const labelNode = document.createElement('label');
+  labelNode.setAttribute('for', id);
+  labelNode.textContent = label;
+  field.appendChild(labelNode);
+
+  let input;
+
+  if (type === 'textarea') {
+    input = document.createElement('textarea');
+    input.rows = 3;
+  } else if (type === 'select') {
+    input = document.createElement('select');
+    [
+      ['estimate', '見積'],
+      ['invoice', '請求書']
+    ].forEach(function(optionPair) {
+      const option = document.createElement('option');
+      option.value = optionPair[0];
+      option.textContent = optionPair[1];
+      input.appendChild(option);
+    });
+  } else if (type === 'status') {
+    input = document.createElement('select');
+    ['未提出', '提出済み', '受注', '失注', '入金済み'].forEach(function(status) {
+      const option = document.createElement('option');
+      option.value = status;
+      option.textContent = status;
+      input.appendChild(option);
+    });
+  } else {
+    input = document.createElement('input');
+    input.type = type || 'text';
+  }
+
+  input.id = id;
+  input.name = name;
+  input.value = value === 0 ? 0 : (value || '');
+
+  if (required) {
+    input.required = true;
+  }
+
+  if (type === 'number') {
+    input.inputMode = 'numeric';
+  }
+
+  field.appendChild(input);
+  return field;
+}
+
+function saveSubmissionEdit(item, form) {
+  const formData = new FormData(form);
+  const nextType = String(formData.get('documentType') || item.documentType);
+  const status = String(formData.get('status') || '').trim();
+  const submittedDate = String(formData.get('submittedDate') || '').trim();
+  const patch = {
+    customerName: String(formData.get('customerName') || '').trim(),
+    projectName: String(formData.get('projectName') || '').trim(),
+    proposalAmount: String(formData.get('amount') || '').trim(),
+    submissionMemo: String(formData.get('memo') || '').trim(),
+    submissionEnabled: 'true',
+    submissionHidden: ''
+  };
+
+  if (!patch.projectName) {
+    showMessage('案件名を入力してください。', true);
+    return;
+  }
+
+  if (nextType === 'invoice' && ['未提出', '提出済み', '入金済み'].indexOf(status) === -1) {
+    showMessage('請求書のステータスは未提出・提出済み・入金済みから選択してください。', true);
+    return;
+  }
+
+  if (nextType !== 'invoice' && ['未提出', '提出済み', '受注', '失注'].indexOf(status) === -1) {
+    showMessage('見積のステータスは未提出・提出済み・受注・失注から選択してください。', true);
+    return;
+  }
+
+  if (item.documentType !== nextType) {
+    if (item.documentType === 'estimate') {
+      patch.estimateSubmissionEnabled = '';
+      patch.estimateSubmissionHidden = 'true';
+    } else {
+      patch.invoiceSubmissionEnabled = '';
+      patch.invoiceSubmissionHidden = 'true';
+    }
+  }
+
+  if (nextType === 'invoice') {
+    patch.invoiceSubmissionEnabled = 'true';
+    patch.invoiceSubmissionHidden = '';
+    patch.invoiceStatus = status;
+    patch.invoiceSubmittedDate = submittedDate;
+    patch.paymentConfirmedDate = status === '入金済み'
+      ? (item.project.paymentConfirmedDate || formatScheduleDateKey(new Date()))
+      : '';
+  } else {
+    patch.estimateSubmissionEnabled = 'true';
+    patch.estimateSubmissionHidden = '';
+    patch.estimateStatus = status;
+    patch.estimateSubmittedDate = submittedDate;
+    if (status === '受注') {
+      patch.status = '契約済';
+    } else if (status === '失注') {
+      patch.status = '失注';
+    }
+  }
+
+  editingSubmissionKey = '';
+  updateSubmissionProjectStatus(item.project.id, patch);
+}
+
+function hideSubmissionItem(item) {
+  if (!window.confirm('提出管理から削除します。案件自体は削除されません。よろしいですか？')) {
+    return;
+  }
+
+  const patch = item.documentType === 'invoice'
+    ? {
+        invoiceSubmissionEnabled: '',
+        invoiceSubmissionHidden: 'true',
+        invoiceStatus: '',
+        invoiceSubmittedDate: '',
+        paymentConfirmedDate: ''
+      }
+    : {
+        estimateSubmissionEnabled: '',
+        estimateSubmissionHidden: 'true',
+        estimateStatus: '',
+        estimateSubmittedDate: ''
+      };
+
+  const otherType = item.documentType === 'invoice' ? 'estimate' : 'invoice';
+  const otherStillVisible = shouldShowSubmissionItem(Object.assign({}, item.project, patch), otherType);
+
+  if (!otherStillVisible) {
+    patch.submissionHidden = 'true';
+    patch.submissionEnabled = '';
+  }
+
+  editingSubmissionKey = '';
+  updateSubmissionProjectStatus(item.project.id, patch, {
+    message: '提出管理から削除しました。案件自体は残っています。'
+  });
+}
+
 function formatSubmissionDate(value) {
   const date = parseCustomerDate(value);
 
@@ -11757,7 +12152,31 @@ function formatSubmissionDate(value) {
   return date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
 }
 
+function linkProjectToSubmission(projectId, documentType) {
+  const isInvoice = documentType === 'invoice';
+  const patch = isInvoice
+    ? {
+        submissionEnabled: 'true',
+        submissionHidden: '',
+        invoiceSubmissionEnabled: 'true',
+        invoiceSubmissionHidden: '',
+        invoiceStatus: ''
+      }
+    : {
+        submissionEnabled: 'true',
+        submissionHidden: '',
+        estimateSubmissionEnabled: 'true',
+        estimateSubmissionHidden: '',
+        estimateStatus: ''
+      };
+
+  updateSubmissionProjectStatus(projectId, patch, {
+    message: isInvoice ? '請求書を提出管理へ追加しました。' : '見積を提出管理へ追加しました。'
+  });
+}
+
 function updateSubmissionProjectStatus(projectId, patch) {
+  const options = arguments.length > 2 ? arguments[2] || {} : {};
   const project = getProjectByIdForClient(projectId);
 
   if (!project) {
@@ -11770,7 +12189,7 @@ function updateSubmissionProjectStatus(projectId, patch) {
   if (!window.google || !google.script || !google.script.run) {
     Object.assign(project, updatedProject);
     renderSubmissionCenter();
-    showMessage('提出管理を更新しました。');
+    showMessage(options.message || '提出管理を更新しました。');
     return;
   }
 
@@ -11785,7 +12204,7 @@ function updateSubmissionProjectStatus(projectId, patch) {
 
       customerHubMode = 'submission';
       renderSubmissionCenter();
-      showMessage('提出管理を更新しました。');
+      showMessage(options.message || '提出管理を更新しました。');
     })
     .withFailureHandler(function(error) {
       showMessage('エラー：' + (error && error.message ? error.message : error), true);
@@ -12855,6 +13274,12 @@ function createProjectHubInlineDetail(project) {
   actions.appendChild(createProjectHubButton('📝 営業報告', function() {
     startProjectSalesMemo(project);
   }, 'secondary-button icon-action-sales-memo'));
+  actions.appendChild(createProjectHubButton('📄 見積管理へ追加', function() {
+    linkProjectToSubmission(project.id, 'estimate');
+  }, 'secondary-button icon-action-document'));
+  actions.appendChild(createProjectHubButton('🧾 請求書管理へ追加', function() {
+    linkProjectToSubmission(project.id, 'invoice');
+  }, 'secondary-button icon-action-document'));
   actions.appendChild(createProjectHubButton('✏ 編集', function() {
     showProjectForm(project.customerId, project.id);
   }, 'secondary-button icon-action-edit'));
@@ -14498,9 +14923,17 @@ function getProjectFormData() {
     [
       'estimateStatus',
       'estimateSubmittedDate',
+      'estimateSubmissionEnabled',
+      'estimateSubmissionHidden',
       'invoiceStatus',
       'invoiceSubmittedDate',
-      'paymentConfirmedDate'
+      'invoiceSubmissionEnabled',
+      'invoiceSubmissionHidden',
+      'paymentConfirmedDate',
+      'submissionEnabled',
+      'submissionHidden',
+      'submissionMemo',
+      'customerName'
     ].forEach(function(field) {
       project[field] = existingProject[field] || '';
     });
@@ -15553,6 +15986,10 @@ function setTaskSavingState(isSaving) {
   document.querySelectorAll('.task-edit-item-button').forEach(function(button) {
     button.disabled = isSaving;
   });
+
+  document.querySelectorAll('.task-submission-link-button, .task-submission-submit-button').forEach(function(button) {
+    button.disabled = isSaving;
+  });
 }
 
 function showTaskMessage(text, isError) {
@@ -15676,6 +16113,9 @@ function renderVisibleTasks() {
     const item = document.createElement('div');
     item.className = 'task-item is-entering';
     item.dataset.taskId = task.id;
+    if (activeTaskSubmissionFormId === task.id) {
+      item.classList.add('has-submission-form');
+    }
 
     const checkButton = document.createElement('button');
     checkButton.type = 'button';
@@ -15718,11 +16158,29 @@ function renderVisibleTasks() {
 
     body.appendChild(title);
 
-    if (task.memo) {
+    const displayMemo = getTaskMemoWithoutSubmissionMarker(task);
+
+    if (displayMemo) {
       const memo = document.createElement('div');
       memo.className = 'task-memo';
-      memo.textContent = task.memo;
+      memo.textContent = displayMemo;
       body.appendChild(memo);
+    }
+
+    if (isTaskSubmissionLinked(task)) {
+      const linkedBadge = document.createElement('span');
+      linkedBadge.className = 'task-meta-item task-submission-linked-badge';
+      linkedBadge.textContent = TASK_SUBMISSION_LINK_MARKER;
+      linkedBadge.title = getTaskSubmissionMarkerLine(task);
+      meta.appendChild(linkedBadge);
+    }
+
+    if (isTaskSubmissionCandidate(task) && !isTaskSubmissionLinked(task)) {
+      body.appendChild(createTaskSubmissionTools(task));
+    }
+
+    if (activeTaskSubmissionFormId === task.id) {
+      body.appendChild(createTaskSubmissionLinkForm(task));
     }
 
     const editButton = document.createElement('button');
@@ -15744,6 +16202,306 @@ function renderVisibleTasks() {
       item.classList.remove('is-entering');
     });
   });
+}
+
+function isTaskSubmissionCandidate(task) {
+  const text = [
+    task && task.title,
+    task && task.memo
+  ].filter(Boolean).join(' ');
+
+  return TASK_SUBMISSION_KEYWORDS.some(function(keyword) {
+    return text.indexOf(keyword) !== -1;
+  });
+}
+
+function isTaskSubmissionLinked(task) {
+  return String(task && task.memo ? task.memo : '').indexOf(TASK_SUBMISSION_LINK_MARKER) !== -1;
+}
+
+function getTaskSubmissionMarkerLine(task) {
+  const lines = String(task && task.memo ? task.memo : '').split(/\r?\n/);
+
+  return lines.find(function(line) {
+    return line.indexOf(TASK_SUBMISSION_LINK_MARKER) === 0;
+  }) || TASK_SUBMISSION_LINK_MARKER;
+}
+
+function getTaskMemoWithoutSubmissionMarker(task) {
+  return String(task && task.memo ? task.memo : '')
+    .split(/\r?\n/)
+    .filter(function(line) {
+      return line.indexOf(TASK_SUBMISSION_LINK_MARKER) !== 0;
+    })
+    .join('\n')
+    .trim();
+}
+
+function createTaskSubmissionTools(task) {
+  const tools = document.createElement('div');
+  tools.className = 'task-submission-tools';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary-button task-submission-link-button';
+  button.textContent = '📄 提出管理へ追加';
+  button.disabled = savingTaskSubmissionLinkId === task.id;
+  button.addEventListener('click', function() {
+    activeTaskSubmissionFormId = activeTaskSubmissionFormId === task.id ? '' : task.id;
+    renderVisibleTasks();
+  });
+
+  tools.appendChild(button);
+  return tools;
+}
+
+function createTaskSubmissionLinkForm(task) {
+  const form = document.createElement('div');
+  form.className = 'task-submission-link-form';
+  form.dataset.taskSubmissionFormId = task.id;
+
+  const documentField = createTaskSubmissionFormField('書類種別');
+  const documentSelect = document.createElement('select');
+  documentSelect.name = 'documentType';
+  [
+    ['estimate', '見積'],
+    ['invoice', '請求書']
+  ].forEach(function(optionData) {
+    const option = document.createElement('option');
+    option.value = optionData[0];
+    option.textContent = optionData[1];
+    documentSelect.appendChild(option);
+  });
+  documentSelect.value = getTaskSubmissionDefaultDocumentType(task);
+  documentField.appendChild(documentSelect);
+  form.appendChild(documentField);
+
+  const projectField = createTaskSubmissionFormField('紐づける案件');
+  const projectSelect = document.createElement('select');
+  projectSelect.name = 'projectId';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = projectData.length ? '案件を選択してください' : 'Project Hubに案件がありません';
+  projectSelect.appendChild(placeholder);
+  getTaskSubmissionSelectableProjects().forEach(function(project) {
+    const option = document.createElement('option');
+    option.value = project.id;
+    option.textContent = getTaskSubmissionProjectLabel(project);
+    projectSelect.appendChild(option);
+  });
+  projectField.appendChild(projectSelect);
+  form.appendChild(projectField);
+
+  const amountField = createTaskSubmissionFormField('金額（任意）');
+  const amountInput = document.createElement('input');
+  amountInput.type = 'number';
+  amountInput.name = 'amount';
+  amountInput.inputMode = 'numeric';
+  amountInput.placeholder = '例：3069000';
+  amountField.appendChild(amountInput);
+  form.appendChild(amountField);
+
+  const memoField = createTaskSubmissionFormField('メモ（任意）');
+  const memoInput = document.createElement('textarea');
+  memoInput.name = 'memo';
+  memoInput.placeholder = '提出管理側に残す補足';
+  memoField.appendChild(memoInput);
+  form.appendChild(memoField);
+
+  const actions = document.createElement('div');
+  actions.className = 'task-submission-form-actions';
+
+  const cancelButton = document.createElement('button');
+  cancelButton.type = 'button';
+  cancelButton.className = 'secondary-button';
+  cancelButton.textContent = 'キャンセル';
+  cancelButton.addEventListener('click', function() {
+    activeTaskSubmissionFormId = '';
+    renderVisibleTasks();
+  });
+
+  const saveButton = document.createElement('button');
+  saveButton.type = 'button';
+  saveButton.className = 'task-submission-submit-button';
+  saveButton.textContent = savingTaskSubmissionLinkId === task.id ? '追加中...' : '追加する';
+  saveButton.disabled = savingTaskSubmissionLinkId === task.id;
+  saveButton.addEventListener('click', function() {
+    saveTaskSubmissionLink(task, form);
+  });
+
+  actions.appendChild(cancelButton);
+  actions.appendChild(saveButton);
+  form.appendChild(actions);
+
+  return form;
+}
+
+function createTaskSubmissionFormField(labelText) {
+  const field = document.createElement('label');
+  field.className = 'field';
+  field.appendChild(document.createTextNode(labelText));
+  return field;
+}
+
+function getTaskSubmissionDefaultDocumentType(task) {
+  const text = [task && task.title, task && task.memo].filter(Boolean).join(' ');
+  return text.indexOf('請求') !== -1 ? 'invoice' : 'estimate';
+}
+
+function getTaskSubmissionSelectableProjects() {
+  return projectData.slice().sort(function(a, b) {
+    const aLabel = getTaskSubmissionProjectLabel(a);
+    const bLabel = getTaskSubmissionProjectLabel(b);
+    return aLabel.localeCompare(bLabel, 'ja');
+  });
+}
+
+function getTaskSubmissionProjectLabel(project) {
+  return [
+    getProjectCustomerName(project),
+    project.projectName || '案件名未設定',
+    project.proposalAmount ? formatProjectAmount(project.proposalAmount) : ''
+  ].filter(Boolean).join(' / ');
+}
+
+function saveTaskSubmissionLink(task, form) {
+  if (savingTaskSubmissionLinkId) {
+    return;
+  }
+
+  const documentType = form.querySelector('[name="documentType"]').value;
+  const projectId = form.querySelector('[name="projectId"]').value;
+  const amount = form.querySelector('[name="amount"]').value.trim();
+  const memo = form.querySelector('[name="memo"]').value.trim();
+  const project = getProjectByIdForClient(projectId);
+
+  if (!project) {
+    showMessage('提出管理へ紐づける案件を選択してください。', true);
+    return;
+  }
+
+  savingTaskSubmissionLinkId = task.id;
+  renderVisibleTasks();
+
+  const patch = createTaskSubmissionProjectPatch(project, task, documentType, amount, memo);
+  const updatedProject = Object.assign({}, project, patch);
+  const successMessage = documentType === 'invoice'
+    ? '請求書を提出管理へ追加しました。'
+    : '見積を提出管理へ追加しました。';
+
+  function handleProjectUpdated(result) {
+    if (result && Array.isArray(result.projects)) {
+      setProjectData(result.projects);
+    } else {
+      Object.assign(project, updatedProject);
+      renderSubmissionCenter();
+    }
+
+    persistTaskSubmissionMarker(task, documentType, project, successMessage);
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    handleProjectUpdated(null);
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(handleProjectUpdated)
+    .withFailureHandler(function(error) {
+      savingTaskSubmissionLinkId = '';
+      renderVisibleTasks();
+      showMessage('提出管理へ追加できませんでした：' + getHubErrorMessage(error), true);
+    })
+    .updateProject(updatedProject);
+}
+
+function createTaskSubmissionProjectPatch(project, task, documentType, amount, memo) {
+  const patch = {
+    submissionEnabled: 'true',
+    submissionHidden: '',
+    submissionMemo: buildTaskSubmissionProjectMemo(project, task, memo)
+  };
+
+  if (amount) {
+    patch.proposalAmount = amount;
+  }
+
+  if (documentType === 'invoice') {
+    patch.invoiceSubmissionEnabled = 'true';
+    patch.invoiceSubmissionHidden = '';
+    patch.invoiceStatus = project.invoiceStatus || '';
+  } else {
+    patch.estimateSubmissionEnabled = 'true';
+    patch.estimateSubmissionHidden = '';
+    patch.estimateStatus = project.estimateStatus || '';
+  }
+
+  return patch;
+}
+
+function buildTaskSubmissionProjectMemo(project, task, memo) {
+  const existing = String(project.submissionMemo || '').trim();
+  const linkLine = 'TODO紐づけ：' + (task.title || 'TODO');
+  const parts = existing ? [existing] : [];
+
+  if (!existing || existing.indexOf(linkLine) === -1) {
+    parts.push(linkLine);
+  }
+
+  if (memo) {
+    parts.push(memo);
+  }
+
+  return parts.join('\n').trim();
+}
+
+function persistTaskSubmissionMarker(task, documentType, project, successMessage) {
+  const linkedMemo = buildTaskSubmissionLinkedMemo(task, documentType, project);
+  const updatedTask = {
+    id: task.id,
+    title: task.title || '',
+    category: task.category || '',
+    dueDate: task.dueDate || '',
+    priority: task.priority || '',
+    memo: linkedMemo
+  };
+
+  function finishTaskMarkerUpdate() {
+    task.memo = linkedMemo;
+    savingTaskSubmissionLinkId = '';
+    activeTaskSubmissionFormId = '';
+    renderVisibleTasks();
+    renderSubmissionCenter();
+    showMessage(successMessage);
+  }
+
+  if (!window.google || !google.script || !google.script.run) {
+    finishTaskMarkerUpdate();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(finishTaskMarkerUpdate)
+    .withFailureHandler(function(error) {
+      task.memo = linkedMemo;
+      savingTaskSubmissionLinkId = '';
+      activeTaskSubmissionFormId = '';
+      renderVisibleTasks();
+      renderSubmissionCenter();
+      showMessage(
+        successMessage + ' TODOの紐づけ表示保存だけ確認してください：' + getHubErrorMessage(error),
+        true
+      );
+    })
+    .updateTask(updatedTask);
+}
+
+function buildTaskSubmissionLinkedMemo(task, documentType, project) {
+  const displayMemo = getTaskMemoWithoutSubmissionMarker(task);
+  const documentLabel = documentType === 'invoice' ? '請求書' : '見積';
+  const marker = TASK_SUBMISSION_LINK_MARKER + '：' + documentLabel + ' / ' + (project.projectName || '案件名未設定');
+
+  return [displayMemo, marker].filter(Boolean).join('\n');
 }
 
 function showAssistantBriefing(title, detail) {

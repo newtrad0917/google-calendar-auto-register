@@ -1726,11 +1726,19 @@ function getProjectDbHeaders_() {
     'expectedOrderDate',
     'expectedWorkDate',
     'expectedPaymentDate',
+    'customerName',
+    'submissionEnabled',
+    'submissionHidden',
+    'estimateSubmissionEnabled',
+    'estimateSubmissionHidden',
     'estimateStatus',
     'estimateSubmittedDate',
+    'invoiceSubmissionEnabled',
+    'invoiceSubmissionHidden',
     'invoiceStatus',
     'invoiceSubmittedDate',
     'paymentConfirmedDate',
+    'submissionMemo',
     'nextAction',
     'memo',
     'createdAt',
@@ -1806,11 +1814,19 @@ function styleProjectDbSheet_(sheet, desiredHeaders) {
   setProjectDbColumnWidth_(sheet, 'expectedOrderDate', 160);
   setProjectDbColumnWidth_(sheet, 'expectedWorkDate', 160);
   setProjectDbColumnWidth_(sheet, 'expectedPaymentDate', 170);
+  setProjectDbColumnWidth_(sheet, 'customerName', 180);
+  setProjectDbColumnWidth_(sheet, 'submissionEnabled', 150);
+  setProjectDbColumnWidth_(sheet, 'submissionHidden', 150);
+  setProjectDbColumnWidth_(sheet, 'estimateSubmissionEnabled', 190);
+  setProjectDbColumnWidth_(sheet, 'estimateSubmissionHidden', 190);
   setProjectDbColumnWidth_(sheet, 'estimateStatus', 140);
   setProjectDbColumnWidth_(sheet, 'estimateSubmittedDate', 170);
+  setProjectDbColumnWidth_(sheet, 'invoiceSubmissionEnabled', 190);
+  setProjectDbColumnWidth_(sheet, 'invoiceSubmissionHidden', 190);
   setProjectDbColumnWidth_(sheet, 'invoiceStatus', 140);
   setProjectDbColumnWidth_(sheet, 'invoiceSubmittedDate', 170);
   setProjectDbColumnWidth_(sheet, 'paymentConfirmedDate', 170);
+  setProjectDbColumnWidth_(sheet, 'submissionMemo', 220);
   setProjectDbColumnWidth_(sheet, 'nextAction', 220);
   setProjectDbColumnWidth_(sheet, 'memo', 220);
   setProjectDbColumnWidth_(sheet, 'notes', 220);
@@ -2747,11 +2763,19 @@ function normalizeProjectRow_(row, headers) {
     expectedOrderDate: dateText('expectedOrderDate'),
     expectedWorkDate: dateText('expectedWorkDate'),
     expectedPaymentDate: dateText('expectedPaymentDate'),
+    customerName: text('customerName'),
+    submissionEnabled: text('submissionEnabled'),
+    submissionHidden: text('submissionHidden'),
+    estimateSubmissionEnabled: text('estimateSubmissionEnabled'),
+    estimateSubmissionHidden: text('estimateSubmissionHidden'),
     estimateStatus: text('estimateStatus'),
     estimateSubmittedDate: dateText('estimateSubmittedDate'),
+    invoiceSubmissionEnabled: text('invoiceSubmissionEnabled'),
+    invoiceSubmissionHidden: text('invoiceSubmissionHidden'),
     invoiceStatus: text('invoiceStatus'),
     invoiceSubmittedDate: dateText('invoiceSubmittedDate'),
     paymentConfirmedDate: dateText('paymentConfirmedDate'),
+    submissionMemo: text('submissionMemo'),
     nextAction: text('nextAction'),
     memo: text('memo'),
     createdAt: dateText('createdAt'),
