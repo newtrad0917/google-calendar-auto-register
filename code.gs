@@ -57,7 +57,10 @@ function createCalendarEvent(data) {
       return {
         success: true,
         message: 'カレンダーに登録しました。Google Meetも作成しました。',
-        meetLink: meetEvent.meetLink || ''
+        meetLink: meetEvent.meetLink || '',
+        eventId: meetEvent.event && meetEvent.event.iCalUID
+          ? meetEvent.event.iCalUID
+          : ''
       };
     } catch (error) {
       const fallbackEvent = calendar.createEvent(
@@ -101,6 +104,59 @@ function createCalendarEvent(data) {
     message: 'カレンダーに登録しました。',
     meetLink: '',
     eventId: event.getId()
+  };
+}
+
+function updateCalendarEvent(eventId, payload) {
+  const id = String(eventId || '').trim();
+  const data = payload || {};
+  const title = String(data.title || '').trim();
+
+  if (!id) {
+    throw new Error('更新する予定IDを確認できませんでした。');
+  }
+
+  if (!title) {
+    throw new Error('タイトルを入力してください。');
+  }
+
+  if (!data.startIso) {
+    throw new Error('開始日時を入力してください。');
+  }
+
+  const startTime = new Date(data.startIso);
+
+  if (isNaN(startTime.getTime())) {
+    throw new Error('開始日時を確認してください。');
+  }
+
+  const durationMinutes = Number(data.durationMinutes || 60);
+
+  if (durationMinutes <= 0) {
+    throw new Error('所要時間は1分以上にしてください。');
+  }
+
+  const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
+  const event = CalendarApp.getEventById(id);
+
+  if (!event) {
+    throw new Error('更新対象の予定が見つかりませんでした。');
+  }
+
+  event.setTitle(title);
+  event.setTime(startTime, endTime);
+  event.setLocation(String(data.location || '').trim());
+  event.setDescription(String(data.memo || data.description || '').trim());
+
+  if (Object.prototype.hasOwnProperty.call(data, 'eventColor')) {
+    applyCalendarEventColor_(event, data.eventColor);
+  }
+
+  return {
+    success: true,
+    message: '予定を更新しました。',
+    eventId: event.getId(),
+    event: mapCalendarEventForList_(event, getScheduleTimeZone_(), new Date())
   };
 }
 
@@ -530,6 +586,8 @@ function getTodayCalendarEvents() {
         endTime.getTime() > now.getTime();
 
       return {
+        id: event.getId(),
+        eventId: event.getId(),
         title: event.getTitle(),
         startTime: Utilities.formatDate(
           startTime,
@@ -545,6 +603,7 @@ function getTodayCalendarEvents() {
         end: endTime.toISOString(),
         dateKey: Utilities.formatDate(startTime, timeZone, 'yyyy-MM-dd'),
         location: event.getLocation() || '',
+        description: event.getDescription() || '',
         status: isCurrent ? 'current' : 'next',
         allDay: event.isAllDayEvent()
       };
@@ -611,6 +670,7 @@ function mapCalendarEventForList_(event, timeZone, now) {
 
   return {
     id: event.getId(),
+    eventId: event.getId(),
     title: event.getTitle(),
     start: startTime.toISOString(),
     end: endTime.toISOString(),

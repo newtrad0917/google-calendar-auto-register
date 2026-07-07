@@ -2682,6 +2682,24 @@ body {
   white-space: nowrap !important;
 }
 
+.schedule-event-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.schedule-edit-button {
+  width: auto;
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .schedule-sales-card {
   position: relative;
   overflow: hidden;
@@ -2781,7 +2799,7 @@ body {
 
 .schedule-sales-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -7271,8 +7289,8 @@ body.ai-processing .status-ready,
       </section>
 
       <section id="confirmSection" class="hidden">
-        <h2 class="section-title">登録前の確認</h2>
-        <p class="section-description">
+        <h2 id="calendarConfirmTitle" class="section-title">登録前の確認</h2>
+        <p id="calendarConfirmDescription" class="section-description">
           必要に応じて内容を直してから登録してください。
         </p>
 
@@ -7359,7 +7377,7 @@ body.ai-processing .status-ready,
             </label>
           </div>
         </fieldset>
-        <label class="meet-option" for="createMeet">
+        <label id="createMeetOption" class="meet-option" for="createMeet">
           <input id="createMeet" type="checkbox">
           <span>Google Meetを作成する</span>
         </label>
@@ -7368,7 +7386,7 @@ body.ai-processing .status-ready,
           <button type="button" id="registerButton" onclick="registerEvent()">
             Googleカレンダーに登録
           </button>
-          <button type="button" class="secondary-button" onclick="goBack()">
+          <button type="button" id="calendarBackButton" class="secondary-button" onclick="goBack()">
             入力画面に戻る
           </button>
           <button type="button" class="secondary-button" onclick="showHomeScreen()">
@@ -7953,6 +7971,7 @@ body.ai-processing .status-ready,
     let isSavingTask = false;
     let currentTasks = [];
     let editingTaskId = '';
+    let editingCalendarEvent = null;
     let scheduleRequestId = 0;
     let scheduleLoadErrorCode = '';
     let scheduleLoadErrorDetail = '';
@@ -9853,7 +9872,12 @@ function showCalendarScreen(options) {
   hideSettingsSection();
   document.getElementById('appHeader').classList.remove('hidden');
 document.getElementById('stepList').classList.remove('hidden');
-  applyCalendarDatePrefill(options && options.prefillDate);
+  if (options && options.editEvent) {
+    enterCalendarEditMode(options.editEvent);
+  } else {
+    resetCalendarEditMode();
+    applyCalendarDatePrefill(options && options.prefillDate);
+  }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -12484,6 +12508,184 @@ function playCustomerHubLine(element) {
     element.classList.remove('is-hub-pressed');
   }, 420);
 }
+
+function getScheduleEditableEventId(event) {
+  return String((event && (event.eventId || event.id)) || '').trim();
+}
+
+function openScheduleEventEdit(event) {
+  const eventId = getScheduleEditableEventId(event);
+
+  if (!eventId) {
+    showMessage('編集できる予定IDを確認できませんでした。', true);
+    return;
+  }
+
+  showCalendarScreen({
+    skipTransition: true,
+    editEvent: Object.assign({}, event, {
+      eventId: eventId,
+      returnView: currentScheduleView || 'today',
+      returnDateKey: selectedScheduleDate || ''
+    })
+  });
+}
+
+function enterCalendarEditMode(event) {
+  const eventId = getScheduleEditableEventId(event);
+
+  editingCalendarEvent = Object.assign({}, event || {}, {
+    eventId: eventId,
+    returnView: event && event.returnView ? event.returnView : (currentScheduleView || 'today'),
+    returnDateKey: event && event.returnDateKey ? event.returnDateKey : (selectedScheduleDate || '')
+  });
+
+  document.getElementById('title').value = event && event.title ? event.title : '';
+  document.getElementById('startTime').value = formatCalendarDateTimeForInput(event && (event.start || event.startIso || event.date));
+  document.getElementById('durationMinutes').value = getScheduleEventDurationMinutes(event);
+  document.getElementById('location').value = event && event.location ? event.location : '';
+  document.getElementById('memo').value = event && event.description ? event.description : '';
+  setSelectedEventColor('');
+  setCalendarConfirmCopy('予定編集', '必要に応じて内容を直してから保存してください。', '変更を保存');
+
+  const meetOption = document.getElementById('createMeetOption');
+  const meetInput = document.getElementById('createMeet');
+
+  if (meetInput) {
+    meetInput.checked = false;
+    meetInput.disabled = true;
+  }
+
+  if (meetOption) {
+    meetOption.classList.add('hidden');
+  }
+
+  const backButton = document.getElementById('calendarBackButton');
+
+  if (backButton) {
+    backButton.classList.add('hidden');
+  }
+
+  const customerSelect = document.getElementById('calendarCustomerSelect');
+
+  if (customerSelect) {
+    customerSelect.value = '';
+  }
+
+  const customerPreview = document.getElementById('calendarCustomerPreview');
+
+  if (customerPreview) {
+    customerPreview.replaceChildren();
+  }
+
+  showCalendarConfirmPanel();
+}
+
+function resetCalendarEditMode() {
+  editingCalendarEvent = null;
+  setCalendarConfirmCopy('登録前の確認', '必要に応じて内容を直してから登録してください。', 'Googleカレンダーに登録');
+
+  const meetOption = document.getElementById('createMeetOption');
+  const meetInput = document.getElementById('createMeet');
+
+  if (meetInput) {
+    meetInput.disabled = false;
+  }
+
+  if (meetOption) {
+    meetOption.classList.remove('hidden');
+  }
+
+  const backButton = document.getElementById('calendarBackButton');
+
+  if (backButton) {
+    backButton.classList.remove('hidden');
+  }
+}
+
+function setCalendarConfirmCopy(titleText, descriptionText, buttonText) {
+  const title = document.getElementById('calendarConfirmTitle');
+  const description = document.getElementById('calendarConfirmDescription');
+  const button = document.getElementById('registerButton');
+
+  if (title) {
+    title.textContent = titleText;
+  }
+
+  if (description) {
+    description.textContent = descriptionText;
+  }
+
+  if (button) {
+    button.textContent = buttonText;
+  }
+}
+
+function showCalendarConfirmPanel() {
+  pushNavigationState(createNavigationState('calendar'));
+  currentAppScreen = 'calendarConfirm';
+  updateAppNavigationButtons();
+  document.getElementById('inputSection').classList.add('hidden');
+  document.getElementById('confirmSection').classList.remove('hidden');
+  document.getElementById('inputStep').classList.remove('active');
+  document.getElementById('confirmStep').classList.add('active');
+  hideMessage();
+}
+
+function formatCalendarDateTimeForInput(value) {
+  const date = value ? new Date(value) : null;
+
+  if (!date || isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.getFullYear() + '-' +
+    padTwoDigits(date.getMonth() + 1) + '-' +
+    padTwoDigits(date.getDate()) + 'T' +
+    padTwoDigits(date.getHours()) + ':' +
+    padTwoDigits(date.getMinutes());
+}
+
+function getScheduleEventDurationMinutes(event) {
+  const start = event && (event.start || event.startIso || event.date)
+    ? new Date(event.start || event.startIso || event.date)
+    : null;
+  const end = event && (event.end || event.endIso)
+    ? new Date(event.end || event.endIso)
+    : null;
+
+  if (
+    start && !isNaN(start.getTime()) &&
+    end && !isNaN(end.getTime()) &&
+    end.getTime() > start.getTime()
+  ) {
+    return Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
+  }
+
+  return 60;
+}
+
+function setSelectedEventColor(value) {
+  const targetValue = String(value || '');
+  const inputs = document.querySelectorAll('input[name="eventColor"]');
+  let matched = false;
+
+  inputs.forEach(function(input) {
+    input.checked = input.value === targetValue;
+    matched = matched || input.checked;
+  });
+
+  if (!matched) {
+    const defaultInput = document.querySelector('input[name="eventColor"][value=""]');
+
+    if (defaultInput) {
+      defaultInput.checked = true;
+    }
+  }
+
+  updateCalendarColorSelection(false);
+}
+
     function showConfirmation() {
       const originalTitle =
         document.getElementById('originalText').value.trim();
@@ -12498,14 +12700,8 @@ function playCustomerHubLine(element) {
       document.getElementById('title').value = originalTitle;
       document.getElementById('memo').value = originalMemo;
 
-      pushNavigationState(createNavigationState('calendar'));
-      currentAppScreen = 'calendarConfirm';
-      updateAppNavigationButtons();
-      document.getElementById('inputSection').classList.add('hidden');
-      document.getElementById('confirmSection').classList.remove('hidden');
-      document.getElementById('inputStep').classList.remove('active');
-      document.getElementById('confirmStep').classList.add('active');
-      hideMessage();
+      setCalendarConfirmCopy('登録前の確認', '必要に応じて内容を直してから登録してください。', 'Googleカレンダーに登録');
+      showCalendarConfirmPanel();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -12546,9 +12742,34 @@ function playCustomerHubLine(element) {
         createMeet: document.getElementById('createMeet').checked
       };
 
+      const isEditing = Boolean(editingCalendarEvent && editingCalendarEvent.eventId);
+      const idleButtonText = isEditing ? '変更を保存' : 'Googleカレンダーに登録';
       const button = document.getElementById('registerButton');
       button.disabled = true;
-      button.textContent = '登録中...';
+      button.textContent = isEditing ? '保存中...' : '登録中...';
+
+      if (isEditing) {
+        const returnView = editingCalendarEvent.returnView || 'today';
+        const returnDateKey = editingCalendarEvent.returnDateKey || '';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            const message = result && result.message
+              ? result.message
+              : '予定を更新しました。';
+
+            button.disabled = false;
+            button.textContent = idleButtonText;
+            returnToScheduleAfterCalendarEdit(message, returnView, returnDateKey);
+          })
+          .withFailureHandler(function(error) {
+            showMessage('エラー：' + error.message, true);
+            button.disabled = false;
+            button.textContent = idleButtonText;
+          })
+          .updateCalendarEvent(editingCalendarEvent.eventId, data);
+        return;
+      }
 
       // Code.gs の createCalendarEvent 関数を呼び出します。
       google.script.run
@@ -12559,7 +12780,7 @@ function playCustomerHubLine(element) {
 
           showMessage(message);
           button.disabled = false;
-          button.textContent = 'Googleカレンダーに登録';
+          button.textContent = idleButtonText;
 
           if (handleVisitCompletionCalendarSaved()) {
             return;
@@ -12582,10 +12803,24 @@ function playCustomerHubLine(element) {
         .withFailureHandler(function(error) {
           showMessage('エラー：' + error.message, true);
           button.disabled = false;
-          button.textContent = 'Googleカレンダーに登録';
+          button.textContent = idleButtonText;
         })
         .createCalendarEvent(data);
     }
+
+function returnToScheduleAfterCalendarEdit(message, view, dateKey) {
+  const nextView = view || 'today';
+  const nextDateKey = dateKey || '';
+
+  resetCalendarEditMode();
+  currentScheduleView = nextView;
+  selectedScheduleDate = nextDateKey;
+  showHomeScreen({ skipTransition: true });
+  currentScheduleView = nextView;
+  selectedScheduleDate = nextDateKey;
+  loadScheduleEvents(currentScheduleView || 'today', selectedScheduleDate || '');
+  showMessage(message || '予定を更新しました。');
+}
 
 function initCalendarColorOptions() {
   const inputs = document.querySelectorAll('input[name="eventColor"]');
@@ -15609,6 +15844,18 @@ function createDailyScheduleEventItem(event) {
   title.textContent = event.title || 'タイトルなし';
   body.appendChild(title);
 
+  if (event.location) {
+    const location = document.createElement('div');
+    location.className = 'schedule-event-location';
+    location.textContent = '📍 ' + event.location;
+    body.appendChild(location);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'schedule-event-actions';
+  actions.appendChild(createScheduleEditButton(event));
+  body.appendChild(actions);
+
   item.appendChild(time);
   item.appendChild(body);
   return item;
@@ -15658,6 +15905,13 @@ function createScheduleSalesCard(event, customer) {
     card.appendChild(briefNode);
   }
 
+  if (event.location) {
+    const locationNode = document.createElement('p');
+    locationNode.className = 'schedule-sales-brief';
+    locationNode.textContent = '場所：' + event.location;
+    card.appendChild(locationNode);
+  }
+
   const actions = document.createElement('div');
   actions.className = 'schedule-sales-actions';
   actions.appendChild(createScheduleSalesAction('GoogleMap', function() {
@@ -15666,6 +15920,10 @@ function createScheduleSalesCard(event, customer) {
   actions.appendChild(createScheduleSalesPhoneAction(customer));
   actions.appendChild(createScheduleSalesAction('メール', function() {
     startCustomerMail(customer.id);
+  }));
+  actions.appendChild(createScheduleSalesAction('編集', function(button) {
+    button.blur();
+    openScheduleEventEdit(event);
   }));
   actions.appendChild(createScheduleSalesAction('訪問完了・報告', function(button) {
     button.blur();
@@ -15684,6 +15942,18 @@ function createScheduleSalesAction(label, onClick, extraClassName) {
   button.addEventListener('click', function(event) {
     event.stopPropagation();
     onClick(button);
+  });
+  return button;
+}
+
+function createScheduleEditButton(event) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary-button schedule-edit-button';
+  button.textContent = '編集';
+  button.addEventListener('click', function(clickEvent) {
+    clickEvent.stopPropagation();
+    openScheduleEventEdit(event);
   });
   return button;
 }
@@ -16270,6 +16540,11 @@ function createScheduleEventRow(event, isCompact) {
     location.textContent = '📍 ' + event.location;
     body.appendChild(location);
   }
+
+  const actions = document.createElement('div');
+  actions.className = 'schedule-event-actions';
+  actions.appendChild(createScheduleEditButton(event));
+  body.appendChild(actions);
 
   row.appendChild(time);
   row.appendChild(body);
