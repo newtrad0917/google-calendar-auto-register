@@ -2891,6 +2891,89 @@ body {
   gap: var(--ds-space-2);
 }
 
+.sales-memo-customer-picker {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ds-gray-200);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-white);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.sales-memo-customer-search-block {
+  display: grid;
+  gap: 8px;
+}
+
+.sales-memo-customer-results {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.sales-memo-customer-result,
+.sales-memo-selected-customer {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E8EDF5 !important;
+  border-radius: 16px !important;
+  color: var(--ds-midnight) !important;
+  background: var(--ds-gray-50) !important;
+  box-shadow: var(--ds-shadow-control);
+  text-align: left;
+}
+
+.sales-memo-customer-result {
+  min-height: 0;
+  cursor: pointer;
+}
+
+.sales-memo-customer-result:hover,
+.sales-memo-customer-result:focus-visible {
+  border-color: rgba(23, 105, 170, 0.28) !important;
+  background: #FFFFFF !important;
+}
+
+.sales-memo-customer-result-name,
+.sales-memo-selected-customer-name {
+  color: var(--ds-midnight);
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sales-memo-customer-result-meta,
+.sales-memo-selected-customer-meta {
+  color: var(--ds-gray-500);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sales-memo-selected-customer {
+  border-color: rgba(23, 105, 170, 0.24) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%) !important;
+}
+
+.sales-memo-customer-empty {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px dashed #CBD5E1;
+  border-radius: 14px;
+  color: var(--ds-gray-500);
+  background: var(--ds-gray-50);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
 .sales-memo-step {
   display: grid;
   gap: 12px;
@@ -7762,6 +7845,26 @@ body.ai-processing .status-ready,
     <input id="salesMemoCustomerId" type="hidden">
     <input id="salesMemoProjectId" type="hidden">
     <input id="salesMemoEventTitle" type="hidden">
+
+    <section id="salesMemoCustomerPicker" class="sales-memo-customer-picker" aria-label="営業報告の顧客選択">
+      <div class="sales-memo-step-head">
+        <h3 class="sales-memo-step-title">報告先の顧客</h3>
+        <p id="salesMemoCustomerPickerDescription" class="sales-memo-step-description">
+          顧客名・担当者・電話番号・エリアで検索できます。
+        </p>
+      </div>
+      <div id="salesMemoSelectedCustomer" class="sales-memo-selected-customer hidden"></div>
+      <div id="salesMemoCustomerSearchBlock" class="sales-memo-customer-search-block">
+        <label for="salesMemoCustomerSearch">顧客検索</label>
+        <input
+          id="salesMemoCustomerSearch"
+          type="search"
+          autocomplete="off"
+          placeholder="例：今宿病院 / 山田 / 090 / 朝倉"
+        >
+        <div id="salesMemoCustomerResults" class="sales-memo-customer-results" role="listbox"></div>
+      </div>
+    </section>
 
     <div class="sales-memo-guided">
       <section class="sales-memo-step" aria-label="基本情報">
@@ -16067,6 +16170,7 @@ function showSalesMemoReportForm(event, customer, options) {
   document.getElementById('stepList').classList.add('hidden');
 
   populateSalesMemoReportForm(event, customer);
+  initializeSalesMemoCustomerSearch();
   renderSalesResultSelector();
   renderCustomerTemperatureSelector();
   renderNextActionSelector();
@@ -16076,21 +16180,239 @@ function showSalesMemoReportForm(event, customer, options) {
 }
 
 function populateSalesMemoReportForm(event, customer) {
-  document.getElementById('salesMemoCustomerId').value = customer.id || '';
-  document.getElementById('salesMemoProjectId').value = getCustomerPrimaryProjectId(customer.id);
-  document.getElementById('salesMemoEventTitle').value = event.title || customer.companyName || '';
+  const selectedCustomer = resolveSalesMemoCustomer(customer, event);
+  const customerId = selectedCustomer && selectedCustomer.id ? selectedCustomer.id : '';
+
+  document.getElementById('salesMemoCustomerId').value = customerId;
+  document.getElementById('salesMemoProjectId').value = customerId ? getCustomerPrimaryProjectId(customerId) : '';
+  document.getElementById('salesMemoEventTitle').value = event && event.title
+    ? event.title
+    : (selectedCustomer && selectedCustomer.companyName ? selectedCustomer.companyName + ' 営業報告' : '営業報告');
   document.getElementById('salesMemoVisitDate').value = getScheduleEventDateInputValue(event) || formatScheduleDateKey(new Date());
   const customerNameInput = document.getElementById('salesMemoCustomerName');
-  customerNameInput.value = customer.companyName || '';
-  customerNameInput.readOnly = Boolean(customer.id);
-  document.getElementById('salesMemoContactName').value = [customer.title, customer.personName || customer.contactName]
-    .filter(Boolean)
-    .join(' ');
+  customerNameInput.value = selectedCustomer && selectedCustomer.companyName ? selectedCustomer.companyName : '';
+  customerNameInput.readOnly = true;
+  document.getElementById('salesMemoContactName').value = selectedCustomer ? getSalesMemoCustomerContactText(selectedCustomer) : '';
   document.getElementById('salesMemoMemo').value = '';
-  document.getElementById('salesMemoNextAction').value = getCustomerProjectNextAction(customer.id) || '';
-  document.getElementById('salesMemoNextVisitDate').value = customer.nextVisit || '';
+  document.getElementById('salesMemoNextAction').value = customerId ? (getCustomerProjectNextAction(customerId) || '') : '';
+  document.getElementById('salesMemoNextVisitDate').value = selectedCustomer && selectedCustomer.nextVisit ? selectedCustomer.nextVisit : '';
   document.getElementById('salesMemoTodoText').value = '';
   document.getElementById('salesMemoNotes').value = '';
+  renderSalesMemoCustomerPicker(selectedCustomer, Boolean(customerId));
+}
+
+function resolveSalesMemoCustomer(customer, event) {
+  if (customer && customer.id) {
+    return getCustomerByIdForClient(customer.id) || customer;
+  }
+
+  if (customer && customer.companyName) {
+    const matchedByName = customerData.find(function(item) {
+      return normalizeSalesMemoCustomerSearchText(item.companyName) ===
+        normalizeSalesMemoCustomerSearchText(customer.companyName);
+    });
+
+    return matchedByName || customer;
+  }
+
+  const matchedByEvent = findCustomerByScheduleEvent(event);
+  return matchedByEvent || null;
+}
+
+function initializeSalesMemoCustomerSearch() {
+  const search = document.getElementById('salesMemoCustomerSearch');
+
+  if (!search || search.dataset.salesMemoCustomerSearchReady) {
+    return;
+  }
+
+  search.addEventListener('input', function() {
+    renderSalesMemoCustomerResults(search.value);
+  });
+  search.dataset.salesMemoCustomerSearchReady = 'true';
+}
+
+function renderSalesMemoCustomerPicker(customer, isLocked) {
+  const picker = document.getElementById('salesMemoCustomerPicker');
+  const selected = document.getElementById('salesMemoSelectedCustomer');
+  const searchBlock = document.getElementById('salesMemoCustomerSearchBlock');
+  const description = document.getElementById('salesMemoCustomerPickerDescription');
+  const search = document.getElementById('salesMemoCustomerSearch');
+
+  if (!picker || !selected || !searchBlock) {
+    return;
+  }
+
+  picker.classList.toggle('is-locked', Boolean(customer && isLocked));
+  selected.replaceChildren();
+
+  if (customer && customer.id) {
+    selected.appendChild(createSalesMemoSelectedCustomerCard(customer));
+    selected.classList.remove('hidden');
+    if (description) {
+      description.textContent = isLocked
+        ? '営業フローから対象顧客を自動セットしました。'
+        : '選択した顧客に営業報告を保存します。';
+    }
+  } else {
+    selected.classList.add('hidden');
+    if (description) {
+      description.textContent = '顧客名・会社名・担当者名・電話番号・エリアで検索できます。';
+    }
+  }
+
+  searchBlock.classList.toggle('hidden', Boolean(customer && isLocked));
+
+  if (search) {
+    search.value = '';
+  }
+
+  renderSalesMemoCustomerResults('');
+}
+
+function renderSalesMemoCustomerResults(query) {
+  const results = document.getElementById('salesMemoCustomerResults');
+
+  if (!results) {
+    return;
+  }
+
+  results.replaceChildren();
+
+  const matches = getSalesMemoCustomerSearchResults(query);
+
+  if (!matches.length) {
+    const empty = document.createElement('p');
+    empty.className = 'sales-memo-customer-empty';
+    empty.textContent = customerData.length
+      ? '該当する顧客が見つかりません。'
+      : '顧客データを読み込み中、または未登録です。';
+    results.appendChild(empty);
+    return;
+  }
+
+  matches.forEach(function(customer) {
+    results.appendChild(createSalesMemoCustomerResultButton(customer));
+  });
+}
+
+function getSalesMemoCustomerSearchResults(query) {
+  const normalizedQuery = normalizeSalesMemoCustomerSearchText(query);
+
+  return customerData
+    .filter(function(customer) {
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      return getSalesMemoCustomerSearchText(customer).indexOf(normalizedQuery) !== -1;
+    })
+    .slice(0, 8);
+}
+
+function getSalesMemoCustomerSearchText(customer) {
+  return normalizeSalesMemoCustomerSearchText([
+    customer.companyName,
+    customer.corporationName,
+    customer.personName,
+    customer.contactName,
+    customer.officePhone,
+    customer.mobilePhone,
+    customer.phone,
+    customer.area,
+    customer.prefecture,
+    customer.city,
+    customer.address
+  ].filter(Boolean).join(' '));
+}
+
+function normalizeSalesMemoCustomerSearchText(value) {
+  return String(value || '')
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(char) {
+      return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+    })
+    .replace(/[\s　\-ー−‐()（）+＋.．・,，/／]+/g, '');
+}
+
+function createSalesMemoCustomerResultButton(customer) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'sales-memo-customer-result';
+  button.setAttribute('role', 'option');
+  button.appendChild(createSalesMemoCustomerCardContent(customer, 'sales-memo-customer-result'));
+  button.addEventListener('click', function() {
+    selectSalesMemoCustomer(customer.id);
+  });
+  return button;
+}
+
+function createSalesMemoSelectedCustomerCard(customer) {
+  const card = document.createElement('div');
+  card.appendChild(createSalesMemoCustomerCardContent(customer, 'sales-memo-selected-customer'));
+  return card;
+}
+
+function createSalesMemoCustomerCardContent(customer, classPrefix) {
+  const fragment = document.createDocumentFragment();
+  const name = document.createElement('div');
+  name.className = classPrefix + '-name';
+  name.textContent = customer.companyName || '顧客名未登録';
+  fragment.appendChild(name);
+
+  const meta = document.createElement('div');
+  meta.className = classPrefix + '-meta';
+  meta.textContent = getSalesMemoCustomerMetaText(customer);
+  fragment.appendChild(meta);
+
+  return fragment;
+}
+
+function getSalesMemoCustomerMetaText(customer) {
+  const phone = getCustomerPrimaryPhone(customer);
+  const area = [customer.area, customer.prefecture, customer.city]
+    .filter(Boolean)
+    .join(' ');
+
+  return [
+    customer.corporationName && customer.corporationName !== customer.companyName ? '会社名：' + customer.corporationName : '',
+    '担当者：' + formatCustomerContactName(customer),
+    phone ? '電話：' + phone : '',
+    area ? 'エリア：' + area : ''
+  ].filter(Boolean).join(' / ') || '顧客情報を確認中';
+}
+
+function selectSalesMemoCustomer(customerId) {
+  const customer = getCustomerByIdForClient(customerId);
+
+  if (!customer) {
+    showSalesMemoMessage('顧客を確認できませんでした。', true);
+    return;
+  }
+
+  document.getElementById('salesMemoCustomerId').value = customer.id || '';
+  document.getElementById('salesMemoProjectId').value = getCustomerPrimaryProjectId(customer.id);
+  document.getElementById('salesMemoCustomerName').value = customer.companyName || '';
+  document.getElementById('salesMemoContactName').value = getSalesMemoCustomerContactText(customer);
+  document.getElementById('salesMemoNextAction').value = getCustomerProjectNextAction(customer.id) || '';
+  document.getElementById('salesMemoNextVisitDate').value = customer.nextVisit || '';
+
+  const eventTitle = document.getElementById('salesMemoEventTitle');
+
+  if (eventTitle && (!eventTitle.value || eventTitle.value === '営業報告')) {
+    eventTitle.value = (customer.companyName || '顧客') + ' 営業報告';
+  }
+
+  renderSalesMemoCustomerPicker(customer, false);
+  updateSalesMemoSummary();
+  hideSalesMemoMessage();
+}
+
+function getSalesMemoCustomerContactText(customer) {
+  return [customer.title, customer.personName || customer.contactName]
+    .filter(Boolean)
+    .join(' ');
 }
 
 function renderSalesResultSelector() {
@@ -16274,6 +16596,17 @@ function saveSalesMemoReport() {
 
   const data = getSalesMemoReportFormData();
 
+  if (!data.customerId) {
+    showSalesMemoMessage('営業報告を保存する顧客を選択してください。', true);
+    const search = document.getElementById('salesMemoCustomerSearch');
+
+    if (search && !search.closest('.hidden')) {
+      search.focus();
+    }
+
+    return;
+  }
+
   if (!data.memo) {
     showSalesMemoMessage('商談結果・温度感・次回アクションのいずれかを選択するか、AIメモを入力してください。', true);
     document.getElementById('salesMemoMemo').focus();
@@ -16295,6 +16628,7 @@ function saveSalesMemoReport() {
         : '営業メモを保存しました。';
       showSalesMemoMessage(message);
       setSalesMemoSavingState(false);
+      applySavedSalesMemoToCustomerTimeline(data);
 
       window.setTimeout(function() {
         const shouldContinueSalesFocus = isSalesFocusSalesMemoWorkflow(data.customerId);
@@ -16319,11 +16653,18 @@ function saveSalesMemoReport() {
 }
 
 function getSalesMemoReportFormData() {
+  const customerId = document.getElementById('salesMemoCustomerId').value.trim();
+  const customer = getCustomerByIdForClient(customerId);
+  const customerName = document.getElementById('salesMemoCustomerName').value.trim() ||
+    (customer && customer.companyName ? customer.companyName : '');
+
   return {
-    customerId: document.getElementById('salesMemoCustomerId').value.trim(),
+    customerId: customerId,
+    customerName: customerName,
+    companyName: customerName,
     projectId: document.getElementById('salesMemoProjectId').value.trim(),
     eventTitle: document.getElementById('salesMemoEventTitle').value.trim() ||
-      document.getElementById('salesMemoCustomerName').value.trim(),
+      customerName,
     visitDate: document.getElementById('salesMemoVisitDate').value,
     contactName: document.getElementById('salesMemoContactName').value.trim(),
     memo: document.getElementById('salesMemoMemo').value.trim(),
@@ -16332,6 +16673,41 @@ function getSalesMemoReportFormData() {
     todoText: document.getElementById('salesMemoTodoText').value.trim(),
     notes: document.getElementById('salesMemoNotes').value.trim()
   };
+}
+
+function applySavedSalesMemoToCustomerTimeline(data) {
+  const customer = getCustomerByIdForClient(data.customerId);
+
+  if (!customer) {
+    return;
+  }
+
+  const memoLines = [
+    data.memo,
+    data.nextAction ? '次アクション：' + data.nextAction : '',
+    data.notes
+  ].filter(Boolean);
+  const timelineMemo = memoLines.join('\n');
+
+  if (timelineMemo) {
+    customer.salesMemo = timelineMemo;
+    customer.memo = timelineMemo;
+  }
+
+  if (data.visitDate) {
+    customer.lastVisit = data.visitDate;
+  }
+
+  customer.updatedAt = new Date().toISOString();
+
+  if (selectedCustomerHubId === customer.id) {
+    showCustomerHubDetail(customer.id);
+  } else {
+    renderCustomerHub();
+  }
+
+  scheduleRenderMorningBriefingCard();
+  scheduleRenderAiInsightCard();
 }
 
 function setSalesMemoSavingState(isSaving) {
@@ -16391,8 +16767,38 @@ function resetSalesMemoReportForm() {
 
   ['salesResult', 'customerTemperature', 'nextAction'].forEach(updateSalesMemoChoiceSelection);
   updateSalesMemoSummary();
+  resetSalesMemoCustomerPicker();
   hideSalesMemoMessage();
   setSalesMemoSavingState(false);
+}
+
+function resetSalesMemoCustomerPicker() {
+  const selected = document.getElementById('salesMemoSelectedCustomer');
+  const searchBlock = document.getElementById('salesMemoCustomerSearchBlock');
+  const search = document.getElementById('salesMemoCustomerSearch');
+  const results = document.getElementById('salesMemoCustomerResults');
+  const description = document.getElementById('salesMemoCustomerPickerDescription');
+
+  if (selected) {
+    selected.replaceChildren();
+    selected.classList.add('hidden');
+  }
+
+  if (searchBlock) {
+    searchBlock.classList.remove('hidden');
+  }
+
+  if (search) {
+    search.value = '';
+  }
+
+  if (results) {
+    results.replaceChildren();
+  }
+
+  if (description) {
+    description.textContent = '顧客名・会社名・担当者名・電話番号・エリアで検索できます。';
+  }
 }
 
 function cancelSalesMemoReport() {
