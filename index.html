@@ -5619,6 +5619,200 @@ body.ai-processing .assistant-briefing-icon {
   margin-bottom: 8px;
 }
 
+.submission-center {
+  display: grid;
+  gap: 14px;
+}
+
+.submission-center-head {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.submission-center-title {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.submission-center-description {
+  margin: 0;
+  color: var(--ds-gray-500);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
+.submission-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.submission-filter-button {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-gray-500) !important;
+  background: #FFFFFF !important;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  box-shadow: var(--ds-shadow-control);
+}
+
+.submission-filter-button.is-active {
+  color: #FFFFFF !important;
+  border-color: var(--ds-royal) !important;
+  background: linear-gradient(180deg, var(--ds-royal) 0%, var(--ds-royal-deep) 100%) !important;
+}
+
+.submission-list {
+  display: grid;
+  gap: 12px;
+}
+
+.submission-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: var(--ds-radius-card);
+  background: #FFFFFF;
+  box-shadow: var(--ds-shadow-card);
+}
+
+.submission-card::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: var(--ds-royal);
+}
+
+.submission-card.is-complete::before {
+  background: #16A34A;
+}
+
+.submission-card.is-lost::before {
+  background: #DC2626;
+}
+
+.submission-card-head {
+  display: grid;
+  gap: 4px;
+}
+
+.submission-customer {
+  margin: 0;
+  color: var(--ds-royal);
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.submission-project {
+  margin: 0;
+  color: var(--ds-midnight);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.submission-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.submission-meta {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #E8EDF5;
+  border-radius: 14px;
+  background: var(--ds-gray-50);
+}
+
+.submission-meta-label {
+  color: var(--ds-gray-500);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.submission-meta-value {
+  color: var(--ds-midnight);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.submission-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 26px;
+  padding: 5px 10px;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal);
+  background: rgba(23, 105, 170, 0.08);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.submission-action-button {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: var(--ds-radius-pill);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.submission-action-button.is-danger {
+  border: 1px solid #F1C7C7 !important;
+  color: #B91C1C !important;
+  background: #FFF7F7 !important;
+}
+
+.submission-empty {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed #CBD5E1;
+  border-radius: var(--ds-radius-card);
+  color: var(--ds-gray-500);
+  background: #FFFFFF;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
 .customer-hub-detail.is-detail-entering .customer-hub-sales-memo::before,
 .customer-hub-detail.is-detail-entering .customer-ai-brief::before,
 .customer-hub-detail.is-detail-entering .customer-hub-profile::before {
@@ -6791,6 +6985,21 @@ body.ai-processing .status-ready,
 }
 
 @media (max-width: 520px) {
+  .submission-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .submission-filter-row,
+  .submission-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .submission-filter-button,
+  .submission-action-button {
+    width: 100%;
+  }
+
   .morning-briefing-card {
     gap: 16px;
     padding: 20px;
@@ -7621,6 +7830,9 @@ body.ai-processing .status-ready,
     <button type="button" class="customer-hub-add-button secondary-button customer-hub-import-button" onclick="toggleBusinessCardImportPanel()">
       名刺インポート
     </button>
+    <button type="button" class="customer-hub-add-button secondary-button" onclick="openSubmissionCenter()">
+      提出管理
+    </button>
   </div>
 
   <div class="customer-hub-search-wrap">
@@ -7648,6 +7860,7 @@ body.ai-processing .status-ready,
       </div>
       <div id="businessCardImportResult" class="business-card-import-result hidden" aria-live="polite"></div>
     </section>
+    <section id="submissionCenter" class="submission-center hidden" aria-label="提出管理"></section>
     <div id="customerHubList" class="customer-hub-list"></div>
     <div id="customerHubDetail" class="customer-hub-detail"></div>
 
@@ -8097,6 +8310,8 @@ body.ai-processing .status-ready,
     let lastScheduleEvents = null;
     let lastScheduleView = '';
     let lastScheduleDateKey = '';
+    let customerHubMode = 'customers';
+    let submissionCenterFilter = 'estimate';
     let isSavingSalesMemo = false;
     let salesMemoDashboardStats = { todayCount: 0 };
     let morningBriefingRenderFrame = 0;
@@ -8332,6 +8547,8 @@ function createNavigationState(screenKey) {
     selectedProjectHubId: selectedProjectHubId || '',
     customerHubSearchQuery: customerHubSearchQuery || '',
     projectHubSearchQuery: projectHubSearchQuery || '',
+    customerHubMode: customerHubMode || 'customers',
+    submissionCenterFilter: submissionCenterFilter || 'estimate',
     currentTaskFilter: currentTaskFilter || '仕事',
     currentTaskDueFilter: currentTaskDueFilter || 'today',
     currentScheduleView: currentScheduleView || 'today',
@@ -8355,6 +8572,8 @@ function restoreNavigationState(state) {
   selectedProjectHubId = state.selectedProjectHubId || '';
   customerHubSearchQuery = state.customerHubSearchQuery || '';
   projectHubSearchQuery = state.projectHubSearchQuery || '';
+  customerHubMode = state.customerHubMode || 'customers';
+  submissionCenterFilter = state.submissionCenterFilter || submissionCenterFilter;
   currentTaskFilter = state.currentTaskFilter || currentTaskFilter;
   currentTaskDueFilter = state.currentTaskDueFilter || currentTaskDueFilter;
   currentScheduleView = state.currentScheduleView || currentScheduleView;
@@ -8380,6 +8599,7 @@ function restoreNavigationState(state) {
   if (
     state.screen === 'customerHub' ||
     state.screen === 'customerHubDetail' ||
+    state.screen === 'submissionCenter' ||
     state.screen === 'projectHubDetail' ||
     state.screen === 'projectForm'
   ) {
@@ -10866,6 +11086,11 @@ function normalizeProjectForClient(project) {
     expectedOrderDate: project.expectedOrderDate || '',
     expectedWorkDate: project.expectedWorkDate || '',
     expectedPaymentDate: project.expectedPaymentDate || '',
+    estimateStatus: project.estimateStatus || '',
+    estimateSubmittedDate: project.estimateSubmittedDate || '',
+    invoiceStatus: project.invoiceStatus || '',
+    invoiceSubmittedDate: project.invoiceSubmittedDate || '',
+    paymentConfirmedDate: project.paymentConfirmedDate || '',
     nextAction: project.nextAction || '',
     memo: project.memo || '',
     createdAt: project.createdAt || '',
@@ -11111,6 +11336,13 @@ function getCustomerTodayStart() {
 function renderCustomerHub() {
   resetCustomerForm({ keepDetail: true });
   renderCustomerHubMessage();
+
+  if (customerHubMode === 'submission') {
+    renderSubmissionCenter();
+    return;
+  }
+
+  hideSubmissionCenter();
   renderCustomerHubList();
 
   const visibleCustomers = getVisibleCustomerHubCustomers();
@@ -11137,6 +11369,428 @@ function renderCustomerHubMessage() {
 
   message.textContent = customerDataMessage;
   message.classList.toggle('hidden', !customerDataMessage);
+}
+
+function openSubmissionCenter() {
+  if (customerHubMode !== 'submission') {
+    pushNavigationState(createNavigationState(currentAppScreen || 'customerHub'));
+  }
+
+  customerHubMode = 'submission';
+  selectedCustomerHubId = '';
+  selectedProjectHubId = '';
+  currentAppScreen = 'submissionCenter';
+  updateAppNavigationButtons();
+  renderCustomerHub();
+
+  const center = document.getElementById('submissionCenter');
+
+  if (center) {
+    center.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function closeSubmissionCenter() {
+  customerHubMode = 'customers';
+  currentAppScreen = 'customerHub';
+  updateAppNavigationButtons();
+  renderCustomerHub();
+}
+
+function hideSubmissionCenter() {
+  const center = document.getElementById('submissionCenter');
+  const list = document.getElementById('customerHubList');
+  const detail = document.getElementById('customerHubDetail');
+  const search = document.querySelector('.customer-hub-search-wrap');
+
+  if (center) {
+    center.classList.add('hidden');
+    center.replaceChildren();
+  }
+
+  if (list) {
+    list.classList.remove('hidden');
+  }
+
+  if (detail) {
+    detail.classList.remove('hidden');
+  }
+
+  if (search) {
+    search.classList.remove('hidden');
+  }
+}
+
+function renderSubmissionCenter() {
+  const center = document.getElementById('submissionCenter');
+  const list = document.getElementById('customerHubList');
+  const detail = document.getElementById('customerHubDetail');
+  const search = document.querySelector('.customer-hub-search-wrap');
+
+  if (!center) {
+    return;
+  }
+
+  if (list) {
+    list.classList.add('hidden');
+  }
+
+  if (detail) {
+    detail.classList.add('hidden');
+  }
+
+  if (search) {
+    search.classList.add('hidden');
+  }
+
+  center.classList.remove('hidden');
+  center.replaceChildren();
+
+  const head = document.createElement('div');
+  head.className = 'submission-center-head';
+
+  const title = document.createElement('h3');
+  title.className = 'submission-center-title';
+  title.textContent = '提出管理';
+  head.appendChild(title);
+
+  const description = document.createElement('p');
+  description.className = 'submission-center-description';
+  description.textContent = '見積提出、受注・失注、請求書提出、入金確認までを案件ごとに管理します。';
+  head.appendChild(description);
+  head.appendChild(createSubmissionFilterRow());
+
+  const back = document.createElement('button');
+  back.type = 'button';
+  back.className = 'secondary-button submission-action-button';
+  back.textContent = '顧客一覧へ';
+  back.addEventListener('click', closeSubmissionCenter);
+  head.appendChild(back);
+  center.appendChild(head);
+
+  const items = getFilteredSubmissionItems();
+  const listNode = document.createElement('div');
+  listNode.className = 'submission-list';
+
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'submission-empty';
+    empty.textContent = projectData.length
+      ? 'この条件の提出管理はありません。'
+      : '案件を追加すると提出管理に表示されます。';
+    listNode.appendChild(empty);
+  } else {
+    items.forEach(function(item) {
+      listNode.appendChild(createSubmissionCard(item));
+    });
+  }
+
+  center.appendChild(listNode);
+}
+
+function createSubmissionFilterRow() {
+  const row = document.createElement('div');
+  row.className = 'submission-filter-row';
+
+  [
+    ['estimate', '見積'],
+    ['invoice', '請求書'],
+    ['waiting', '返答待ち'],
+    ['payment', '入金待ち'],
+    ['done', '完了']
+  ].forEach(function(filter) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'submission-filter-button' + (submissionCenterFilter === filter[0] ? ' is-active' : '');
+    button.textContent = filter[1];
+    button.setAttribute('aria-pressed', submissionCenterFilter === filter[0] ? 'true' : 'false');
+    button.addEventListener('click', function() {
+      submissionCenterFilter = filter[0];
+      renderSubmissionCenter();
+    });
+    row.appendChild(button);
+  });
+
+  return row;
+}
+
+function getFilteredSubmissionItems() {
+  return getSubmissionCenterItems()
+    .filter(function(item) {
+      if (submissionCenterFilter === 'estimate') {
+        return item.documentType === 'estimate';
+      }
+
+      if (submissionCenterFilter === 'invoice') {
+        return item.documentType === 'invoice';
+      }
+
+      if (submissionCenterFilter === 'waiting') {
+        return item.documentType === 'estimate' && item.status === '提出済み';
+      }
+
+      if (submissionCenterFilter === 'payment') {
+        return item.documentType === 'invoice' && item.status === '提出済み';
+      }
+
+      if (submissionCenterFilter === 'done') {
+        return item.status === '受注' || item.status === '失注' || item.status === '入金済み';
+      }
+
+      return true;
+    })
+    .sort(compareSubmissionItems);
+}
+
+function getSubmissionCenterItems() {
+  return projectData.reduce(function(items, project) {
+    items.push(createSubmissionItem(project, 'estimate'));
+    items.push(createSubmissionItem(project, 'invoice'));
+    return items;
+  }, []);
+}
+
+function createSubmissionItem(project, documentType) {
+  const isInvoice = documentType === 'invoice';
+  const submittedDate = isInvoice ? project.invoiceSubmittedDate : project.estimateSubmittedDate;
+
+  return {
+    project: project,
+    documentType: documentType,
+    documentLabel: isInvoice ? '請求書' : '見積',
+    icon: isInvoice ? '🧾' : '📄',
+    amount: project.proposalAmount,
+    submittedDate: submittedDate,
+    status: getSubmissionStatus(project, documentType),
+    elapsedDays: getSubmissionElapsedDays(submittedDate)
+  };
+}
+
+function getSubmissionStatus(project, documentType) {
+  if (documentType === 'invoice') {
+    if (project.invoiceStatus) {
+      return project.invoiceStatus;
+    }
+
+    if (project.paymentConfirmedDate) {
+      return '入金済み';
+    }
+
+    return project.invoiceSubmittedDate ? '提出済み' : '未提出';
+  }
+
+  if (project.estimateStatus) {
+    return project.estimateStatus;
+  }
+
+  if (project.status === '契約済' || project.status === '契約予定') {
+    return '受注';
+  }
+
+  if (project.status === '失注') {
+    return '失注';
+  }
+
+  return project.estimateSubmittedDate ? '提出済み' : '未提出';
+}
+
+function getSubmissionElapsedDays(dateText) {
+  const date = parseCustomerDate(dateText);
+
+  if (!date) {
+    return null;
+  }
+
+  const today = getCustomerTodayStart();
+  return Math.max(0, Math.floor((today.getTime() - date.getTime()) / 86400000));
+}
+
+function compareSubmissionItems(a, b) {
+  const aDone = a.status === '受注' || a.status === '失注' || a.status === '入金済み';
+  const bDone = b.status === '受注' || b.status === '失注' || b.status === '入金済み';
+
+  if (aDone !== bDone) {
+    return aDone ? 1 : -1;
+  }
+
+  const aDate = parseCustomerDate(a.submittedDate);
+  const bDate = parseCustomerDate(b.submittedDate);
+  const aTime = aDate ? aDate.getTime() : 0;
+  const bTime = bDate ? bDate.getTime() : 0;
+
+  if (aTime !== bTime) {
+    return bTime - aTime;
+  }
+
+  return String(a.project.projectName || '').localeCompare(String(b.project.projectName || ''), 'ja');
+}
+
+function createSubmissionCard(item) {
+  const card = document.createElement('article');
+  card.className = [
+    'submission-card',
+    item.status === '受注' || item.status === '入金済み' ? 'is-complete' : '',
+    item.status === '失注' ? 'is-lost' : ''
+  ].filter(Boolean).join(' ');
+
+  const head = document.createElement('div');
+  head.className = 'submission-card-head';
+
+  const customer = document.createElement('p');
+  customer.className = 'submission-customer';
+  customer.textContent = '🏥 ' + getProjectCustomerName(item.project);
+  head.appendChild(customer);
+
+  const projectName = document.createElement('p');
+  projectName.className = 'submission-project';
+  projectName.textContent = item.project.projectName || '案件名未登録';
+  head.appendChild(projectName);
+
+  const status = document.createElement('span');
+  status.className = 'submission-status';
+  status.textContent = item.status;
+  head.appendChild(status);
+  card.appendChild(head);
+
+  const grid = document.createElement('div');
+  grid.className = 'submission-meta-grid';
+  [
+    ['書類種別', item.icon + ' ' + item.documentLabel],
+    ['金額', formatProjectAmount(item.amount)],
+    ['提出日', formatSubmissionDate(item.submittedDate)],
+    ['経過日数', item.elapsedDays === null ? '未提出' : '提出から' + item.elapsedDays + '日']
+  ].forEach(function(row) {
+    grid.appendChild(createSubmissionMeta(row[0], row[1]));
+  });
+  card.appendChild(grid);
+  card.appendChild(createSubmissionActions(item));
+
+  return card;
+}
+
+function createSubmissionMeta(label, value) {
+  const item = document.createElement('div');
+  item.className = 'submission-meta';
+
+  const labelNode = document.createElement('span');
+  labelNode.className = 'submission-meta-label';
+  labelNode.textContent = label;
+  item.appendChild(labelNode);
+
+  const valueNode = document.createElement('span');
+  valueNode.className = 'submission-meta-value';
+  valueNode.textContent = value || '未登録';
+  item.appendChild(valueNode);
+
+  return item;
+}
+
+function createSubmissionActions(item) {
+  const actions = document.createElement('div');
+  actions.className = 'submission-actions';
+
+  getSubmissionActions(item).forEach(function(action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = ['secondary-button', 'submission-action-button', action.danger ? 'is-danger' : ''].filter(Boolean).join(' ');
+    button.textContent = action.label;
+    button.addEventListener('click', function() {
+      updateSubmissionProjectStatus(item.project.id, action.patch);
+    });
+    actions.appendChild(button);
+  });
+
+  if (!actions.childElementCount) {
+    const done = document.createElement('span');
+    done.className = 'submission-status';
+    done.textContent = '履歴として保存中';
+    actions.appendChild(done);
+  }
+
+  return actions;
+}
+
+function getSubmissionActions(item) {
+  if (item.documentType === 'estimate') {
+    if (item.status === '未提出') {
+      return [{
+        label: '提出',
+        patch: { estimateStatus: '提出済み', estimateSubmittedDate: formatScheduleDateKey(new Date()) }
+      }];
+    }
+
+    if (item.status === '提出済み') {
+      return [
+        { label: '確認電話', patch: { nextAction: '見積確認電話' } },
+        { label: '受注', patch: { estimateStatus: '受注', status: '契約済', expectedOrderDate: formatScheduleDateKey(new Date()) } },
+        { label: '失注', danger: true, patch: { estimateStatus: '失注', status: '失注' } }
+      ];
+    }
+
+    return [];
+  }
+
+  if (item.status === '未提出') {
+    return [{
+      label: '提出',
+      patch: { invoiceStatus: '提出済み', invoiceSubmittedDate: formatScheduleDateKey(new Date()) }
+    }];
+  }
+
+  if (item.status === '提出済み') {
+    return [{
+      label: '入金確認',
+      patch: { invoiceStatus: '入金済み', paymentConfirmedDate: formatScheduleDateKey(new Date()), status: '完了' }
+    }];
+  }
+
+  return [];
+}
+
+function formatSubmissionDate(value) {
+  const date = parseCustomerDate(value);
+
+  if (!date) {
+    return '未提出';
+  }
+
+  return date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+}
+
+function updateSubmissionProjectStatus(projectId, patch) {
+  const project = getProjectByIdForClient(projectId);
+
+  if (!project) {
+    showMessage('案件を確認できませんでした。', true);
+    return;
+  }
+
+  const updatedProject = Object.assign({}, project, patch || {});
+
+  if (!window.google || !google.script || !google.script.run) {
+    Object.assign(project, updatedProject);
+    renderSubmissionCenter();
+    showMessage('提出管理を更新しました。');
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result && Array.isArray(result.projects)) {
+        setProjectData(result.projects);
+      } else {
+        Object.assign(project, updatedProject);
+        renderSubmissionCenter();
+      }
+
+      customerHubMode = 'submission';
+      renderSubmissionCenter();
+      showMessage('提出管理を更新しました。');
+    })
+    .withFailureHandler(function(error) {
+      showMessage('エラー：' + (error && error.message ? error.message : error), true);
+    })
+    .updateProject(updatedProject);
 }
 
 function renderCustomerHubList() {
@@ -13837,6 +14491,20 @@ function getProjectFormData() {
     const input = document.getElementById(PROJECT_FORM_FIELDS[field]);
     project[field] = input ? input.value.trim() : '';
   });
+
+  const existingProject = project.id ? getProjectByIdForClient(project.id) : null;
+
+  if (existingProject) {
+    [
+      'estimateStatus',
+      'estimateSubmittedDate',
+      'invoiceStatus',
+      'invoiceSubmittedDate',
+      'paymentConfirmedDate'
+    ].forEach(function(field) {
+      project[field] = existingProject[field] || '';
+    });
+  }
 
   return project;
 }

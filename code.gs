@@ -1726,6 +1726,11 @@ function getProjectDbHeaders_() {
     'expectedOrderDate',
     'expectedWorkDate',
     'expectedPaymentDate',
+    'estimateStatus',
+    'estimateSubmittedDate',
+    'invoiceStatus',
+    'invoiceSubmittedDate',
+    'paymentConfirmedDate',
     'nextAction',
     'memo',
     'createdAt',
@@ -1801,6 +1806,11 @@ function styleProjectDbSheet_(sheet, desiredHeaders) {
   setProjectDbColumnWidth_(sheet, 'expectedOrderDate', 160);
   setProjectDbColumnWidth_(sheet, 'expectedWorkDate', 160);
   setProjectDbColumnWidth_(sheet, 'expectedPaymentDate', 170);
+  setProjectDbColumnWidth_(sheet, 'estimateStatus', 140);
+  setProjectDbColumnWidth_(sheet, 'estimateSubmittedDate', 170);
+  setProjectDbColumnWidth_(sheet, 'invoiceStatus', 140);
+  setProjectDbColumnWidth_(sheet, 'invoiceSubmittedDate', 170);
+  setProjectDbColumnWidth_(sheet, 'paymentConfirmedDate', 170);
   setProjectDbColumnWidth_(sheet, 'nextAction', 220);
   setProjectDbColumnWidth_(sheet, 'memo', 220);
   setProjectDbColumnWidth_(sheet, 'notes', 220);
@@ -2737,6 +2747,11 @@ function normalizeProjectRow_(row, headers) {
     expectedOrderDate: dateText('expectedOrderDate'),
     expectedWorkDate: dateText('expectedWorkDate'),
     expectedPaymentDate: dateText('expectedPaymentDate'),
+    estimateStatus: text('estimateStatus'),
+    estimateSubmittedDate: dateText('estimateSubmittedDate'),
+    invoiceStatus: text('invoiceStatus'),
+    invoiceSubmittedDate: dateText('invoiceSubmittedDate'),
+    paymentConfirmedDate: dateText('paymentConfirmedDate'),
     nextAction: text('nextAction'),
     memo: text('memo'),
     createdAt: dateText('createdAt'),
