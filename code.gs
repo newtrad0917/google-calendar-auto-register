@@ -1001,6 +1001,7 @@ function getCustomerDbHeaders_() {
     'corporationName',
     'contactName',
     'department',
+    'customerType',
     'industry',
     'prefecture',
     'city',
@@ -1029,6 +1030,7 @@ function getCustomerDbSampleRow_() {
     '',
     '山田 太郎',
     '事務長',
+    '病院',
     '病院',
     '福岡県',
     '朝倉市',
@@ -1136,6 +1138,7 @@ function styleCustomerDbSheet_(sheet, desiredHeaders) {
   setCustomerDbColumnWidth_(sheet, 'companyName', 180);
   setCustomerDbColumnWidth_(sheet, 'corporationName', 180);
   setCustomerDbColumnWidth_(sheet, 'contactName', 140);
+  setCustomerDbColumnWidth_(sheet, 'customerType', 120);
   setCustomerDbColumnWidth_(sheet, 'officePhone', 150);
   setCustomerDbColumnWidth_(sheet, 'mobilePhone', 150);
   setCustomerDbColumnWidth_(sheet, 'email', 190);
@@ -1522,13 +1525,15 @@ function convertBusinessCardToCustomer_(card) {
   var notes = [data.group, data.cardBookName].filter(function(value) {
     return String(value || '').trim() !== '';
   }).join(' / ');
+  var industry = detectCustomerIndustry_(data);
 
   return {
     companyName: data.companyName || '',
     corporationName: '',
     contactName: data.contactName || '',
     department: departmentParts.join(' '),
-    industry: detectCustomerIndustry_(data),
+    customerType: detectCustomerTypeFromIndustry_(industry),
+    industry: industry,
     prefecture: '',
     city: '',
     address: data.address || '',
@@ -1583,6 +1588,24 @@ function detectCustomerIndustry_(card) {
     text.indexOf('合同会社') !== -1
   ) {
     return '企業';
+  }
+
+  return 'その他';
+}
+
+function detectCustomerTypeFromIndustry_(industry) {
+  var text = String(industry || '').trim();
+
+  if (text === '病院') {
+    return '病院';
+  }
+
+  if (text === '施設') {
+    return '福祉施設';
+  }
+
+  if (text === '企業' || text === '工場') {
+    return '業者';
   }
 
   return 'その他';
@@ -2406,6 +2429,10 @@ function buildCustomerRowForHeaders_(customer, headers, existingRow) {
 
   return headers.map(function(header, index) {
     if (Object.prototype.hasOwnProperty.call(data, header)) {
+      if (header === 'customerType') {
+        return normalizeCustomerType_(data[header]);
+      }
+
       return isCustomerPhoneHeader_(header)
         ? normalizeCustomerPhoneText_(data[header])
         : data[header];
@@ -2419,6 +2446,13 @@ function buildCustomerRowForHeaders_(customer, headers, existingRow) {
 
     return '';
   });
+}
+
+function normalizeCustomerType_(value) {
+  var text = String(value || '').trim();
+  var allowedTypes = ['病院', '福祉施設', '業者', 'その他'];
+
+  return allowedTypes.indexOf(text) === -1 ? 'その他' : text;
 }
 
 function writeCustomerRow_(sheet, rowNumber, row, headers) {
@@ -2877,6 +2911,7 @@ function normalizeCustomerRow_(row, headers, displayRow) {
     personName: text('contactName'),
     title: '',
     department: text('department'),
+    customerType: normalizeCustomerType_(text('customerType')),
     industry: text('industry'),
     prefecture: text('prefecture'),
     city: text('city'),

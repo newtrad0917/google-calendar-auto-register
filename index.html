@@ -317,7 +317,7 @@ overflow-wrap: anywhere;
       transform: translateY(1px);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       content: "";
       position: absolute;
       inset: -38% auto -38% -35%;
@@ -335,14 +335,14 @@ overflow-wrap: anywhere;
       transform: translateX(-110%) skewX(-18deg);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
       transform: scale(0.96);
       box-shadow:
         inset 0 2px 8px rgba(15, 23, 42, 0.18),
         0 0 0 4px rgba(96, 165, 250, 0.10);
     }
 
-    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       animation: primary-button-light-sweep 140ms ease-out;
     }
 
@@ -5138,6 +5138,80 @@ body.ai-processing .assistant-briefing-icon {
   cursor: pointer;
 }
 
+.customer-hub-group {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-hub-group + .customer-hub-group {
+  margin-top: 6px;
+}
+
+.customer-hub-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
+  color: #0f172a;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.96) 100%);
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.customer-hub-group-header:hover {
+  color: #1769aa;
+  background: #ffffff;
+}
+
+.customer-hub-group-header::after {
+  display: none;
+}
+
+.customer-hub-group-title {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 5px;
+}
+
+.customer-hub-group-count {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.customer-hub-group-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #64748b;
+  background: #eef2f7;
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.customer-hub-group.is-collapsed .customer-hub-group-icon {
+  transform: rotate(-90deg);
+}
+
+.customer-hub-group-list {
+  display: grid;
+  gap: 10px;
+}
+
 .customer-hub-card.is-expanded {
   align-items: start;
   gap: 10px 12px;
@@ -6148,7 +6222,7 @@ body.ai-processing .assistant-briefing-icon {
   box-shadow: var(--brand-shadow-card) !important;
 }
 
-button:not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
+button:not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.calendar-color-option),
 .customer-hub-action,
 .customer-hub-add-button,
 .project-hub-add-button,
@@ -6178,7 +6252,7 @@ input[type="datetime-local"] {
 }
 
 /* Design System Ver2: Sales AI Secretary brand layer */
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.calendar-color-option),
 .primary-button,
 .secondary-button,
 .danger-button,
@@ -6211,7 +6285,7 @@ button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.s
     transform var(--ds-transition);
 }
 
-button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
+button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.calendar-color-option),
 .primary-button {
   border: 1px solid transparent;
   color: var(--ds-white);
@@ -6243,7 +6317,7 @@ button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-butto
   box-shadow: none !important;
 }
 
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option):hover,
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.calendar-color-option):hover,
 .primary-button:hover {
   transform: translateY(-1px);
 }
@@ -6258,7 +6332,7 @@ button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.s
   background: var(--ds-gray-50) !important;
 }
 
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option):active {
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.customer-hub-group-header):not(.calendar-color-option):active {
   transform: translateY(1px) scale(0.99);
 }
 
@@ -8141,6 +8215,16 @@ body.ai-processing .status-ready,
         </div>
 
         <div class="field">
+          <label for="customerFormCustomerType">顧客分類</label>
+          <select id="customerFormCustomerType">
+            <option value="病院">病院</option>
+            <option value="福祉施設">福祉施設</option>
+            <option value="業者">業者</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label for="customerFormIndustry">業種</label>
           <select id="customerFormIndustry">
             <option value=""></option>
@@ -8593,6 +8677,7 @@ body.ai-processing .status-ready,
     const WEATHER_ERROR_OPEN_METEO_FAILED = 'WEATHER_ERROR_OPEN_METEO_FAILED';
     const WEATHER_ERROR_JMA_FAILED = 'WEATHER_ERROR_JMA_FAILED';
     const WEATHER_ERROR_NO_FORECAST_DAYS = 'WEATHER_ERROR_NO_FORECAST_DAYS';
+    const CUSTOMER_CLASSIFICATION_GROUPS = ['病院', '福祉施設', '業者', 'その他'];
     // 今はUI確認用の仮顧客データ。
     // 次フェーズで営業AI秘書DBのCustomersシートから取得する。
     const DEMO_CUSTOMERS = [
@@ -8604,6 +8689,7 @@ body.ai-processing .status-ready,
         title: '室長',
         email: 'yamaguchi@example.com',
         cc: 'renkei@example.com',
+        customerType: '病院',
         address: '福岡県福岡市西区今宿2-12-7',
         phone: '092-000-1234',
         area: '福岡市西区',
@@ -8619,6 +8705,7 @@ body.ai-processing .status-ready,
         title: 'ご担当',
         email: 'tanaka@example.com',
         cc: 'office@example.com',
+        customerType: '福祉施設',
         address: '福岡県福岡市中央区天神1-1-1',
         phone: '092-000-5678',
         area: '福岡市中央区',
@@ -8634,6 +8721,7 @@ body.ai-processing .status-ready,
         title: '部長',
         email: 'sato@example.com',
         cc: 'soumu@example.com',
+        customerType: '業者',
         address: '福岡県北九州市若松区南二島2-23-1',
         phone: '093-000-2468',
         area: '北九州市若松区',
@@ -8645,6 +8733,7 @@ body.ai-processing .status-ready,
     let customerData = DEMO_CUSTOMERS.slice();
     let customerDataMessage = '';
     let customerHubSearchQuery = '';
+    let customerHubCollapsedGroups = {};
     let projectData = [];
     let projectDataMessage = '';
     let selectedProjectHubId = '';
@@ -8654,6 +8743,7 @@ body.ai-processing .status-ready,
       corporationName: 'customerFormCorporationName',
       contactName: 'customerFormContactName',
       department: 'customerFormDepartment',
+      customerType: 'customerFormCustomerType',
       industry: 'customerFormIndustry',
       prefecture: 'customerFormPrefecture',
       city: 'customerFormCity',
@@ -11275,6 +11365,7 @@ function normalizeCustomerForClient(customer) {
     companyName: customer.companyName || '',
     corporationName: customer.corporationName || '',
     department: customer.department || '',
+    customerType: normalizeCustomerClassification(customer.customerType),
     industry: customer.industry || '',
     prefecture: customer.prefecture || '',
     city: customer.city || '',
@@ -11304,6 +11395,11 @@ function normalizeCustomerForClient(customer) {
     createdAt: customer.createdAt || '',
     updatedAt: customer.updatedAt || ''
   };
+}
+
+function normalizeCustomerClassification(value) {
+  const text = String(value || '').trim();
+  return CUSTOMER_CLASSIFICATION_GROUPS.indexOf(text) === -1 ? 'その他' : text;
 }
 
 function refreshScheduleCustomerLink() {
@@ -11520,6 +11616,7 @@ function customerMatchesSearchQuery(customer, query) {
     customer.contactName,
     customer.personName,
     customer.department,
+    customer.customerType,
     customer.industry,
     customer.prefecture,
     customer.city,
@@ -12383,55 +12480,147 @@ function renderCustomerHubList() {
     return;
   }
 
-  visibleCustomers.forEach(function(customer) {
-    const card = document.createElement('article');
-    card.className = 'customer-hub-card';
-    card.dataset.customerId = customer.id;
-    card.classList.toggle('is-selected', customer.id === selectedCustomerHubId);
-    card.classList.toggle('is-expanded', customer.id === selectedCustomerHubId);
+  const groupedCustomers = groupCustomersByClassification(visibleCustomers);
 
-    const body = document.createElement('span');
-    body.className = 'customer-hub-card-body';
+  CUSTOMER_CLASSIFICATION_GROUPS.forEach(function(groupName) {
+    const groupCustomers = groupedCustomers[groupName] || [];
 
-    const title = document.createElement('span');
-    title.className = 'customer-hub-card-title';
-    title.textContent = formatCustomerValue(customer.companyName);
-
-    const meta = document.createElement('span');
-    meta.className = 'customer-hub-card-meta';
-    meta.textContent = '担当者：' + formatCustomerContactName(customer);
-
-    const tags = document.createElement('span');
-    tags.className = 'customer-hub-card-tags';
-    tags.appendChild(createCustomerHotLevelBadge(customer.hotLevel));
-    const statusTag = createCustomerHubListStatusTag(customer);
-
-    if (statusTag) {
-      tags.appendChild(statusTag);
+    if (!groupCustomers.length) {
+      return;
     }
 
-    body.appendChild(title);
-    body.appendChild(meta);
-    body.appendChild(tags);
-
-    const detailButton = createCustomerHubDetailButton(customer, card);
-
-    card.setAttribute('aria-label', customer.companyName + 'の詳細を見る');
-    card.addEventListener('click', function(event) {
-      if (event.target.closest('button')) {
-        return;
-      }
-
-      playCustomerHubLine(card);
-      toggleCustomerHubDetail(customer.id);
-    });
-    card.appendChild(body);
-    card.appendChild(detailButton);
-    if (customer.id === selectedCustomerHubId) {
-      card.appendChild(createCustomerHubInlineDetail(customer));
-    }
-    list.appendChild(card);
+    list.appendChild(createCustomerHubClassificationGroup(groupName, groupCustomers));
   });
+}
+
+function groupCustomersByClassification(customers) {
+  return (Array.isArray(customers) ? customers : []).reduce(function(groups, customer) {
+    const groupName = getCustomerClassification(customer);
+
+    if (!groups[groupName]) {
+      groups[groupName] = [];
+    }
+
+    groups[groupName].push(customer);
+    return groups;
+  }, {});
+}
+
+function createCustomerHubClassificationGroup(groupName, customers) {
+  const group = document.createElement('section');
+  const groupId = 'customerHubGroup-' + encodeURIComponent(groupName);
+  const isCollapsed = Boolean(customerHubCollapsedGroups[groupName]);
+  group.className = 'customer-hub-group';
+  group.classList.toggle('is-collapsed', isCollapsed);
+
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'customer-hub-group-header';
+  header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+  header.setAttribute('aria-controls', groupId);
+  header.addEventListener('click', function() {
+    toggleCustomerHubClassificationGroup(groupName);
+  });
+
+  const title = document.createElement('span');
+  title.className = 'customer-hub-group-title';
+  title.appendChild(document.createTextNode(groupName));
+
+  const count = document.createElement('span');
+  count.className = 'customer-hub-group-count';
+  count.textContent = '（' + customers.length + '）';
+  title.appendChild(count);
+
+  const icon = document.createElement('span');
+  icon.className = 'customer-hub-group-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '⌄';
+
+  header.appendChild(title);
+  header.appendChild(icon);
+  group.appendChild(header);
+
+  const groupList = document.createElement('div');
+  groupList.id = groupId;
+  groupList.className = 'customer-hub-group-list';
+  groupList.classList.toggle('hidden', isCollapsed);
+
+  customers.forEach(function(customer) {
+    groupList.appendChild(createCustomerHubCard(customer));
+  });
+
+  group.appendChild(groupList);
+  return group;
+}
+
+function toggleCustomerHubClassificationGroup(groupName) {
+  const normalizedGroupName = normalizeCustomerClassification(groupName);
+  customerHubCollapsedGroups[normalizedGroupName] = !customerHubCollapsedGroups[normalizedGroupName];
+  renderCustomerHubList();
+}
+
+function createCustomerHubCard(customer) {
+  const card = document.createElement('article');
+  card.className = 'customer-hub-card';
+  card.dataset.customerId = customer.id;
+  card.classList.toggle('is-selected', customer.id === selectedCustomerHubId);
+  card.classList.toggle('is-expanded', customer.id === selectedCustomerHubId);
+
+  const body = document.createElement('span');
+  body.className = 'customer-hub-card-body';
+
+  const title = document.createElement('span');
+  title.className = 'customer-hub-card-title';
+  title.textContent = formatCustomerValue(customer.companyName);
+
+  const meta = document.createElement('span');
+  meta.className = 'customer-hub-card-meta';
+  meta.textContent = '担当者：' + formatCustomerContactName(customer);
+
+  const tags = document.createElement('span');
+  tags.className = 'customer-hub-card-tags';
+  tags.appendChild(createCustomerClassificationTag(customer));
+  tags.appendChild(createCustomerHotLevelBadge(customer.hotLevel));
+  const statusTag = createCustomerHubListStatusTag(customer);
+
+  if (statusTag) {
+    tags.appendChild(statusTag);
+  }
+
+  body.appendChild(title);
+  body.appendChild(meta);
+  body.appendChild(tags);
+
+  const detailButton = createCustomerHubDetailButton(customer, card);
+
+  card.setAttribute('aria-label', customer.companyName + 'の詳細を見る');
+  card.addEventListener('click', function(event) {
+    if (event.target.closest('button')) {
+      return;
+    }
+
+    playCustomerHubLine(card);
+    toggleCustomerHubDetail(customer.id);
+  });
+  card.appendChild(body);
+  card.appendChild(detailButton);
+
+  if (customer.id === selectedCustomerHubId) {
+    card.appendChild(createCustomerHubInlineDetail(customer));
+  }
+
+  return card;
+}
+
+function getCustomerClassification(customer) {
+  return normalizeCustomerClassification(customer && customer.customerType);
+}
+
+function createCustomerClassificationTag(customer) {
+  const tag = document.createElement('span');
+  tag.className = 'customer-hub-card-tag';
+  tag.textContent = getCustomerClassification(customer);
+  return tag;
 }
 
 function createCustomerHubListStatusTag(customer) {
@@ -12565,6 +12754,7 @@ function showCustomerHubDetail(customerId) {
   }
 
   selectedCustomerHubId = customerId;
+  customerHubCollapsedGroups[getCustomerClassification(customer)] = false;
   clearCustomerHubDetailContainer();
   renderCustomerHubList();
 }
@@ -12617,6 +12807,7 @@ function createCustomerHubInlineDetail(customer) {
     ['法人名', customer.corporationName],
     ['担当者', formatCustomerContactName(customer)],
     ['部署', customer.department],
+    ['顧客分類', getCustomerClassification(customer)],
     ['業種', customer.industry],
     ['都道府県', customer.prefecture],
     ['市区', customer.city],
@@ -14359,6 +14550,7 @@ function renderCustomerPreview(containerId, customer) {
   const person = document.createElement('div');
   person.className = 'customer-preview-person';
   person.textContent = [
+    getCustomerClassification(customer),
     customer.department,
     customer.industry,
     formatCustomerContactName(customer)
@@ -14440,7 +14632,9 @@ function renderCustomerForm(customer) {
     const input = document.getElementById(CUSTOMER_FORM_FIELDS[field]);
 
     if (input) {
-      input.value = customer[field] || '';
+      input.value = field === 'customerType'
+        ? normalizeCustomerClassification(customer[field])
+        : (customer[field] || '');
     }
   });
 
@@ -14531,6 +14725,7 @@ function getCustomerFormData() {
     customer[field] = input ? input.value.trim() : '';
   });
 
+  customer.customerType = normalizeCustomerClassification(customer.customerType);
   customer.officePhone = normalizeCustomerPhoneValue(customer.officePhone);
   customer.mobilePhone = normalizeCustomerPhoneValue(customer.mobilePhone);
 
