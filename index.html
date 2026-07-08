@@ -317,7 +317,7 @@ overflow-wrap: anywhere;
       transform: translateY(1px);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       content: "";
       position: absolute;
       inset: -38% auto -38% -35%;
@@ -335,14 +335,14 @@ overflow-wrap: anywhere;
       transform: translateX(-110%) skewX(-18deg);
     }
 
-    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
+    button:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button):not(:disabled):active {
       transform: scale(0.96);
       box-shadow:
         inset 0 2px 8px rgba(15, 23, 42, 0.18),
         0 0 0 4px rgba(96, 165, 250, 0.10);
     }
 
-    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
+    button.is-motion-press:not(.secondary-button):not(.action-card):not(.task-filter-button):not(.todo-add-button):not(.todo-edit-button):not(.schedule-range-button):not(.schedule-tab-button):not(.schedule-day-button):not(.schedule-mode-button):not(.schedule-day-add-button):not(.calendar-color-option):not(.voice-button)::after {
       animation: primary-button-light-sweep 140ms ease-out;
     }
 
@@ -1059,6 +1059,13 @@ body.ai-processing #gmailDraftSection::before {
   margin-bottom: 0;
 }
 
+.schedule-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .schedule-segment {
   display: inline-flex;
   flex: 0 0 auto;
@@ -1093,6 +1100,120 @@ body.ai-processing #gmailDraftSection::before {
   color: #1769aa;
   background: #e8f2ff;
   box-shadow: inset 0 0 0 1px rgba(23, 105, 170, 0.08);
+}
+
+.schedule-display-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 3px;
+  margin: 10px 0;
+  padding: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.30);
+  border-radius: 999px;
+  background: #eef2f7;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.schedule-mode-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #64748b;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.schedule-mode-button::after {
+  display: none;
+}
+
+.schedule-mode-button:hover {
+  color: #1d1d1f;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.schedule-mode-button.active {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow:
+    0 6px 16px rgba(15, 23, 42, 0.10),
+    inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+}
+
+.schedule-sales-view {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-sales-view-group {
+  display: grid;
+  gap: 8px;
+}
+
+.schedule-sales-view-date {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.schedule-sales-view-item {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  min-height: 58px;
+  padding: 13px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.schedule-sales-view-time {
+  color: #1769aa;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.schedule-sales-view-body {
+  min-width: 0;
+}
+
+.schedule-sales-view-area {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.28;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-sales-view-detail {
+  overflow: hidden;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .schedule-day-group {
@@ -1248,14 +1369,33 @@ body.ai-processing #gmailDraftSection::before {
     width: 100%;
   }
 
+  .schedule-header-controls,
+  .schedule-display-toggle {
+    width: 100%;
+  }
+
   .schedule-range-button {
     flex: 1 1 0;
     padding-right: 6px;
     padding-left: 6px;
   }
 
+  .schedule-mode-button {
+    flex: 1 1 0;
+  }
+
   .schedule-event-row {
     grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .schedule-sales-view-item {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .schedule-sales-view-area {
+    font-size: 16px;
   }
 }
 
@@ -6008,7 +6148,7 @@ body.ai-processing .assistant-briefing-icon {
   box-shadow: var(--brand-shadow-card) !important;
 }
 
-button:not(.schedule-day-button):not(.calendar-color-option),
+button:not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
 .customer-hub-action,
 .customer-hub-add-button,
 .project-hub-add-button,
@@ -6038,7 +6178,7 @@ input[type="datetime-local"] {
 }
 
 /* Design System Ver2: Sales AI Secretary brand layer */
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option),
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
 .primary-button,
 .secondary-button,
 .danger-button,
@@ -6071,7 +6211,7 @@ button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.s
     transform var(--ds-transition);
 }
 
-button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option),
+button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option),
 .primary-button {
   border: 1px solid transparent;
   color: var(--ds-white);
@@ -6103,7 +6243,7 @@ button:not(.secondary-button):not(.customer-hub-danger-button):not(.danger-butto
   box-shadow: none !important;
 }
 
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option):hover,
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option):hover,
 .primary-button:hover {
   transform: translateY(-1px);
 }
@@ -6118,7 +6258,7 @@ button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.s
   background: var(--ds-gray-50) !important;
 }
 
-button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.calendar-color-option):active {
+button:not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-day-button):not(.schedule-mode-button):not(.calendar-color-option):active {
   transform: translateY(1px) scale(0.99);
 }
 
@@ -7464,23 +7604,25 @@ body.ai-processing .status-ready,
   <div class="today-card">
     <div class="today-card-header">
       <h3 id="scheduleTitle" class="today-title">本日の予定</h3>
-      <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
-        <button type="button" id="scheduleViewToday" class="schedule-tab-button active" onclick="setScheduleView('today')" aria-selected="true">
-          <span class="schedule-tab-icon" aria-hidden="true">●</span>
-          <span class="schedule-tab-label">本日</span>
-        </button>
-        <button type="button" id="scheduleViewTomorrow" class="schedule-tab-button" onclick="setScheduleView('tomorrow')" aria-selected="false">
-          <span class="schedule-tab-icon weather-tab-icon" aria-hidden="true">→</span>
-          <span class="schedule-tab-label">明日</span>
-        </button>
-        <button type="button" id="scheduleViewWeek" class="schedule-tab-button" onclick="setScheduleView('week')" aria-selected="false">
-          <span class="schedule-tab-icon" aria-hidden="true">☷</span>
-          <span class="schedule-tab-label">今週</span>
-        </button>
-        <button type="button" id="scheduleViewMonth" class="schedule-tab-button" onclick="setScheduleView('month')" aria-selected="false">
-          <span class="schedule-tab-icon" aria-hidden="true">▦</span>
-          <span class="schedule-tab-label">今月</span>
-        </button>
+      <div class="schedule-header-controls">
+        <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
+          <button type="button" id="scheduleViewToday" class="schedule-tab-button active" onclick="setScheduleView('today')" aria-selected="true">
+            <span class="schedule-tab-icon" aria-hidden="true">●</span>
+            <span class="schedule-tab-label">本日</span>
+          </button>
+          <button type="button" id="scheduleViewTomorrow" class="schedule-tab-button" onclick="setScheduleView('tomorrow')" aria-selected="false">
+            <span class="schedule-tab-icon weather-tab-icon" aria-hidden="true">→</span>
+            <span class="schedule-tab-label">明日</span>
+          </button>
+          <button type="button" id="scheduleViewWeek" class="schedule-tab-button" onclick="setScheduleView('week')" aria-selected="false">
+            <span class="schedule-tab-icon" aria-hidden="true">☷</span>
+            <span class="schedule-tab-label">今週</span>
+          </button>
+          <button type="button" id="scheduleViewMonth" class="schedule-tab-button" onclick="setScheduleView('month')" aria-selected="false">
+            <span class="schedule-tab-icon" aria-hidden="true">▦</span>
+            <span class="schedule-tab-label">今月</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -8411,6 +8553,7 @@ body.ai-processing .status-ready,
     let screenEnterTimer = null;
     let isPageTransitioning = false;
     let currentScheduleView = 'today';
+    let scheduleDisplayMode = 'normal';
     let selectedScheduleDate = '';
     let selectedCustomerHubId = '';
     let weatherForecastState = 'idle';
@@ -8666,6 +8809,7 @@ function createNavigationState(screenKey) {
     currentTaskFilter: currentTaskFilter || '仕事',
     currentTaskDueFilter: currentTaskDueFilter || 'today',
     currentScheduleView: currentScheduleView || 'today',
+    scheduleDisplayMode: scheduleDisplayMode || 'normal',
     selectedScheduleDate: selectedScheduleDate || ''
   };
 }
@@ -8691,6 +8835,7 @@ function restoreNavigationState(state) {
   currentTaskFilter = state.currentTaskFilter || currentTaskFilter;
   currentTaskDueFilter = state.currentTaskDueFilter || currentTaskDueFilter;
   currentScheduleView = state.currentScheduleView || currentScheduleView;
+  scheduleDisplayMode = normalizeScheduleDisplayMode(state.scheduleDisplayMode || scheduleDisplayMode);
   selectedScheduleDate = state.selectedScheduleDate || '';
 
   const options = { fromNavigation: true, skipTransition: true };
@@ -16942,6 +17087,69 @@ function setScheduleView(view) {
   loadTodayEvents();
 }
 
+function setScheduleDisplayMode(mode) {
+  scheduleDisplayMode = normalizeScheduleDisplayMode(mode);
+  updateScheduleDisplayModeState();
+
+  if (Array.isArray(lastScheduleEvents)) {
+    renderScheduleEvents(lastScheduleEvents, lastScheduleView || currentScheduleView || 'today', lastScheduleDateKey || '');
+    return;
+  }
+
+  loadTodayEvents();
+}
+
+function normalizeScheduleDisplayMode(mode) {
+  return mode === 'sales' ? 'sales' : 'normal';
+}
+
+function updateScheduleDisplayModeState() {
+  [
+    ['scheduleModeNormal', 'normal'],
+    ['scheduleModeSales', 'sales']
+  ].forEach(function(item) {
+    const button = document.getElementById(item[0]);
+
+    if (button) {
+      const isActive = item[1] === normalizeScheduleDisplayMode(scheduleDisplayMode);
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    }
+  });
+}
+
+function appendScheduleDisplayModeToggle(container) {
+  if (!container) {
+    return;
+  }
+
+  container.appendChild(createScheduleDisplayModeToggle());
+  updateScheduleDisplayModeState();
+}
+
+function createScheduleDisplayModeToggle() {
+  const toggle = document.createElement('div');
+  toggle.className = 'schedule-display-toggle';
+  toggle.setAttribute('role', 'tablist');
+  toggle.setAttribute('aria-label', '表示切替');
+
+  toggle.appendChild(createScheduleDisplayModeButton('scheduleModeNormal', 'normal', '通常表示'));
+  toggle.appendChild(createScheduleDisplayModeButton('scheduleModeSales', 'sales', '営業表示'));
+  return toggle;
+}
+
+function createScheduleDisplayModeButton(id, mode, label) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = id;
+  button.className = 'schedule-mode-button';
+  button.textContent = label;
+  button.addEventListener('click', function() {
+    setScheduleDisplayMode(mode);
+  });
+  return button;
+}
+
 function loadScheduleEvents(view, dateKey) {
   const container = document.getElementById('todayEvents');
   const requestId = ++scheduleRequestId;
@@ -16958,6 +17166,7 @@ function loadScheduleEvents(view, dateKey) {
 
   try {
     updateScheduleSegmentState();
+    updateScheduleDisplayModeState();
     updateScheduleTitle(view, dateKey);
     updateScheduleDayAction(dateKey);
     container.innerHTML = '<p class="today-empty">予定を読み込み中です...</p>';
@@ -17251,6 +17460,11 @@ function renderScheduleEvents(events, view, dateKey) {
 
   const visibleEvents = filterScheduleEventsForView(events, view, dateKey);
 
+  if (normalizeScheduleDisplayMode(scheduleDisplayMode) === 'sales') {
+    renderSalesScheduleEvents(visibleEvents, view, dateKey);
+    return;
+  }
+
   if (view === 'week' || view === 'month') {
     renderGroupedScheduleEvents(visibleEvents, view);
     return;
@@ -17322,6 +17536,8 @@ function renderTodayEvents(events, view, dateKey) {
     container.appendChild(createWeatherPreviewCard(view));
   }
 
+  appendScheduleDisplayModeToggle(container);
+
   if (!events || !events.length) {
     const empty = document.createElement('p');
     empty.className = 'today-empty';
@@ -17344,6 +17560,155 @@ function renderTodayEvents(events, view, dateKey) {
   });
 
   container.appendChild(list);
+}
+
+function renderSalesScheduleEvents(events, view, dateKey) {
+  const container = document.getElementById('todayEvents');
+
+  container.replaceChildren();
+
+  if (shouldShowWeatherCard(view, dateKey)) {
+    container.appendChild(createWeatherPreviewCard(view));
+  }
+
+  appendScheduleDisplayModeToggle(container);
+
+  if (!events || !events.length) {
+    const empty = document.createElement('p');
+    empty.className = 'today-empty';
+    empty.textContent = getScheduleEmptyText(view, dateKey);
+    container.appendChild(empty);
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'schedule-sales-view';
+  const sortedEvents = events.slice().sort(compareScheduleEventsByStart);
+
+  if ((view === 'week' || view === 'month') && !dateKey) {
+    const groups = groupScheduleEventsByDate(sortedEvents);
+
+    Object.keys(groups)
+      .sort()
+      .forEach(function(groupDateKey) {
+        list.appendChild(createSalesScheduleDayGroup(groupDateKey, groups[groupDateKey]));
+      });
+  } else {
+    sortedEvents.forEach(function(event) {
+      list.appendChild(createSalesScheduleItem(event));
+    });
+  }
+
+  container.appendChild(list);
+}
+
+function createSalesScheduleDayGroup(dateKey, events) {
+  const group = document.createElement('section');
+  group.className = 'schedule-sales-view-group';
+
+  const date = document.createElement('div');
+  date.className = 'schedule-sales-view-date';
+  date.textContent = formatScheduleDateLabel(dateKey);
+  group.appendChild(date);
+
+  events
+    .slice()
+    .sort(compareScheduleEventsByStart)
+    .forEach(function(event) {
+      group.appendChild(createSalesScheduleItem(event));
+    });
+
+  return group;
+}
+
+function createSalesScheduleItem(event) {
+  const item = document.createElement('article');
+  item.className = 'schedule-sales-view-item';
+
+  const time = document.createElement('div');
+  time.className = 'schedule-sales-view-time';
+  time.textContent = getScheduleEventStartLabel(event);
+
+  const body = document.createElement('div');
+  body.className = 'schedule-sales-view-body';
+
+  const area = document.createElement('div');
+  area.className = 'schedule-sales-view-area';
+  area.textContent = getScheduleSalesArea(event);
+  body.appendChild(area);
+
+  const detail = getScheduleSalesDetail(event, area.textContent);
+
+  if (detail) {
+    const detailNode = document.createElement('div');
+    detailNode.className = 'schedule-sales-view-detail';
+    detailNode.textContent = detail;
+    body.appendChild(detailNode);
+  }
+
+  item.appendChild(time);
+  item.appendChild(body);
+  return item;
+}
+
+function getScheduleSalesArea(event) {
+  const customer = findCustomerByScheduleEvent(event) || {};
+  const sources = [
+    event && event.location,
+    customer.address,
+    customer.area
+  ];
+
+  for (let index = 0; index < sources.length; index += 1) {
+    const area = extractMunicipalityFromScheduleText(sources[index]);
+
+    if (area) {
+      return area;
+    }
+  }
+
+  const title = getScheduleSalesFallbackTitle(event);
+  return title || 'エリア未設定';
+}
+
+function getScheduleSalesDetail(event, areaText) {
+  const customer = findCustomerByScheduleEvent(event);
+  const customerName = customer && customer.companyName ? String(customer.companyName).trim() : '';
+  const title = getScheduleSalesFallbackTitle(event);
+
+  if (customerName) {
+    return customerName;
+  }
+
+  if (title && title !== areaText) {
+    return title;
+  }
+
+  return '';
+}
+
+function getScheduleSalesFallbackTitle(event) {
+  return String(event && event.title ? event.title : '').trim();
+}
+
+function extractMunicipalityFromScheduleText(value) {
+  const text = cleanScheduleAddressText(value);
+
+  if (!text) {
+    return '';
+  }
+
+  const municipalityMatch = text.match(/(?:北海道|東京都|京都府|大阪府|[^0-9０-９\s,、。]{2,3}県)?\s*([^0-9０-９\s,、。]+市[^0-9０-９\s,、。]*区|[^0-9０-９\s,、。]+市|[^0-9０-９\s,、。]+郡[^0-9０-９\s,、。]+[町村]|[^0-9０-９\s,、。]+区|[^0-9０-９\s,、。]+[町村])/);
+
+  return municipalityMatch ? municipalityMatch[1] : '';
+}
+
+function cleanScheduleAddressText(value) {
+  return String(value || '')
+    .replace(/〒?\d{3}-?\d{4}/g, ' ')
+    .replace(/[()（）［］\[\]]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function createNextScheduleEventItem(event) {
@@ -18242,6 +18607,8 @@ function renderGroupedScheduleEvents(events, view) {
   if (shouldShowWeatherCard(view, '')) {
     container.appendChild(createWeatherPreviewCard(view));
   }
+
+  appendScheduleDisplayModeToggle(container);
 
   const groups = groupScheduleEventsByDate(events);
   const dateKeys = getScheduleDateKeysForView(view);
