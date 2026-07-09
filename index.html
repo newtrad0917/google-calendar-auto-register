@@ -7655,6 +7655,394 @@ body.ai-processing .status-ready,
     transform: scale(1);
   }
 }
+
+/* Ver1 finish: quiet unified UI layer */
+:root {
+  --v1-surface: #ffffff;
+  --v1-surface-soft: #f8fafc;
+  --v1-border: rgba(148, 163, 184, 0.24);
+  --v1-border-strong: rgba(148, 163, 184, 0.34);
+  --v1-text: #0f172a;
+  --v1-muted: #64748b;
+  --v1-primary: #1769aa;
+  --v1-primary-deep: #12558b;
+  --v1-danger: #b91c1c;
+  --v1-danger-soft: #fff7f7;
+  --v1-radius-card: 18px;
+  --v1-radius-control: 14px;
+  --v1-radius-pill: 999px;
+  --v1-shadow-card: 0 12px 28px rgba(15, 23, 42, 0.06);
+  --v1-shadow-control: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 7px 18px rgba(15, 23, 42, 0.05);
+  --v1-transition: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.panel,
+.brand-card,
+.today-card,
+.assistant-briefing,
+.morning-briefing-card,
+.ai-insight-card,
+.ai-status-card,
+.todo-card,
+.schedule-weather-card,
+.schedule-event-card,
+.schedule-sales-card,
+.schedule-sales-view-item,
+.customer-hub-card,
+.customer-hub-profile,
+.customer-ai-brief,
+.customer-hub-sales-memo,
+.customer-hub-form,
+.customer-hub-group-header,
+.customer-preview-card,
+.project-hub-section,
+.project-hub-card,
+.project-hub-form,
+.project-hub-inline-detail,
+.submission-center-head,
+.submission-card,
+.submission-edit-form,
+.business-card-import-panel,
+.sales-memo-card,
+.sales-memo-guided,
+.sales-memo-customer-picker,
+.sales-memo-step,
+.sales-memo-summary,
+.settings-card,
+.setup-wizard-card,
+.calendar-edit-summary {
+  border-color: var(--v1-border) !important;
+  border-radius: var(--v1-radius-card) !important;
+  box-shadow: var(--v1-shadow-card) !important;
+}
+
+.panel,
+.today-card,
+.ai-insight-card,
+.ai-status-card,
+.todo-card,
+.schedule-weather-card,
+.schedule-event-card,
+.schedule-sales-card,
+.schedule-sales-view-item,
+.customer-hub-card,
+.customer-hub-profile,
+.customer-ai-brief,
+.customer-hub-sales-memo,
+.customer-hub-form,
+.customer-hub-group-header,
+.customer-preview-card,
+.project-hub-section,
+.project-hub-card,
+.project-hub-form,
+.submission-center-head,
+.submission-card,
+.submission-edit-form,
+.business-card-import-panel,
+.sales-memo-card,
+.sales-memo-guided,
+.sales-memo-customer-picker,
+.sales-memo-step,
+.sales-memo-summary,
+.settings-card,
+.setup-wizard-card,
+.calendar-edit-summary {
+  background: linear-gradient(180deg, var(--v1-surface) 0%, var(--v1-surface-soft) 100%) !important;
+}
+
+.section-title,
+.today-title,
+.todo-title,
+.ai-insight-title,
+.morning-briefing-title,
+.sales-focus-title,
+.customer-hub-card-title,
+.customer-hub-profile h3,
+.customer-hub-form-title,
+.project-hub-title,
+.project-hub-card-title,
+.project-hub-form-title,
+.submission-center-title,
+.submission-project,
+.sales-memo-card-title,
+.sales-memo-step-title,
+.settings-title,
+.setup-wizard-title,
+.calendar-edit-summary-title {
+  color: var(--v1-text) !important;
+  letter-spacing: 0 !important;
+}
+
+.section-title {
+  margin-bottom: 6px;
+  font-size: 21px;
+  font-weight: 950;
+  line-height: 1.28;
+}
+
+.section-description,
+.brand-description,
+.today-progress-empty,
+.customer-hub-card-meta,
+.customer-hub-detail-label,
+.project-hub-card-meta,
+.submission-center-description,
+.sales-memo-step-description,
+.calendar-edit-summary-label,
+.weather-detail,
+.todo-status {
+  color: var(--v1-muted) !important;
+}
+
+input,
+textarea,
+select,
+input[type="date"],
+input[type="datetime-local"],
+.customer-hub-search,
+.project-hub-search,
+.sales-memo-customer-search {
+  min-height: 50px !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--v1-border-strong) !important;
+  border-radius: var(--v1-radius-control) !important;
+  color: var(--v1-text) !important;
+  background: var(--v1-surface) !important;
+  font-size: 16px !important;
+  line-height: 1.45 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+textarea {
+  padding-top: 13px !important;
+}
+
+.customer-hub-search,
+.project-hub-search,
+.sales-memo-customer-search {
+  padding-left: 42px !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.customer-hub-search:focus,
+.project-hub-search:focus,
+.sales-memo-customer-search:focus {
+  border-color: rgba(23, 105, 170, 0.44) !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 0 0 4px rgba(23, 105, 170, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
+}
+
+button,
+.primary-button,
+.secondary-button,
+.danger-button,
+.ghost-button,
+.subscreen-home-link,
+.app-nav-button,
+.action-card,
+.customer-hub-add-button,
+.customer-hub-action,
+.customer-hub-detail-button,
+.customer-hub-list-back-button,
+.customer-hub-group-header,
+.project-hub-add-button,
+.project-hub-card-actions button,
+.submission-filter-button,
+.submission-action-button,
+.todo-add-button,
+.todo-edit-button,
+.task-filter-button,
+.task-edit-item-button,
+.task-submission-link-button,
+.task-submission-submit-button,
+.schedule-tab-button,
+.schedule-range-button,
+.schedule-mode-button,
+.schedule-day-button,
+.schedule-day-add-button,
+.schedule-edit-button,
+.schedule-sales-action,
+.sales-memo-actions button,
+.sales-memo-customer-result,
+.sales-memo-choice-card,
+.settings-actions button,
+.setup-wizard-actions button,
+.business-card-import-actions button {
+  min-height: 44px !important;
+  border-radius: var(--v1-radius-pill) !important;
+  letter-spacing: 0 !important;
+  transition:
+    color var(--v1-transition),
+    background-color var(--v1-transition),
+    border-color var(--v1-transition),
+    box-shadow var(--v1-transition),
+    transform var(--v1-transition) !important;
+}
+
+button:not(.secondary-button):not(.danger-button):not(.ghost-button):not(.subscreen-home-link):not(.app-nav-button):not(.action-card):not(.ai-dashboard-card):not(.task-filter-button):not(.schedule-tab-button):not(.schedule-range-button):not(.schedule-mode-button):not(.schedule-day-button):not(.customer-hub-group-header):not(.calendar-color-option):not(.sales-memo-customer-result):not(.sales-memo-choice-card),
+.primary-button {
+  border: 1px solid transparent !important;
+  color: #ffffff !important;
+  background: linear-gradient(180deg, var(--v1-primary) 0%, var(--v1-primary-deep) 100%) !important;
+  box-shadow: var(--v1-shadow-control) !important;
+}
+
+.secondary-button,
+.ghost-button,
+.subscreen-home-link,
+.app-nav-button,
+.customer-hub-list-back-button,
+.project-hub-card-actions .secondary-button,
+.submission-action-button,
+.task-submission-link-button,
+.schedule-edit-button,
+.schedule-sales-action,
+.business-card-import-actions .secondary-button {
+  border: 1px solid var(--v1-border) !important;
+  color: var(--v1-text) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: var(--v1-shadow-control) !important;
+}
+
+.ghost-button,
+.subscreen-home-link,
+.app-nav-button {
+  box-shadow: none !important;
+}
+
+.danger-button,
+.customer-hub-danger-button,
+.is-danger-action,
+.submission-action-button.is-danger {
+  border: 1px solid rgba(185, 28, 28, 0.20) !important;
+  color: var(--v1-danger) !important;
+  background: linear-gradient(180deg, #ffffff 0%, var(--v1-danger-soft) 100%) !important;
+}
+
+.task-filter-button,
+.schedule-tab-button,
+.schedule-range-button,
+.schedule-mode-button,
+.submission-filter-button,
+.calendar-color-option,
+.sales-memo-choice-card {
+  box-shadow: none !important;
+}
+
+.task-filter-button.active,
+.schedule-tab-button.active,
+.schedule-range-button.active,
+.schedule-mode-button.active,
+.submission-filter-button.is-active,
+.calendar-color-option.is-selected,
+.sales-memo-choice-card.is-selected {
+  border-color: rgba(23, 105, 170, 0.22) !important;
+  color: var(--v1-primary) !important;
+  background: #ffffff !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.07), inset 0 0 0 1px rgba(23, 105, 170, 0.08) !important;
+}
+
+.actions,
+.customer-hub-actions,
+.project-hub-card-actions,
+.project-hub-form-actions,
+.submission-actions,
+.submission-edit-actions,
+.sales-memo-actions,
+.settings-actions,
+.setup-wizard-actions,
+.business-card-import-actions,
+.task-submission-tools,
+.task-submission-form-actions,
+.schedule-event-actions,
+.schedule-sales-actions {
+  gap: 10px !important;
+}
+
+.today-card,
+.todo-card,
+.ai-insight-card,
+.ai-status-card,
+.morning-briefing-card,
+.sales-focus-card,
+.customer-hub-shell,
+.project-hub-section,
+.submission-center,
+.sales-memo-card,
+.settings-card,
+.setup-wizard-card {
+  gap: 14px;
+}
+
+.message,
+.customer-hub-message,
+.business-card-import-result,
+.submission-empty,
+.customer-hub-empty,
+.sales-memo-customer-empty,
+.today-empty {
+  border-radius: var(--v1-radius-control) !important;
+}
+
+@media (max-width: 520px) {
+  .actions,
+  .customer-hub-actions,
+  .project-hub-card-actions,
+  .project-hub-form-actions,
+  .submission-actions,
+  .submission-edit-actions,
+  .sales-memo-actions,
+  .settings-actions,
+  .setup-wizard-actions,
+  .business-card-import-actions,
+  .task-submission-tools,
+  .task-submission-form-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .actions > *,
+  .customer-hub-actions > *,
+  .project-hub-card-actions > *,
+  .project-hub-form-actions > *,
+  .submission-actions > *,
+  .submission-edit-actions > *,
+  .sales-memo-actions > *,
+  .settings-actions > *,
+  .setup-wizard-actions > *,
+  .business-card-import-actions > *,
+  .task-submission-tools > *,
+  .task-submission-form-actions > * {
+    width: 100% !important;
+  }
+
+  .panel,
+  .today-card,
+  .todo-card,
+  .ai-insight-card,
+  .ai-status-card,
+  .morning-briefing-card,
+  .sales-focus-card,
+  .customer-hub-card,
+  .customer-hub-profile,
+  .customer-ai-brief,
+  .customer-hub-sales-memo,
+  .customer-hub-form,
+  .project-hub-section,
+  .project-hub-card,
+  .project-hub-form,
+  .submission-center-head,
+  .submission-card,
+  .sales-memo-card,
+  .settings-card,
+  .setup-wizard-card {
+    padding: 16px !important;
+  }
+}
   </style>
 </head>
 
