@@ -5078,14 +5078,36 @@ body.ai-processing .assistant-briefing-icon {
 }
 
 .customer-hub-search-wrap::before {
+  display: none;
+}
+
+.customer-hub-search-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.customer-hub-search-field {
+  position: relative;
+  display: grid;
+  gap: 5px;
+}
+
+.customer-hub-search-label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.customer-hub-search-field::before {
   content: "⌕";
   position: absolute;
-  top: 50%;
-  left: 15px;
+  bottom: 15px;
+  left: 14px;
   color: #94a3b8;
   font-size: 18px;
   line-height: 1;
-  transform: translateY(-50%);
   pointer-events: none;
 }
 
@@ -7391,6 +7413,10 @@ body.ai-processing .status-ready,
     border-radius: 15px;
   }
 
+  .customer-hub-search-grid {
+    grid-template-columns: 1fr;
+  }
+
   .project-hub-search-wrap {
     top: 58px;
     padding-top: 7px;
@@ -8160,15 +8186,31 @@ body.ai-processing .status-ready,
     </button>
   </div>
 
-  <div class="customer-hub-search-wrap">
-    <input
-      id="customerHubSearch"
-      class="customer-hub-search"
-      type="search"
-      placeholder="顧客名・担当者・エリアで検索"
-      autocomplete="off"
-      oninput="handleCustomerHubSearchInput(this.value)"
-    >
+  <div class="customer-hub-search-wrap" aria-label="顧客検索">
+    <div class="customer-hub-search-grid">
+      <label class="customer-hub-search-field" for="customerHubSearch">
+        <span class="customer-hub-search-label">顧客名検索</span>
+        <input
+          id="customerHubSearch"
+          class="customer-hub-search"
+          type="search"
+          placeholder="顧客名・担当者・業種"
+          autocomplete="off"
+          oninput="handleCustomerHubSearchInput(this.value)"
+        >
+      </label>
+      <label class="customer-hub-search-field" for="customerHubAreaSearch">
+        <span class="customer-hub-search-label">エリア検索</span>
+        <input
+          id="customerHubAreaSearch"
+          class="customer-hub-search"
+          type="search"
+          placeholder="福岡市南区・久留米・朝倉"
+          autocomplete="off"
+          oninput="handleCustomerHubAreaSearchInput(this.value)"
+        >
+      </label>
+    </div>
   </div>
 
   <div id="customerHubShell" class="customer-hub-shell">
@@ -8733,6 +8775,7 @@ body.ai-processing .status-ready,
     let customerData = DEMO_CUSTOMERS.slice();
     let customerDataMessage = '';
     let customerHubSearchQuery = '';
+    let customerHubAreaSearchQuery = '';
     let customerHubCollapsedGroups = {};
     let projectData = [];
     let projectDataMessage = '';
@@ -8893,6 +8936,7 @@ function createNavigationState(screenKey) {
     selectedCustomerHubId: selectedCustomerHubId || '',
     selectedProjectHubId: selectedProjectHubId || '',
     customerHubSearchQuery: customerHubSearchQuery || '',
+    customerHubAreaSearchQuery: customerHubAreaSearchQuery || '',
     projectHubSearchQuery: projectHubSearchQuery || '',
     customerHubMode: customerHubMode || 'customers',
     submissionCenterFilter: submissionCenterFilter || 'estimate',
@@ -8919,6 +8963,7 @@ function restoreNavigationState(state) {
   selectedCustomerHubId = state.selectedCustomerHubId || '';
   selectedProjectHubId = state.selectedProjectHubId || '';
   customerHubSearchQuery = state.customerHubSearchQuery || '';
+  customerHubAreaSearchQuery = state.customerHubAreaSearchQuery || '';
   projectHubSearchQuery = state.projectHubSearchQuery || '';
   customerHubMode = state.customerHubMode || 'customers';
   submissionCenterFilter = state.submissionCenterFilter || submissionCenterFilter;
@@ -11597,15 +11642,22 @@ function handleCustomerHubSearchInput(value) {
   renderCustomerHub();
 }
 
+function handleCustomerHubAreaSearchInput(value) {
+  customerHubAreaSearchQuery = String(value || '').trim();
+  renderCustomerHub();
+}
+
 function getVisibleCustomerHubCustomers() {
   const query = normalizeCustomerSearchText(customerHubSearchQuery);
+  const areaQuery = normalizeCustomerSearchText(customerHubAreaSearchQuery);
 
-  if (!query) {
+  if (!query && !areaQuery) {
     return customerData;
   }
 
   return customerData.filter(function(customer) {
-    return customerMatchesSearchQuery(customer, query);
+    return (!query || customerMatchesSearchQuery(customer, query)) &&
+      (!areaQuery || customerMatchesAreaSearchQuery(customer, areaQuery));
   });
 }
 
@@ -11618,14 +11670,29 @@ function customerMatchesSearchQuery(customer, query) {
     customer.department,
     customer.customerType,
     customer.industry,
-    customer.prefecture,
-    customer.city,
     customer.email,
     customer.officePhone,
     customer.mobilePhone
   ].some(function(value) {
     return normalizeCustomerSearchText(value).indexOf(query) !== -1;
   });
+}
+
+function customerMatchesAreaSearchQuery(customer, query) {
+  return getCustomerAreaSearchValues(customer).some(function(value) {
+    return normalizeCustomerSearchText(value).indexOf(query) !== -1;
+  });
+}
+
+function getCustomerAreaSearchValues(customer) {
+  const data = customer || {};
+  return [
+    data.prefecture,
+    data.city,
+    data.address,
+    data.area,
+    data.googleMapUrl
+  ];
 }
 
 function normalizeCustomerSearchText(value) {
@@ -11698,6 +11765,7 @@ function getCustomerTodayStart() {
 }
 
 function renderCustomerHub() {
+  syncCustomerHubSearchInputs();
   resetCustomerForm({ keepDetail: true });
   renderCustomerHubMessage();
 
@@ -11722,6 +11790,19 @@ function renderCustomerHub() {
   selectedCustomerHubId = '';
 
   clearCustomerHubDetailContainer();
+}
+
+function syncCustomerHubSearchInputs() {
+  const searchInput = document.getElementById('customerHubSearch');
+  const areaSearchInput = document.getElementById('customerHubAreaSearch');
+
+  if (searchInput && searchInput.value !== customerHubSearchQuery) {
+    searchInput.value = customerHubSearchQuery;
+  }
+
+  if (areaSearchInput && areaSearchInput.value !== customerHubAreaSearchQuery) {
+    areaSearchInput.value = customerHubAreaSearchQuery;
+  }
 }
 
 function renderCustomerHubMessage() {
