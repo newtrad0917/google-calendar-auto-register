@@ -228,6 +228,77 @@ section,
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
+    .calendar-edit-summary {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 18px;
+      padding: 15px;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+      box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.94);
+    }
+
+    .calendar-edit-summary.hidden {
+      display: none !important;
+    }
+
+    .calendar-edit-summary-kicker {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .calendar-edit-summary-title {
+      margin: 0;
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 950;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .calendar-edit-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .calendar-edit-summary-grid > div {
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid rgba(226, 232, 240, 0.88);
+      border-radius: 13px;
+      background: #ffffff;
+    }
+
+    .calendar-edit-summary-label,
+    .calendar-edit-summary-value {
+      display: block;
+    }
+
+    .calendar-edit-summary-label {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .calendar-edit-summary-value {
+      overflow: hidden;
+      margin-top: 3px;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .meet-option {
       display: flex;
       align-items: center;
@@ -543,6 +614,10 @@ overflow-wrap: anywhere;
 
       .panel {
         padding: 18px 16px;
+      }
+
+      .calendar-edit-summary-grid {
+        grid-template-columns: 1fr;
       }
     }
     .home-section {
@@ -7937,6 +8012,21 @@ body.ai-processing .status-ready,
           必要に応じて内容を直してから登録してください。
         </p>
 
+        <section id="calendarEditSummary" class="calendar-edit-summary hidden" aria-label="編集中の予定">
+          <div class="calendar-edit-summary-kicker">編集中の予定</div>
+          <h3 id="calendarEditSummaryTitle" class="calendar-edit-summary-title">予定名未設定</h3>
+          <div class="calendar-edit-summary-grid">
+            <div>
+              <span class="calendar-edit-summary-label">変更前の日時</span>
+              <span id="calendarEditSummaryTime" class="calendar-edit-summary-value">未設定</span>
+            </div>
+            <div>
+              <span class="calendar-edit-summary-label">変更前の場所</span>
+              <span id="calendarEditSummaryLocation" class="calendar-edit-summary-value">未設定</span>
+            </div>
+          </div>
+        </section>
+
         <div class="field customer-select-field">
           <label for="calendarCustomerSelect">顧客を選択</label>
           <div class="customer-select-wrap">
@@ -8031,6 +8121,9 @@ body.ai-processing .status-ready,
           </button>
           <button type="button" id="calendarBackButton" class="secondary-button" onclick="goBack()">
             入力画面に戻る
+          </button>
+          <button type="button" id="calendarEditCancelButton" class="secondary-button hidden" onclick="cancelCalendarEdit()">
+            キャンセルして戻る
           </button>
           <button type="button" class="secondary-button" onclick="showHomeScreen()">
             ホームに戻る
@@ -14145,7 +14238,8 @@ function enterCalendarEditMode(event) {
   document.getElementById('location').value = event && event.location ? event.location : '';
   document.getElementById('memo').value = event && event.description ? event.description : '';
   setSelectedEventColor('');
-  setCalendarConfirmCopy('予定編集', '必要に応じて内容を直してから保存してください。', '変更を保存');
+  setCalendarConfirmCopy('予定を編集', '変更前の内容を確認し、必要な箇所だけ直してください。', '変更を保存');
+  renderCalendarEditSummary(event);
 
   const meetOption = document.getElementById('createMeetOption');
   const meetInput = document.getElementById('createMeet');
@@ -14160,9 +14254,14 @@ function enterCalendarEditMode(event) {
   }
 
   const backButton = document.getElementById('calendarBackButton');
+  const cancelButton = document.getElementById('calendarEditCancelButton');
 
   if (backButton) {
     backButton.classList.add('hidden');
+  }
+
+  if (cancelButton) {
+    cancelButton.classList.remove('hidden');
   }
 
   const customerSelect = document.getElementById('calendarCustomerSelect');
@@ -14183,6 +14282,7 @@ function enterCalendarEditMode(event) {
 function resetCalendarEditMode() {
   editingCalendarEvent = null;
   setCalendarConfirmCopy('登録前の確認', '必要に応じて内容を直してから登録してください。', 'Googleカレンダーに登録');
+  hideCalendarEditSummary();
 
   const meetOption = document.getElementById('createMeetOption');
   const meetInput = document.getElementById('createMeet');
@@ -14196,9 +14296,14 @@ function resetCalendarEditMode() {
   }
 
   const backButton = document.getElementById('calendarBackButton');
+  const cancelButton = document.getElementById('calendarEditCancelButton');
 
   if (backButton) {
     backButton.classList.remove('hidden');
+  }
+
+  if (cancelButton) {
+    cancelButton.classList.add('hidden');
   }
 }
 
@@ -14218,6 +14323,72 @@ function setCalendarConfirmCopy(titleText, descriptionText, buttonText) {
   if (button) {
     button.textContent = buttonText;
   }
+}
+
+function renderCalendarEditSummary(event) {
+  const summary = document.getElementById('calendarEditSummary');
+  const title = document.getElementById('calendarEditSummaryTitle');
+  const time = document.getElementById('calendarEditSummaryTime');
+  const location = document.getElementById('calendarEditSummaryLocation');
+
+  if (!summary) {
+    return;
+  }
+
+  if (title) {
+    title.textContent = getCalendarEditSummaryTitle(event);
+  }
+
+  if (time) {
+    time.textContent = getCalendarEditSummaryTime(event);
+  }
+
+  if (location) {
+    location.textContent = event && event.location ? event.location : '未設定';
+  }
+
+  summary.classList.remove('hidden');
+}
+
+function hideCalendarEditSummary() {
+  const summary = document.getElementById('calendarEditSummary');
+
+  if (summary) {
+    summary.classList.add('hidden');
+  }
+}
+
+function getCalendarEditSummaryTitle(event) {
+  return String(event && event.title ? event.title : '').trim() || '予定名未設定';
+}
+
+function getCalendarEditSummaryTime(event) {
+  if (!event) {
+    return '未設定';
+  }
+
+  if (event.allDay) {
+    return (event.dateKey ? formatScheduleDateShort(event.dateKey) + ' ' : '') + '終日';
+  }
+
+  const datePrefix = event.dateKey ? formatScheduleDateShort(event.dateKey) + ' ' : '';
+
+  if (event.startTime && event.endTime) {
+    return datePrefix + event.startTime + ' - ' + event.endTime;
+  }
+
+  return datePrefix + getScheduleEventTimeText(event);
+}
+
+function cancelCalendarEdit() {
+  const returnView = editingCalendarEvent && editingCalendarEvent.returnView
+    ? editingCalendarEvent.returnView
+    : 'today';
+  const returnDateKey = editingCalendarEvent && editingCalendarEvent.returnDateKey
+    ? editingCalendarEvent.returnDateKey
+    : '';
+
+  returnToScheduleAfterCalendarEdit('', returnView, returnDateKey, { skipMessage: true });
 }
 
 function showCalendarConfirmPanel() {
@@ -14353,13 +14524,13 @@ function setSelectedEventColor(value) {
 
         google.script.run
           .withSuccessHandler(function(result) {
-            const message = result && result.message
-              ? result.message
-              : '予定を更新しました。';
+            const message = '予定を更新しました';
 
             button.disabled = false;
             button.textContent = idleButtonText;
-            returnToScheduleAfterCalendarEdit(message, returnView, returnDateKey);
+            returnToScheduleAfterCalendarEdit(message, returnView, returnDateKey, {
+              updatedEvent: result && result.event ? result.event : null
+            });
           })
           .withFailureHandler(function(error) {
             showMessage('エラー：' + error.message, true);
@@ -14407,9 +14578,10 @@ function setSelectedEventColor(value) {
         .createCalendarEvent(data);
     }
 
-function returnToScheduleAfterCalendarEdit(message, view, dateKey) {
+function returnToScheduleAfterCalendarEdit(message, view, dateKey, options) {
   const nextView = view || 'today';
   const nextDateKey = dateKey || '';
+  const returnOptions = options || {};
 
   resetCalendarEditMode();
   currentScheduleView = nextView;
@@ -14417,8 +14589,14 @@ function returnToScheduleAfterCalendarEdit(message, view, dateKey) {
   showHomeScreen({ skipTransition: true });
   currentScheduleView = nextView;
   selectedScheduleDate = nextDateKey;
+  if (returnOptions.updatedEvent) {
+    selectedScheduleDate = returnOptions.updatedEvent.dateKey || selectedScheduleDate;
+  }
   loadScheduleEvents(currentScheduleView || 'today', selectedScheduleDate || '');
-  showMessage(message || '予定を更新しました。');
+
+  if (!returnOptions.skipMessage) {
+    showMessage(message || '予定を更新しました');
+  }
 }
 
 function initCalendarColorOptions() {
