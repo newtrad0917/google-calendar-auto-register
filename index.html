@@ -13689,7 +13689,7 @@ function formatSubmissionDate(value) {
   return date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
 }
 
-function linkProjectToSubmission(projectId, documentType) {
+function linkProjectToSubmission(projectId, documentType, button) {
   const isInvoice = documentType === 'invoice';
   const patch = isInvoice
     ? {
@@ -13708,7 +13708,9 @@ function linkProjectToSubmission(projectId, documentType) {
       };
 
   updateSubmissionProjectStatus(projectId, patch, {
-    message: isInvoice ? '請求書を提出管理へ追加しました。' : '見積を提出管理へ追加しました。'
+    message: isInvoice ? '請求書を提出管理へ追加しました。' : '見積を提出管理へ追加しました。',
+    button: button,
+    busyText: '追加中…'
   });
 }
 
@@ -14932,11 +14934,11 @@ function createProjectHubInlineDetail(project) {
   actions.appendChild(createProjectHubButton('📝 営業報告', function() {
     startProjectSalesMemo(project);
   }, 'secondary-button icon-action-sales-memo'));
-  actions.appendChild(createProjectHubButton('📄 見積管理へ追加', function() {
-    linkProjectToSubmission(project.id, 'estimate');
+  actions.appendChild(createProjectHubButton('📄 見積管理へ追加', function(button) {
+    linkProjectToSubmission(project.id, 'estimate', button);
   }, 'secondary-button icon-action-document'));
-  actions.appendChild(createProjectHubButton('🧾 請求書管理へ追加', function() {
-    linkProjectToSubmission(project.id, 'invoice');
+  actions.appendChild(createProjectHubButton('🧾 請求書管理へ追加', function(button) {
+    linkProjectToSubmission(project.id, 'invoice', button);
   }, 'secondary-button icon-action-document'));
   actions.appendChild(createProjectHubButton('✏ 編集', function() {
     showProjectForm(project.customerId, project.id);
