@@ -8404,6 +8404,210 @@ button:active,
   transform: translateY(0) scale(0.992);
 }
 
+/* Ver1 home final priority pass */
+.home-section {
+  gap: 12px;
+}
+
+.home-section .brand-card {
+  padding: 16px !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.035) !important;
+}
+
+.home-section .brand-kicker,
+.home-section .brand-title,
+.home-section .brand-description {
+  color: var(--ds-midnight) !important;
+}
+
+.home-section .brand-description {
+  color: var(--ds-gray-500) !important;
+}
+
+.home-section .assistant-briefing {
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  background: var(--ds-gray-50) !important;
+  box-shadow: none !important;
+}
+
+.home-card-link {
+  width: auto;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(23, 105, 170, 0.18) !important;
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-royal) !important;
+  background: #ffffff !important;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 3px 9px rgba(15, 23, 42, 0.025), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+.home-card-link:hover {
+  border-color: rgba(23, 105, 170, 0.30) !important;
+  background: #ffffff !important;
+}
+
+.morning-briefing-card,
+.today-card,
+.todo-card,
+.sales-focus-card,
+.today-progress-card,
+.home-section .ai-insight-card {
+  border-radius: 16px !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+}
+
+.morning-briefing-card,
+.sales-focus-card,
+.today-progress-card {
+  padding: 18px;
+}
+
+.morning-briefing-card {
+  gap: 14px;
+}
+
+.morning-briefing-section {
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.morning-briefing-actions-section {
+  gap: 10px;
+}
+
+.today-progress-card {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.032) !important;
+}
+
+.today-progress-card::before {
+  background: rgba(23, 105, 170, 0.58);
+}
+
+.home-section .ai-insight-card {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.032) !important;
+}
+
+.home-section .ai-dashboard-card {
+  min-height: 92px;
+  padding: 14px 14px 14px 18px;
+  box-shadow: none;
+}
+
+.home-section .ai-dashboard-value {
+  font-size: 34px;
+}
+
+.ai-status-card {
+  padding: 12px;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.ai-status-header {
+  margin-bottom: 8px;
+}
+
+.ai-status-description {
+  display: none;
+}
+
+.ai-status-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ai-status-item {
+  min-height: 32px;
+  padding: 7px 8px;
+  background: var(--ds-gray-50) !important;
+  box-shadow: none !important;
+}
+
+.status-ready {
+  animation: none !important;
+}
+
+body.ai-processing .status-ready {
+  animation: assistant-icon-ai-working 2.8s ease-in-out infinite !important;
+}
+
+.action-card.is-coming-soon {
+  opacity: 0.58;
+  box-shadow: none !important;
+}
+
+@media (max-width: 520px) {
+  body {
+    padding:
+      max(14px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .home-section {
+    gap: 10px;
+  }
+
+  .morning-briefing-card,
+  .sales-focus-card,
+  .today-progress-card {
+    padding: 14px;
+  }
+
+  .morning-briefing-card {
+    gap: 12px;
+  }
+
+  .morning-briefing-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .morning-briefing-metric {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 9px;
+  }
+
+  .morning-briefing-label {
+    font-size: 11px;
+  }
+
+  .morning-briefing-value {
+    font-size: 20px;
+  }
+
+  .ai-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section .ai-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-section .ai-dashboard-card {
+    min-height: 84px;
+    padding: 12px;
+  }
+
+  .home-section .ai-dashboard-value {
+    font-size: 28px;
+  }
+}
+
 @keyframes v1-polish-fade-in {
   from {
     opacity: 0.88;
@@ -8457,25 +8661,6 @@ button:active,
 
     <div class="panel">
    <section id="homeSection" class="home-section app-shell">
-  <div class="brand-card">
-    <p class="brand-kicker">SALES AI ASSISTANT</p>
-    <h2 class="brand-title">営業AI秘書</h2>
-    <p class="brand-description">
-      顧客管理を中心に、予定・メール・営業メモをスマートにまとめます。
-    </p>
-    <div id="assistantBriefing" class="assistant-briefing" aria-live="polite">
-      <span class="assistant-briefing-icon" aria-hidden="true"></span>
-      <span class="assistant-briefing-copy">
-        <span id="assistantBriefingTitle" class="assistant-briefing-title">
-          今日の営業準備ができています。
-        </span>
-        <span id="assistantBriefingText" class="assistant-briefing-text">
-          優先事項を確認しましょう。
-        </span>
-      </span>
-    </div>
-  </div>
-
   <section id="morningBriefingCard" class="morning-briefing-card" aria-labelledby="morningBriefingTitle">
     <div class="morning-briefing-head">
       <span class="morning-briefing-icon icon-morning-briefing" aria-hidden="true">🔥</span>
@@ -8520,50 +8705,11 @@ button:active,
     </div>
   </section>
 
-  <section id="todayProgressCard" class="today-progress-card" aria-labelledby="todayProgressTitle">
-    <div class="today-progress-head">
-      <h3 id="todayProgressTitle" class="today-progress-title">今日の営業進捗</h3>
-      <p class="today-progress-description">今日あと何を終わらせれば一区切りになるかを整理します</p>
-    </div>
-    <div class="today-progress-meter" aria-label="今日の営業進捗率">
-      <div class="today-progress-track" aria-hidden="true">
-        <div id="todayProgressFill" class="today-progress-fill"></div>
-      </div>
-      <div class="today-progress-summary">
-        <span id="todayProgressSummary">進捗を確認しています</span>
-        <strong id="todayProgressRate" class="today-progress-rate">0%</strong>
-      </div>
-    </div>
-    <div class="today-progress-groups">
-      <div class="today-progress-group">
-        <p class="today-progress-group-title">今日完了した営業行動</p>
-        <div id="todayProgressDoneList" class="today-progress-list">
-          <p class="today-progress-empty">完了状況を確認しています。</p>
-        </div>
-      </div>
-      <div class="today-progress-group">
-        <p class="today-progress-group-title">今日残っている営業行動</p>
-        <div id="todayProgressRemainingList" class="today-progress-list">
-          <p class="today-progress-empty">残り行動を確認しています。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="salesFocusCard" class="sales-focus-card" aria-labelledby="salesFocusTitle">
-    <div class="sales-focus-head">
-      <h3 id="salesFocusTitle" class="sales-focus-title">営業フォーカス</h3>
-      <p class="sales-focus-description">今日優先して対応すべき営業アクションです</p>
-    </div>
-    <div id="salesFocusList" class="sales-focus-list">
-      <p class="sales-focus-empty">既存データから営業フォーカスを整理しています。</p>
-    </div>
-  </section>
-
   <div class="today-card">
     <div class="today-card-header">
       <h3 id="scheduleTitle" class="today-title">本日の予定</h3>
       <div class="schedule-header-controls">
+        <button type="button" class="home-card-link" onclick="focusTodaySchedule()">予定確認</button>
         <div class="schedule-segment" role="tablist" aria-label="予定表示切替">
           <button type="button" id="scheduleViewToday" class="schedule-tab-button active" onclick="setScheduleView('today')" aria-selected="true">
             <span class="schedule-tab-icon" aria-hidden="true">●</span>
@@ -8594,16 +8740,6 @@ button:active,
     </div>
   </div>
 
-  <section id="aiInsightCard" class="ai-insight-card" aria-labelledby="aiInsightTitle">
-    <div class="ai-insight-header">
-      <h3 id="aiInsightTitle" class="ai-insight-title">
-        <span class="ai-insight-icon" aria-hidden="true">✨</span>
-        AIインサイト
-      </h3>
-      <span class="ai-insight-badge">Ver1</span>
-    </div>
-    <div id="aiInsightGrid" class="ai-dashboard-grid" aria-label="営業ダッシュボード"></div>
-  </section>
   <div class="todo-card">
     <div class="todo-card-header">
       <div class="todo-heading">
@@ -8611,6 +8747,7 @@ button:active,
         <span id="todoStatusSummary" class="todo-status">確認中</span>
       </div>
       <div class="todo-card-actions">
+        <button type="button" class="home-card-link" onclick="openTodayTodoDashboard()">TODOへ</button>
         <button type="button" class="todo-add-button" onclick="handleTodoAddButtonClick(event)" aria-label="TODOを追加">
           +
         </button>
@@ -8632,6 +8769,76 @@ button:active,
 
     <div id="homeTaskList" class="task-list">
       <p class="task-empty">TODOを読み込み中です...</p>
+    </div>
+  </div>
+
+  <section id="salesFocusCard" class="sales-focus-card" aria-labelledby="salesFocusTitle">
+    <div class="sales-focus-head">
+      <h3 id="salesFocusTitle" class="sales-focus-title">営業フォーカス</h3>
+      <p class="sales-focus-description">今日優先して対応すべき営業アクションです</p>
+    </div>
+    <div id="salesFocusList" class="sales-focus-list">
+      <p class="sales-focus-empty">既存データから営業フォーカスを整理しています。</p>
+    </div>
+  </section>
+
+  <section id="todayProgressCard" class="today-progress-card" aria-labelledby="todayProgressTitle">
+    <div class="today-progress-head">
+      <h3 id="todayProgressTitle" class="today-progress-title">今日の営業進捗</h3>
+      <p class="today-progress-description">今日あと何を終わらせれば一区切りになるかを整理します</p>
+    </div>
+    <div class="today-progress-meter" aria-label="今日の営業進捗率">
+      <div class="today-progress-track" aria-hidden="true">
+        <div id="todayProgressFill" class="today-progress-fill"></div>
+      </div>
+      <div class="today-progress-summary">
+        <span id="todayProgressSummary">進捗を確認しています</span>
+        <strong id="todayProgressRate" class="today-progress-rate">0%</strong>
+      </div>
+    </div>
+    <div class="today-progress-groups">
+      <div class="today-progress-group">
+        <p class="today-progress-group-title">今日完了した営業行動</p>
+        <div id="todayProgressDoneList" class="today-progress-list">
+          <p class="today-progress-empty">完了状況を確認しています。</p>
+        </div>
+      </div>
+      <div class="today-progress-group">
+        <p class="today-progress-group-title">今日残っている営業行動</p>
+        <div id="todayProgressRemainingList" class="today-progress-list">
+          <p class="today-progress-empty">残り行動を確認しています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="aiInsightCard" class="ai-insight-card" aria-labelledby="aiInsightTitle">
+    <div class="ai-insight-header">
+      <h3 id="aiInsightTitle" class="ai-insight-title">
+        <span class="ai-insight-icon" aria-hidden="true">✨</span>
+        AIインサイト
+      </h3>
+      <span class="ai-insight-badge">Ver1</span>
+    </div>
+    <div id="aiInsightGrid" class="ai-dashboard-grid" aria-label="営業ダッシュボード"></div>
+  </section>
+
+  <div class="brand-card">
+    <p class="brand-kicker">SALES AI ASSISTANT</p>
+    <h2 class="brand-title">営業AI秘書</h2>
+    <p class="brand-description">
+      顧客管理を中心に、予定・メール・営業メモをスマートにまとめます。
+    </p>
+    <div id="assistantBriefing" class="assistant-briefing" aria-live="polite">
+      <span class="assistant-briefing-icon" aria-hidden="true"></span>
+      <span class="assistant-briefing-copy">
+        <span id="assistantBriefingTitle" class="assistant-briefing-title">
+          今日の営業準備ができています。
+        </span>
+        <span id="assistantBriefingText" class="assistant-briefing-text">
+          優先事項を確認しましょう。
+        </span>
+      </span>
     </div>
   </div>
 
