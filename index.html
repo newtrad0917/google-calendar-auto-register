@@ -8700,6 +8700,44 @@ body.ai-processing .home-section .assistant-briefing-icon {
   color: #52677f !important;
 }
 
+/* Ver1 home order: keep the product face and today's priorities together */
+.home-section > .brand-card {
+  order: 1;
+}
+
+.home-section > .morning-briefing-card {
+  order: 2;
+}
+
+.home-section > .today-card {
+  order: 3;
+}
+
+.home-section > .todo-card {
+  order: 4;
+}
+
+.home-section > .sales-focus-card {
+  order: 5;
+}
+
+.home-section > .today-progress-card {
+  order: 6;
+}
+
+.home-section > .ai-insight-card {
+  order: 7;
+}
+
+.home-section > .action-title,
+.home-section > .action-grid {
+  order: 8;
+}
+
+.home-section > .ai-status-card {
+  order: 9;
+}
+
 @keyframes v1-polish-fade-in {
   from {
     opacity: 0.88;
