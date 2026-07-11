@@ -2971,6 +2971,19 @@ body {
   white-space: nowrap !important;
 }
 
+.schedule-location-map-link {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.schedule-location-map-link:hover {
+  color: #1769aa !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .schedule-event-actions {
   display: flex;
   justify-content: flex-end;
@@ -19273,6 +19286,7 @@ function createSalesScheduleItem(event) {
   const area = document.createElement('div');
   area.className = 'schedule-sales-view-area';
   area.textContent = getScheduleSalesArea(event);
+  enableScheduleLocationMapLink(area, event);
   body.appendChild(area);
 
   const detail = getScheduleSalesDetail(event, area.textContent);
@@ -19380,6 +19394,7 @@ function createDailyScheduleEventItem(event) {
     const location = document.createElement('div');
     location.className = 'schedule-event-location';
     location.textContent = '📍 ' + event.location;
+    enableScheduleLocationMapLink(location, event);
     body.appendChild(location);
   }
 
@@ -19441,6 +19456,7 @@ function createScheduleSalesCard(event, customer) {
     const locationNode = document.createElement('p');
     locationNode.className = 'schedule-sales-brief';
     locationNode.textContent = '場所：' + event.location;
+    enableScheduleLocationMapLink(locationNode, event);
     card.appendChild(locationNode);
   }
 
@@ -19488,6 +19504,33 @@ function createScheduleEditButton(event) {
     openScheduleEventEdit(event);
   });
   return button;
+}
+
+function enableScheduleLocationMapLink(node, event) {
+  if (!node || !event || !event.location) {
+    return;
+  }
+
+  node.classList.add('schedule-location-map-link');
+  node.title = 'Googleマップで開く';
+  node.setAttribute('role', 'link');
+  node.tabIndex = 0;
+  node.addEventListener('click', function(clickEvent) {
+    clickEvent.stopPropagation();
+    window.open(
+      getCustomerMapUrl({ address: event.location }),
+      '_blank',
+      'noopener'
+    );
+  });
+  node.addEventListener('keydown', function(keyEvent) {
+    if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') {
+      return;
+    }
+
+    keyEvent.preventDefault();
+    node.click();
+  });
 }
 
 function createScheduleSalesPhoneAction(customer) {
@@ -20375,6 +20418,7 @@ function createScheduleEventRow(event, isCompact) {
     const location = document.createElement('div');
     location.className = 'schedule-event-location';
     location.textContent = '📍 ' + event.location;
+    enableScheduleLocationMapLink(location, event);
     body.appendChild(location);
   }
 
